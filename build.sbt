@@ -1,6 +1,6 @@
 seq(com.github.retronym.SbtOneJar.oneJarSettings: _*) // include these settings
 
-name := "greeter"
+name := "storm-base"
 
 version := "1.0"
 
