@@ -16,7 +16,7 @@ resolvers ++= Seq(
 )
 
 libraryDependencies ++= Seq(
-  "storm" % "storm" % "0.8.1" % "provided",
+  "storm" % "storm" % "0.8.2" % "provided",
   "org.scalatest" %% "scalatest" % "1.9.1" % "test",
   "junit" % "junit" % "4.10" % "test",
   "com.novocode" % "junit-interface" % "0.10-M4" % "test"
