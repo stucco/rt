@@ -1,8 +1,10 @@
+package storm.base.exampletest
+
 import org.scalatest.FunSuite
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
-import Doubler._
+import storm.base.exampletest.Doubler._
 
 @RunWith(classOf[JUnitRunner])
 class DoublerSuite extends FunSuite {
