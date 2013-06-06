@@ -6,7 +6,6 @@ import org.scalatest.junit.JUnitRunner
 
 import storm.base.exampletest.Doubler._
 
-@RunWith(classOf[JUnitRunner])
 class DoublerSuite extends FunSuite {
   
   test("double: 3") {

@@ -1,4 +1,6 @@
-seq(com.github.retronym.SbtOneJar.oneJarSettings: _*) // include these settings
+import AssemblyKeys._
+
+assemblySettings
 
 name := "storm-base"
 
@@ -21,21 +23,7 @@ resolvers ++= Seq(
 
 libraryDependencies ++= Seq(
   "storm" % "storm" % "0.8.1" % "provided",
-  "redis.clients" % "jedis" % "2.1.0",
   "org.scalatest" %% "scalatest" % "1.9.1" % "test",
   "junit" % "junit" % "4.10" % "test",
-  "com.novocode" % "junit-interface" % "0.8" % "test->default"
+  "com.novocode" % "junit-interface" % "0.10-M4" % "test"
 )
-
-// generate shell script that will run the storm topology
-TaskKey[File]("generate-storm") <<= (baseDirectory, fullClasspath in Compile, mainClass in Compile) map { (base, cp, main) =>
-  val template = """|#!/bin/sh
-                    |java -classpath "%s" %s "$@"
-                    |""".stripMargin
-  val mainStr = main getOrElse error("No main class specified")
-  val contents = template.format(cp.files.absString, mainStr)
-  val out = base / "bin/run-main-topology.sh"
-  IO.write(out, contents)
-  out.setExecutable(true)
-  out
-}

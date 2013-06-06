@@ -6,7 +6,6 @@ import org.scalatest.junit.JUnitRunner
 
 import storm.base.exampletest.Quadrupler._
 
-@RunWith(classOf[JUnitRunner])
 class QuadruplerSuite extends FunSuite {
 
   test("quadruple: 4") {
