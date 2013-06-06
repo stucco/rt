@@ -23,7 +23,8 @@ libraryDependencies ++= Seq(
   "org.scalaz" %% "scalaz-core" % "6.0.4",
   "redis.clients" % "jedis" % "2.1.0",
   "org.scalatest" %% "scalatest" % "1.9.1" % "test",
-  "junit" % "junit" % "4.10" % "test"
+  "junit" % "junit" % "4.10" % "test",
+  "com.novocode" % "junit-interface" % "0.8" % "test->default"
 )
 
 // generate shell script that will run the storm topology
