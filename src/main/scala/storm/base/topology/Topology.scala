@@ -6,6 +6,7 @@ import backtype.storm.utils.Utils
 
 object Topology {
   val NUM_WORKERS = 3
+
   def main(args: Array[String]) {
     val builder = new TopologyBuilder
 
