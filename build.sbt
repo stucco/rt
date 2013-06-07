@@ -16,8 +16,27 @@ resolvers ++= Seq(
 )
 
 libraryDependencies ++= Seq(
-  "storm" % "storm" % "0.8.2" % "provided",
+  // can't use provided dep for storm, otherwise sbt run won't work
+  // "storm" % "storm" % "0.8.2" % "provided"
+  "storm" % "storm" % "0.8.2",
   "org.scalatest" %% "scalatest" % "1.9.1" % "test",
   "junit" % "junit" % "4.10" % "test",
   "com.novocode" % "junit-interface" % "0.10-M4" % "test"
 )
+
+// following two sections needed to make sbt assembly work
+// (or we can use a "provided" dependency, but then sbt run won't work)
+
+excludedJars in assembly <<= (fullClasspath in assembly) map { cp =>
+  cp filter { jar => Seq(
+    "storm-0.8.2.jar",
+    "servlet-api-2.5-20081211.jar"
+  ) contains jar.data.getName }
+}
+
+mergeStrategy in assembly <<= (mergeStrategy in assembly) { old =>
+  {
+    case "project.clj" => MergeStrategy.discard
+    case x => old(x)
+  }
+}
