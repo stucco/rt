@@ -2,7 +2,7 @@ import AssemblyKeys._
 
 assemblySettings
 
-name := "storm-base"
+name := "stucco"
 
 version := "1.0"
 

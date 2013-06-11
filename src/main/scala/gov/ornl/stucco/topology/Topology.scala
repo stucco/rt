@@ -1,4 +1,4 @@
-package storm.base.topology
+package gov.ornl.stucco.topology
 
 import backtype.storm.{Config, LocalCluster, StormSubmitter}
 import backtype.storm.topology.TopologyBuilder
