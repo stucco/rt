@@ -1,5 +1,7 @@
 package gov.ornl.stucco.spout
 
+import scala.util.control.Exception._
+
 import backtype.storm.topology.base.BaseRichSpout
 import backtype.storm.spout.{SpoutOutputCollector, Scheme}
 import backtype.storm.topology.OutputFieldsDeclarer
@@ -36,6 +38,8 @@ class RabbitMQSpout(
   extends BaseRichSpout {
 
   val ERROR_STREAM_NAME = "error-stream"
+  val DELAY_AFTER_SHUTDOWN: JLong = 1000 // milliseconds
+  val DELIVERY_WAIT_TIME: JLong = 1 // milliseconds
   @transient private var collector: Option[SpoutOutputCollector] = None
   @transient private var connection: Option[Connection] = None
   @transient private var channel: Option[Channel] = None
@@ -61,7 +65,7 @@ class RabbitMQSpout(
   override def nextTuple() {
     try {
       consumer foreach { c =>
-        val delivery = c.nextDelivery()
+        val delivery = c.nextDelivery(DELIVERY_WAIT_TIME)
         val tag: JLong = delivery.getEnvelope.getDeliveryTag
         val msg = delivery.getBody
         Option(serializationScheme deserialize msg) match {
@@ -72,7 +76,10 @@ class RabbitMQSpout(
         }
       }
     } catch {
-      case e: ShutdownSignalException => { reconnect() }
+      case e: ShutdownSignalException => { 
+        sleep(DELAY_AFTER_SHUTDOWN)
+        reconnect()
+      }
     }
   }
 
@@ -129,6 +136,12 @@ class RabbitMQSpout(
 
   private def reconnect() {
     setupChannel()
+  }
+
+  private def sleep(milliseconds: JLong) {
+    ignoring(classOf[InterruptedException]) {
+      Thread.sleep(milliseconds)
+    }
   }
 }
 
