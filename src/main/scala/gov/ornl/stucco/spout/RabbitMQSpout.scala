@@ -69,14 +69,15 @@ class RabbitMQSpout(
   override def nextTuple() {
     try {
       if (consumer != null) {
-        val delivery = consumer.nextDelivery(DELIVERY_WAIT_TIME)
-        val tag: JLong = delivery.getEnvelope.getDeliveryTag
-        val msg = delivery.getBody
-        Option(serializationScheme deserialize msg) match {
-          case None =>
-            handleMalformed(tag, msg)
-          case Some(deserialized) =>
-            if (collector != null) collector.emit(deserialized, tag)
+        Option(consumer.nextDelivery(DELIVERY_WAIT_TIME)) foreach { delivery =>
+          val tag: JLong = delivery.getEnvelope.getDeliveryTag
+          val msg = delivery.getBody
+          Option(serializationScheme deserialize msg) match {
+            case None =>
+              handleMalformed(tag, msg)
+            case Some(deserialized) =>
+              if (collector != null) collector.emit(deserialized, tag)
+          }
         }
       }
     } catch {
