@@ -1,4 +1,4 @@
-storm-base
+stucco-rt
 ==========
 
 basic sbt usage
