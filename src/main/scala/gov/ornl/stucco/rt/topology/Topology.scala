@@ -1,7 +1,5 @@
 package gov.ornl.stucco.rt.topology
 
-import gov.ornl.stucco.rt.spout.{RabbitMQSpout, Queue}
-
 import backtype.storm.{Config, LocalCluster, StormSubmitter}
 import backtype.storm.topology.TopologyBuilder
 import backtype.storm.utils.Utils
