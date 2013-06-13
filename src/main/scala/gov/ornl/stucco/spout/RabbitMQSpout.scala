@@ -89,6 +89,7 @@ class RabbitMQSpout(
 
   private def handleMalformed(tag: JLong, msg: Array[Byte]) {
     ack(tag) // to avoid retry loops
+    if (collector != null) collector.emit(ERROR_STREAM_NAME, new Values(tag, msg))
   }
 
   override def ack(msgId: AnyRef) {
