@@ -46,7 +46,7 @@ class RabbitMQSpout(
       config: JMap[_, _],
       context: TopologyContext,
       collector: SpoutOutputCollector) {
-    this.collector = Some(collector)
+    this.collector = Option(collector)
     setupChannel()
   }
 
@@ -64,10 +64,11 @@ class RabbitMQSpout(
         val delivery = c.nextDelivery()
         val tag: JLong = delivery.getEnvelope.getDeliveryTag
         val msg = delivery.getBody
-        val deserialized = Option(serializationScheme deserialize msg)
-        deserialized match {
-          case None => handleMalformed(tag, msg)
-          case Some(d) => collector foreach { _.emit(d, tag) }
+        Option(serializationScheme deserialize msg) match {
+          case None =>
+            handleMalformed(tag, msg)
+          case Some(deserialized) =>
+            collector foreach { _.emit(deserialized, tag) }
         }
       }
     } catch {
@@ -120,10 +121,10 @@ class RabbitMQSpout(
       queue.autoDelete, queue.arguments.orNull)
     val tag = chan.basicConsume(q.getQueue, false, cons)
 
-    connection = Some(conn)
-    channel = Some(chan)
-    consumer = Some(cons)
-    consumerTag = Some(tag)
+    connection = Option(conn)
+    channel = Option(chan)
+    consumer = Option(cons)
+    consumerTag = Option(tag)
   }
 
   private def reconnect() {
