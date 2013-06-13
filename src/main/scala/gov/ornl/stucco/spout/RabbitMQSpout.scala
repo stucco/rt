@@ -40,39 +40,43 @@ class RabbitMQSpout(
   val ERROR_STREAM_NAME = "error-stream"
   val DELAY_AFTER_SHUTDOWN: JLong = 1000 // milliseconds
   val DELIVERY_WAIT_TIME: JLong = 1 // milliseconds
-  @transient private var collector: Option[SpoutOutputCollector] = None
-  @transient private var connection: Option[Connection] = None
-  @transient private var channel: Option[Channel] = None
-  @transient private var consumer: Option[QueueingConsumer] = None
-  @transient private var consumerTag: Option[String] = None
+  @transient private var collector: SpoutOutputCollector = _
+  @transient private var connection: Connection = _
+  @transient private var channel: Channel = _
+  @transient private var consumer: QueueingConsumer = _
+  @transient private var consumerTag: String = _
 
   override def open(
       config: JMap[_, _],
       context: TopologyContext,
       collector: SpoutOutputCollector) {
-    this.collector = Option(collector)
+    this.collector = collector
     setupChannel()
   }
 
   override def close() {
-    channel foreach { c =>
-      consumerTag foreach { c.basicCancel(_) }
-      c.close()
+    if (channel != null) {
+      if (consumerTag != null) {
+        channel.basicCancel(consumerTag)
+      }
+      channel.close()
     }
-    connection foreach { _.close() }
+    if (connection != null) {
+      connection.close()
+    }
   }
 
   override def nextTuple() {
     try {
-      consumer foreach { c =>
-        val delivery = c.nextDelivery(DELIVERY_WAIT_TIME)
+      if (consumer != null) {
+        val delivery = consumer.nextDelivery(DELIVERY_WAIT_TIME)
         val tag: JLong = delivery.getEnvelope.getDeliveryTag
         val msg = delivery.getBody
         Option(serializationScheme deserialize msg) match {
           case None =>
             handleMalformed(tag, msg)
           case Some(deserialized) =>
-            collector foreach { _.emit(deserialized, tag) }
+            if (collector != null) collector.emit(deserialized, tag)
         }
       }
     } catch {
@@ -90,7 +94,7 @@ class RabbitMQSpout(
   override def ack(msgId: AnyRef) {
     msgId match {
       case tag: JLong => {
-        channel foreach { _.basicAck(tag, false) }
+        if (channel != null) channel.basicAck(tag, false)
       }
       case _ => throw new RuntimeException("can't ack " + msgId + ": " +
         msgId.getClass.getName)
@@ -100,7 +104,7 @@ class RabbitMQSpout(
   override def fail(msgId: AnyRef) {
     msgId match {
       case tag: JLong => {
-        channel foreach { _.basicReject(tag, requeueOnFail) }
+        if (channel != null) channel.basicReject(tag, requeueOnFail)
       }
       case _ => throw new RuntimeException("can't fail " + msgId + ": "
         + msgId.getClass.getName)
@@ -120,18 +124,13 @@ class RabbitMQSpout(
     cf.setPassword(password)
     cf.setVirtualHost(virtualHost)
 
-    val conn = cf.newConnection()
-    val chan = conn.createChannel()
-    val cons = new QueueingConsumer(chan)
+    connection = cf.newConnection()
+    channel = connection.createChannel()
+    consumer = new QueueingConsumer(channel)
 
-    val q = chan.queueDeclare(queue.name, queue.durable, queue.exclusive,
+    val q = channel queueDeclare (queue.name, queue.durable, queue.exclusive,
       queue.autoDelete, queue.arguments.orNull)
-    val tag = chan.basicConsume(q.getQueue, false, cons)
-
-    connection = Option(conn)
-    channel = Option(chan)
-    consumer = Option(cons)
-    consumerTag = Option(tag)
+    consumerTag = channel.basicConsume(q.getQueue, false, consumer)
   }
 
   private def reconnect() {
