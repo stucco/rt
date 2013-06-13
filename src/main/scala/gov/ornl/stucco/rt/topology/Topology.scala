@@ -1,6 +1,6 @@
-package gov.ornl.stucco.topology
+package gov.ornl.stucco.rt.topology
 
-import gov.ornl.stucco.spout.{RabbitMQSpout, Queue}
+import gov.ornl.stucco.rt.spout.{RabbitMQSpout, Queue}
 
 import backtype.storm.{Config, LocalCluster, StormSubmitter}
 import backtype.storm.topology.TopologyBuilder

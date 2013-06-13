@@ -1,4 +1,4 @@
-package gov.ornl.stucco.spout
+package gov.ornl.stucco.rt.spout
 
 import scala.util.control.Exception._
 
@@ -21,10 +21,10 @@ import java.lang.{Long => JLong}
 
 case class Queue(
   name: String,
-  durable: Boolean,
-  exclusive: Boolean,
-  autoDelete: Boolean,
-  arguments: Option[JMap[String, AnyRef]])
+  durable: Boolean = false,
+  exclusive: Boolean = false,
+  autoDelete: Boolean = false,
+  arguments: Option[JMap[String, AnyRef]] = None)
 
 class RabbitMQSpout(
     queue: Queue,
