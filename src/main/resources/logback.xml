@@ -1,6 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <configuration>
 
+  <!-- <<<=== USER CONFIGURABLE PROPERTIES ===>>> -->
+
+  <!-- ===>>> GENERAL <<<=== -->
   <property name="LOG_PATTERN" value="%d{HH:mm:ss.SSS} [%thread] %-5level %logger{48} - %msg%n" />
+
+  <!-- ===>>> FILE <<<=== -->
+  <property name="LOG_NAME" value="stucco-rt" />
+
+  <!-- ===> LOGSTASH <<<=== -->
+  <property name="LOGSTASH_NAME" value="logstash" />
+  <property name="LOG_LEVEL" value="info" />
+
+  <!-- <<<======================>>> -->
 
   <appender name="stdout" class="ch.qos.logback.core.ConsoleAppender">
     <encoder>
@@ -9,14 +22,28 @@
   </appender>
 
   <appender name="file" class="ch.qos.logback.core.FileAppender">
-    <file>stucco-rt.log</file>
+    <file>${LOG_NAME}.log</file>
     <encoder>
       <pattern>${LOG_PATTERN}</pattern>
     </encoder>
   </appender>
 
-  <root level="debug">
+  <appender name="logstash" class="ch.qos.logback.core.rolling.RollingFileAppender">
+    <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+      <level>${LOG_LEVEL}</level>
+    </filter>
+    <file>${LOGSTASH_NAME}.log</file>
+    <encoder class="net.logstash.logback.encoder.LogstashEncoder" />
+    <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+      <fileNamePattern>${LOGSTASH_NAME}.%d{yyyy-MM-dd}.log</fileNamePattern>
+      <maxHistory>30</maxHistory>
+    </rollingPolicy>
+  </appender>
+
+  <root level="all">
     <appender-ref ref="stdout" />
     <appender-ref ref="file" />
+    <appender-ref ref="logstash" />
   </root>
+
 </configuration>
