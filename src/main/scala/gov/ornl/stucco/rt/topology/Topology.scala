@@ -4,6 +4,8 @@ import backtype.storm.{Config, LocalCluster, StormSubmitter}
 import backtype.storm.topology.TopologyBuilder
 import backtype.storm.utils.Utils
 
+import org.slf4j.{Logger, LoggerFactory}
+
 object Topology {
   val NUM_WORKERS = 3
 

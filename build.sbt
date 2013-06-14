@@ -18,11 +18,12 @@ resolvers ++= Seq(
 libraryDependencies ++= Seq(
   // can't use provided dep for storm, otherwise sbt run won't work
   // "storm" % "storm" % "0.8.2" % "provided"
-  "storm" % "storm" % "0.8.2",
+  "storm" % "storm" % "0.8.2" exclude("org.slf4j", "slf4j-log4j12"),
   "com.rabbitmq" % "amqp-client" % "3.1.1",
   "com.xorlev" % "storm-amqp-spout" % "0.2.0",
   "redis.clients" % "jedis" % "2.1.0",
   "com.basho.riak" % "riak-client" % "1.1.1",
+  "ch.qos.logback" % "logback-classic" % "1.0.13",
   "org.scalatest" %% "scalatest" % "1.9.1" % "test",
   "junit" % "junit" % "4.10" % "test",
   "com.novocode" % "junit-interface" % "0.10-M4" % "test"
