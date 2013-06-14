@@ -4,9 +4,9 @@ import backtype.storm.{Config, LocalCluster, StormSubmitter}
 import backtype.storm.topology.TopologyBuilder
 import backtype.storm.utils.Utils
 
-import org.slf4j.{Logger, LoggerFactory}
+import grizzled.slf4j.Logging
 
-object Topology {
+object Topology extends Logging {
   val NUM_WORKERS = 3
 
   def main(args: Array[String]) {

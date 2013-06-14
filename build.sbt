@@ -24,6 +24,7 @@ libraryDependencies ++= Seq(
   "redis.clients" % "jedis" % "2.1.0",
   "com.basho.riak" % "riak-client" % "1.1.1",
   "ch.qos.logback" % "logback-classic" % "1.0.13",
+  "org.clapper" % "grizzled-slf4j_2.10" % "1.0.1",
   "org.scalatest" %% "scalatest" % "1.9.1" % "test",
   "junit" % "junit" % "4.10" % "test",
   "com.novocode" % "junit-interface" % "0.10-M4" % "test"

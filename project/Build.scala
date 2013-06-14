@@ -2,7 +2,6 @@ import sbt._
 import Keys._
 
 object StuccoRTBuild extends Build {
-
   lazy val root = Project("root", file("."))
     // .dependsOn(sbteclipse) // can chain these
 
@@ -12,5 +11,4 @@ object StuccoRTBuild extends Build {
 
   def GitHub(user: String, project: String, tag: String) =
       uri("https://github.com/%s/%s.git#%s".format(user, project, tag))
-
 }
