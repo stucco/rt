@@ -6,12 +6,16 @@ import com.rabbitmq.client.Channel
 
 import com.rapportive.storm.amqp.QueueDeclaration
 
+import grizzled.slf4j.Logging
+
 case class SimpleQueue(
     name: String,
     durable: Boolean = false,
     exclusive: Boolean = false,
     autoDelete: Boolean = false,
-    arguments: JMap[String, AnyRef] = null) extends QueueDeclaration {
+    arguments: JMap[String, AnyRef] = null)
+  extends QueueDeclaration
+  with Logging {
 
   override def isParallelConsumable() = true
 
