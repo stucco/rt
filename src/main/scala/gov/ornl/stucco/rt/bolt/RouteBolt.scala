@@ -12,9 +12,9 @@ class RouteBolt extends BaseRichBolt with Logging {
   private var collector: OutputCollector = _
 
   def streamId(tuple: Tuple) = {
-    // check if structured or unstructured
+    // decide if "structured" or "unstructured"
     // "structured"
-    "unstructured"
+    "structured"
   }
 
   def process(uuid: String, json: String) = {
@@ -37,7 +37,7 @@ class RouteBolt extends BaseRichBolt with Logging {
   }
 
   override def declareOutputFields(declarer: OutputFieldsDeclarer) {
-    declarer.declareStream("structured", new Fields())
-    declarer.declareStream("unstructured", new Fields())
+    declarer.declareStream("structured", new Fields("uuid", "json"))
+    declarer.declareStream("unstructured", new Fields("uuid", "json"))
   }
 }

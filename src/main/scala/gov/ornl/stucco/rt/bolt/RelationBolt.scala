@@ -12,9 +12,9 @@ class RelationBolt extends BaseRichBolt with Logging {
   private var collector: OutputCollector = _
 
   def process(uuid: String, text: String, concepts: String) = {
-    // perform concept extraction
-    val concepts = "concepts..."
-    new Values(uuid, text, concepts)
+    // perform relations extraction
+    val relations = "relations..."
+    new Values(uuid, text, concepts, relations)
   }
   
   override def prepare(config: JMap[_, _],

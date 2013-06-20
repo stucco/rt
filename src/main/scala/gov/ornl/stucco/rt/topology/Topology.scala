@@ -20,6 +20,7 @@ object Topology extends Logging {
 
   def main(args: Array[String]) {
     val builder = new TopologyBuilder
+    buildTopology(builder)
 
     val config = new Config
     config.setDebug(true)
@@ -30,7 +31,9 @@ object Topology extends Logging {
     } else {
       val cluster = new LocalCluster
       cluster.submitTopology("Topology", config, builder.createTopology())
-      Utils.sleep(5000)
+      while (true) {
+        Utils.sleep(5000)
+      }
       cluster.killTopology("Topology")
       cluster.shutdown()
     }
@@ -61,7 +64,7 @@ object Topology extends Logging {
       .shuffleGrouping("relation")
     // both (merging)
     builder.setBolt("graph", new GraphBolt, settings getInt "instances.graph")
-      .shuffleGrouping("relation")
+      .shuffleGrouping("structuredgraph").shuffleGrouping("unstructuredgraph")
   }
 
   def buildSpout(scheme: Scheme) = {
