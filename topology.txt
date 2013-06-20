@@ -20,7 +20,7 @@ V
 +------+
 | (uuid: String, json: String)
 V
-+-------+ (uuid: String, json: String)                     +---------+
++-------+           (uuid: String, json: String)           +---------+
 | ROUTE |-----------------UNSTRUCTURED DATA--------------->| EXTRACT |
 +-------+                                                  +---------+
 | (uuid: String, json: String)                       +-----+ (uuid: String, text: String)
