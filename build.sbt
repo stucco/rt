@@ -28,7 +28,6 @@ libraryDependencies ++= Seq(
   "storm" % "storm" % "0.8.2" exclude("org.slf4j", "slf4j-log4j12"),
   "com.rabbitmq" % "amqp-client" % "3.1.1",
   "com.xorlev" % "storm-amqp-spout" % "0.2.0",
-  "redis.clients" % "jedis" % "2.1.0",
   "com.basho.riak" % "riak-client" % "1.1.1"
 )
 
