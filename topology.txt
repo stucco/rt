@@ -1,0 +1,55 @@
+   _____________  __________________ 
+  / ___/_  __/ / / / ____/ ____/ __ \
+  \__ \ / / / / / / /   / /   / / / /
+ ___/ // / / /_/ / /___/ /___/ /_/ / 
+/____//_/  \____/\____/\____/\____/  
+ _                 _                
+| |_ ___ _ __  ___| |___  __ _ _  _ 
+|  _/ _ \ '_ \/ _ \ / _ \/ _` | || |
+ \__\___/ .__/\___/_\___/\__, |\_, |
+        |_|              |___/ |__/ 
+
+
++-----------+
+| RMQ SPOUT |
++-----------+
+| (json: String)
+V
++------+
+| UUID |
++------+
+| (uuid: String, json: String)
+V
++-------+ (uuid: String, json: String)                     +---------+
+| ROUTE |-----------------UNSTRUCTURED DATA--------------->| EXTRACT |
++-------+                                                  +---------+
+| (uuid: String, json: String)                       +-----+ (uuid: String, text: String)
+| STRUCTURED DATA                                    |     V
+V                                                    |     +---------+
++-------+                            +-----------+   |     | CONCEPT |
+| PARSE |--------------------------->| DOC STORE |<--+     +---------+
++-------+                            +-----------+         | (uuid: String, text: String, concepts: String)
+| (uuid: String, text: String)          |                  V
+V                                       V______            +----------+
++-------+                               /      \           | RELATION |
+| SPLIT |                               \______/           +----------+
++-------+                               | RIAK |           | (uuid: String, text: String, concepts: String, relations: String)
+| (uuid: String, chunk: String)         |      |           V
+V                                       |______|           +----------+
++----------+                                               | SUBGRAPH |
+| SUBGRAPH |                                               +----------+
++----------+                                               | (uuid: String, graph: String)
+| (uuid: String, graph: String)                            |
+|                                                          |
+|                   +--------------------------------------+
+V                   V
++-------------------+
+| GRAPH MERGE/STORE |
++-------------------+
+|
+V_______
+/       \
+\_______/
+| NEO4J |
+|       |
+|_______|
