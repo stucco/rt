@@ -17,7 +17,12 @@ class RouteBoltSuite extends FunSuite {
   }
 
   test("process doesn't modify tuple") {
-    val result = bolt process ("", "")
-    assert(result === new Values("", ""))
+    import scala.util.Random
+
+    val emptyResult = bolt process ("", "")
+    assert(emptyResult === new Values("", ""))
+
+    val nonemptyResult = bolt process ("abc", "def")
+    assert(nonemptyResult === new Values("abc", "def"))
   }
 }

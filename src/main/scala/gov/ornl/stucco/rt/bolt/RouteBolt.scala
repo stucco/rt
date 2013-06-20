@@ -17,8 +17,8 @@ class RouteBolt extends BaseRichBolt with Logging {
     "unstructured"
   }
 
-  def process(json: String, uuid: String) = {
-    new Values(json, uuid)
+  def process(uuid: String, json: String) = {
+    new Values(uuid, json)
   }
   
   override def prepare(config: JMap[_, _],
@@ -31,7 +31,7 @@ class RouteBolt extends BaseRichBolt with Logging {
   override def execute(tuple: Tuple) {
     debug(s"executing tuple: $tuple")
     collector.emit(streamId(tuple), tuple,
-      process(tuple getStringByField "json", tuple getStringByField "uuid"))
+      process(tuple getStringByField "uuid", tuple getStringByField "json"))
     collector.ack(tuple)
   }
 

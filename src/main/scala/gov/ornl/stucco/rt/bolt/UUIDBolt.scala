@@ -19,7 +19,7 @@ class UUIDBolt extends BaseRichBolt with Logging {
     }
 
   def process(json: String) = {
-    new Values(json, hash(json))
+    new Values(hash(json), json)
   }
   
   override def prepare(config: JMap[_, _],
@@ -37,6 +37,6 @@ class UUIDBolt extends BaseRichBolt with Logging {
   }
 
   override def declareOutputFields(declarer: OutputFieldsDeclarer) {
-    declarer.declare(new Fields("json", "uuid"))
+    declarer.declare(new Fields("uuid", "json"))
   }
 }

@@ -8,7 +8,7 @@ class UUIDBoltSuite extends FunSuite {
 
   val bolt = new UUIDBolt
 
-  test("hash correctly computed for message") {
+  test("uuid correctly computed for message") {
     val result = bolt process ""
     val hashString = """|cf83e1357eefb8bd
                         |f1542850d66d8007
@@ -18,6 +18,6 @@ class UUIDBoltSuite extends FunSuite {
                         |ff8318d2877eec2f
                         |63b931bd47417a81
                         |a538327af927da3e""".stripMargin.replace("\n", "")
-    assert(result === new Values("", hashString))
+    assert(result === new Values(hashString, ""))
   }
 }
