@@ -10,16 +10,13 @@ import java.security.MessageDigest
 
 import grizzled.slf4j.Logging
 
-class UUIDBolt extends BaseRichBolt with Logging {
+class SplitBolt extends BaseRichBolt with Logging {
   private var collector: OutputCollector = _
 
-  def hash(s: String) = {
-    val bytes = MessageDigest getInstance "SHA-512" digest s.getBytes
-    ("" /: bytes) { (str, byte) => str + f"$byte%02x" }
-    }
-
-  def process(json: String) = {
-    new Values(hash(json), json)
+  def process(uuid: String, json: String) = {
+    // perform chunking
+    val chunk = "chunk here..."
+    new Values(uuid, chunk)
   }
   
   override def prepare(config: JMap[_, _],
@@ -31,12 +28,13 @@ class UUIDBolt extends BaseRichBolt with Logging {
 
   override def execute(tuple: Tuple) {
     debug(s"executing tuple: $tuple")
-    val json = tuple getStringByField "json"
-    collector.emit(tuple, process(json))
+    val uuid = tuple getStringByField "uuid"
+    val text = tuple getStringByField "text"
+    collector.emit(tuple, process(uuid, text))
     collector.ack(tuple)
   }
 
   override def declareOutputFields(declarer: OutputFieldsDeclarer) {
-    declarer.declare(new Fields("uuid", "json"))
+    declarer.declare(new Fields("uuid", "chunk"))
   }
 }

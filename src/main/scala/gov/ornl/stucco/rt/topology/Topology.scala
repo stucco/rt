@@ -43,6 +43,25 @@ object Topology extends Logging {
       .shuffleGrouping("rabbitmq")
     builder.setBolt("route", new RouteBolt, settings getInt "instances.route")
       .shuffleGrouping("uuid")
+    // structured
+    builder.setBolt("parse", new ParseBolt, settings getInt "instances.parse")
+      .shuffleGrouping("route", "structured")
+    builder.setBolt("split", new SplitBolt, settings getInt "instances.split")
+      .shuffleGrouping("parse")
+    builder.setBolt("structuredgraph", new StructuredGraphBolt, settings getInt "instances.structuredgraph")
+      .shuffleGrouping("split")
+    // unstructured
+    builder.setBolt("extract", new ExtractBolt, settings getInt "instances.extract")
+      .shuffleGrouping("route", "unstructured")
+    builder.setBolt("concept", new ConceptBolt, settings getInt "instances.concept")
+      .shuffleGrouping("extract")
+    builder.setBolt("relation", new RelationBolt, settings getInt "instances.relation")
+      .shuffleGrouping("concept")
+    builder.setBolt("unstructuredgraph", new UnstructuredGraphBolt, settings getInt "instances.unstructuredgraph")
+      .shuffleGrouping("relation")
+    // both (merging)
+    builder.setBolt("graph", new GraphBolt, settings getInt "instances.graph")
+      .shuffleGrouping("relation")
   }
 
   def buildSpout(scheme: Scheme) = {

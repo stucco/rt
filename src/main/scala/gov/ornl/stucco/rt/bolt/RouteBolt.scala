@@ -30,8 +30,9 @@ class RouteBolt extends BaseRichBolt with Logging {
 
   override def execute(tuple: Tuple) {
     debug(s"executing tuple: $tuple")
-    collector.emit(streamId(tuple), tuple,
-      process(tuple getStringByField "uuid", tuple getStringByField "json"))
+    val uuid = tuple getStringByField "uuid"
+    val json = tuple getStringByField "json"
+    collector.emit(streamId(tuple), tuple, process(uuid, json))
     collector.ack(tuple)
   }
 
