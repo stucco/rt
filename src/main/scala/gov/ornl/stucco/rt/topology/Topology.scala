@@ -62,7 +62,9 @@ object Topology extends Logging {
       .shuffleGrouping("concept")
     builder.setBolt("unstructuredgraph", new UnstructuredGraphBolt, settings getInt "instances.unstructuredgraph")
       .shuffleGrouping("relation")
-    // both (merging)
+    // both
+    builder.setBolt("document", new DocumentBolt, settings getInt "instances.document")
+      .shuffleGrouping("parse").shuffleGrouping("extract")
     builder.setBolt("graph", new GraphBolt, settings getInt "instances.graph")
       .shuffleGrouping("structuredgraph").shuffleGrouping("unstructuredgraph")
   }
