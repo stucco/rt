@@ -1,6 +1,7 @@
 package gov.ornl.stucco.rt.topology
 
-import gov.ornl.stucco.rt.spout.{SimpleQueue, Deserializer}
+import gov.ornl.stucco.rt.spout._
+import gov.ornl.stucco.rt.bolt._
 
 import com.typesafe.config._
 
@@ -37,9 +38,11 @@ object Topology extends Logging {
 
   def buildTopology(builder: TopologyBuilder) {
     val spout = buildSpout(new Deserializer)
-    builder.setSpout("spout", spout, settings getInt "instances.spout")
-    // builder.setBolt("boltname", new OtherThing, instances)
-    // .shuffleGrouping("spoutname")
+    builder.setSpout("rabbitmq", spout, settings getInt "instances.rabbitmq")
+    builder.setBolt("uuid", new UUIDBolt, settings getInt "instances.uuid")
+      .shuffleGrouping("rabbitmq")
+    builder.setBolt("route", new RouteBolt, settings getInt "instances.route")
+      .shuffleGrouping("uuid")
   }
 
   def buildSpout(scheme: Scheme) = {

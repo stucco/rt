@@ -8,11 +8,17 @@ import java.util.{Map => JMap}
 
 import grizzled.slf4j.Logging
 
-class TemplateBolt extends BaseRichBolt with Logging {
+class RouteBolt extends BaseRichBolt with Logging {
   private var collector: OutputCollector = _
 
-  def process() = {
-    new Values()
+  def streamId(tuple: Tuple) = {
+    // check if structured or unstructured
+    // "structured"
+    "unstructured"
+  }
+
+  def process(json: String, uuid: String) = {
+    new Values(json, uuid)
   }
   
   override def prepare(config: JMap[_, _],
@@ -24,11 +30,13 @@ class TemplateBolt extends BaseRichBolt with Logging {
 
   override def execute(tuple: Tuple) {
     debug(s"executing tuple: $tuple")
-    collector.emit(tuple, process())
+    collector.emit(streamId(tuple), tuple,
+      process(tuple getStringByField "json", tuple getStringByField "uuid"))
     collector.ack(tuple)
   }
 
   override def declareOutputFields(declarer: OutputFieldsDeclarer) {
-    declarer.declare(new Fields())
+    declarer.declareStream("structured", new Fields())
+    declarer.declareStream("unstructured", new Fields())
   }
 }

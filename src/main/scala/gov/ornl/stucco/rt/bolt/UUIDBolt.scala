@@ -4,15 +4,22 @@ import backtype.storm.task.{OutputCollector, TopologyContext}
 import backtype.storm.topology.base.BaseRichBolt
 import backtype.storm.topology.OutputFieldsDeclarer
 import backtype.storm.tuple.{Fields, Tuple, Values}
+
 import java.util.{Map => JMap}
+import java.security.MessageDigest
 
 import grizzled.slf4j.Logging
 
-class TemplateBolt extends BaseRichBolt with Logging {
+class UUIDBolt extends BaseRichBolt with Logging {
   private var collector: OutputCollector = _
 
-  def process() = {
-    new Values()
+  def hash(s: String) = {
+    val bytes = MessageDigest.getInstance("SHA-512").digest(s.getBytes)
+    ("" /: bytes) { (str, byte) => str + f"$byte%02x" }
+    }
+
+  def process(json: String) = {
+    new Values(json, hash(json))
   }
   
   override def prepare(config: JMap[_, _],
@@ -24,11 +31,12 @@ class TemplateBolt extends BaseRichBolt with Logging {
 
   override def execute(tuple: Tuple) {
     debug(s"executing tuple: $tuple")
-    collector.emit(tuple, process())
+    val json = tuple.getStringByField("json")
+    collector.emit(tuple, process(json))
     collector.ack(tuple)
   }
 
   override def declareOutputFields(declarer: OutputFieldsDeclarer) {
-    declarer.declare(new Fields())
+    declarer.declare(new Fields("json", "uuid"))
   }
 }
