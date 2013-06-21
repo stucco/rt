@@ -4,7 +4,7 @@ assemblySettings
 
 name := "stucco"
 
-version := "1.0"
+version := "0.0.1"
 
 scalaVersion := "2.10.1"
 
@@ -16,7 +16,8 @@ resolvers ++= Seq(
 )
 
 libraryDependencies ++= Seq(
-  "com.typesafe" % "config" % "1.0.1",
+  "org.streum" %% "configrity-core" % "1.0.0",
+  "org.streum" %% "configrity-yaml" % "1.0.0",
   "org.scalatest" %% "scalatest" % "1.9.1" % "test",
   "junit" % "junit" % "4.10" % "test",
   "com.novocode" % "junit-interface" % "0.10-M4" % "test",
