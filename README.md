@@ -1,8 +1,14 @@
 stucco-rt
 ==========
 
+usage
+-----
+All commands should be run from within the Vagrant VM that is configured from the `dev-setup` repo.
+
 basic sbt usage
 ---------------
+All sbt commands need to be run from the project root directory. Prepend a tilde to any sbt command to run continuously, e.g. `'sbt ~test'` will run unit tests when any file changes.
+
 The project can be compiled using `sbt compile`.
 
 The project can be run using `sbt run`.
