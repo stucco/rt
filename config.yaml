@@ -1,3 +1,7 @@
+storm:
+  debug: no
+  workers: 3
+
 instances:
   rabbitmq: 2
   uuid: 2
