@@ -26,10 +26,13 @@ intro to scala
 * It is highly recommended that you practice with the Scala REPL to get the hang of Scala (you can bring it up by doing `sbt console` in the project directory.
 * It would be best if you went through the lessons (right hand column) on 
 [Twitter Scala School](http://twitter.github.io/scala_school/) and tried out examples in the REPL as you went through the lessons.
+* Another quick intro to Scala is available at [Annotated Scala Levels](http://www.fogus.me/thunks/scala.html).
 
 scala notes
 -----------
 Here are some things to be aware of as you're beginning Scala / reading through the code base.
+
+Semicolons are optional in Scala, and their use is frowned upon. They hurt readability.
 
 Methods with 1 parameter can be called using infix notation. For example, `obj.method(arg)` can be written as `obj method arg`.
 
@@ -67,6 +70,22 @@ def factorial(x: Int): Int = {
 }
 ```
 
+Scala is a functional language, and it supports tail call optimization. Optionally, the compiler can check this for you if you use the `@tailrec` annotation. Also, note that `iter` is recursive, so you *have* to specify the return type (but you don't have to for `factorial`).
+```scala
+import annotation.tailrec
+
+def factorial(x: BigInt): BigInt = {
+  require(x >= 0)
+  @tailrec
+  def iter(x: BigInt, acc: BigInt): BigInt = {
+    if (x == 0) acc
+    else iter(x - 1, acc * x)
+  }
+  iter(x, 1)
+}
+```
+
+
 There are no operators in Scala. Methods with one argument can be written in infix notation, so it's easy to make up new constructs that look like operators. Operators that end in a colon are right associative and are called on the RHS object. For example, `arg /: obj` is sugar for `obj./:(arg)`. To construct a list, for example, you can do `1 :: Nil`, which is sugar for `Nil.::(1)`, which results in `List(1)`.
 
 sbt resources
@@ -78,6 +97,8 @@ scala resources
 [A Tour of Scala (+ FAQ)](http://docs.scala-lang.org/tutorials/)
 
 [Twitter Scala School](http://twitter.github.io/scala_school/)
+
+[Annotated Scala Levels](http://www.fogus.me/thunks/scala.html)
 
 [Coursera Scala Course](https://www.coursera.org/course/progfun)
 
