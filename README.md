@@ -76,7 +76,9 @@ sbt resources
 scala resources
 ---------------
 [A Tour of Scala (+ FAQ)](http://docs.scala-lang.org/tutorials/)
+
 [Twitter Scala School](http://twitter.github.io/scala_school/)
+
 [Coursera Scala Course](https://www.coursera.org/course/progfun)
 
 style guide
@@ -86,7 +88,9 @@ style guide
 scaladoc resources
 ------------------
 [Writing Scaladoc](https://wiki.scala-lang.org/display/SW/Writing+Documentation)
+
 [Scaladoc Wiki](https://wiki.scala-lang.org/display/SW/Scaladoc)
+
 [Scaladoc Usage](http://dcsobral.blogspot.com/2011/12/using-scala-api-documentation.html)
 
 logstash configuration
