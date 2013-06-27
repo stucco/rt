@@ -8,9 +8,14 @@ import java.util.{Map => JMap}
 
 import grizzled.slf4j.Logging
 
+/** A bolt that merges a subgraph into the graph database.
+  */
 class GraphBolt extends BaseRichBolt with Logging {
+
   private var collector: OutputCollector = _
 
+  /** Process a tuple by merging its graph into the database.
+    */
   def process(uuid: String, graph: String) = {
     // insert into graph db
   }

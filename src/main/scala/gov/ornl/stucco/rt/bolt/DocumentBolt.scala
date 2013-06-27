@@ -8,10 +8,15 @@ import java.util.{Map => JMap}
 
 import grizzled.slf4j.Logging
 
+/** A bolt that inserts a tuple's document into the document store.
+  */
 class DocumentBolt extends BaseRichBolt with Logging {
+
   private var collector: OutputCollector = _
 
-  def process(uuid: String, text: String) = {
+  /** Process a tuple by inserting its document into the document store.
+    */
+  def process(uuid: String, text: String) {
     // insert into document store
   }
   

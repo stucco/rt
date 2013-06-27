@@ -8,10 +8,17 @@ import java.util.{Map => JMap}
 
 import grizzled.slf4j.Logging
 
+/** A bolt that extracts text from unstructured sources.
+  */
 class ExtractBolt extends BaseRichBolt with Logging {
+
   private var collector: OutputCollector = _
 
-  def process(uuid: String, json: String) = {
+  /** Process a tuple by extracting text it contains.
+    *
+    * @return `Values` containing the UUID and extracted text.
+    */
+  def process(uuid: String, json: String): Values = {
     // perform text extraction
     val text = "structured text..."
     new Values(uuid, text)

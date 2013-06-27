@@ -3,12 +3,13 @@ import Keys._
 
 object StuccoRTBuild extends Build {
   lazy val root = Project("root", file("."))
-    // .dependsOn(sbteclipse) // can chain these
+    // .dependsOn(config) // can chain these
 
   // example:
-  // lazy val sbteclipse =
-    // RootProject("typesafehub", "sbteclipse", "v1.2")
+  // lazy val config = GitHub("typesafehub", "config", "master")
 
   def GitHub(user: String, project: String, tag: String) =
-      uri("https://github.com/%s/%s.git#%s".format(user, project, tag))
+      RootProject(
+        uri("https://github.com/%s/%s.git#%s".format(user, project, tag))
+      )
 }

@@ -8,10 +8,17 @@ import java.util.{Map => JMap}
 
 import grizzled.slf4j.Logging
 
+/** A bolt that extracts concepts from unstructured text.
+  */
 class ConceptBolt extends BaseRichBolt with Logging {
+
   private var collector: OutputCollector = _
 
-  def process(uuid: String, text: String) = {
+  /** Process a tuple by appending extracted concepts.
+    *
+    * @return `Values` containing the UUID, text, and extracted concepts.
+    */
+  def process(uuid: String, text: String): Values = {
     // perform concept extraction
     val concepts = "concepts..."
     new Values(uuid, text, concepts)

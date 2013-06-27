@@ -2,7 +2,9 @@ import AssemblyKeys._
 
 assemblySettings
 
-name := "stucco"
+name := "stucco-rt"
+
+organization := "gov.ornl"
 
 version := "0.0.1"
 
@@ -10,13 +12,16 @@ scalaVersion := "2.10.1"
 
 fork in run := true
 
+scalacOptions := Seq(
+  "-unchecked", "-deprecation", "-feature"
+)
+
 resolvers ++= Seq(
   "clojars" at "http://clojars.org/repo/", // for storm
   "clojure-releases" at "http://build.clojure.org/releases"
 )
 
 libraryDependencies ++= Seq(
-  "org.streum" %% "configrity-core" % "1.0.0",
   "org.streum" %% "configrity-yaml" % "1.0.0",
   "org.scalatest" %% "scalatest" % "1.9.1" % "test",
   "junit" % "junit" % "4.10" % "test",
