@@ -21,6 +21,10 @@ A scala REPL (with all dependencies on the classpath) can be brought up using `s
 
 For storm, a .jar file can be built using `sbt assembly`. The .jar file will include all the required dependencies (e.g. `storm`). The .jar file will be located in `target/scala_X.X.X/projectname-assembly-X.X.X.jar`.
 
+sbt resources
+-------------
+[Useful SBT Commands](http://scala.micronauticsresearch.com/sbt/useful-sbt-commands)
+
 scala resources
 ---------------
 [A Tour of Scala (+ FAQ)](http://docs.scala-lang.org/tutorials/)

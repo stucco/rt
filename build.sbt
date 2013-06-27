@@ -2,13 +2,19 @@ import AssemblyKeys._
 
 assemblySettings
 
-name := "stucco"
+name := "stucco-rt"
+
+organization := "gov.ornl"
 
 version := "0.0.1"
 
 scalaVersion := "2.10.1"
 
 fork in run := true
+
+scalacOptions := Seq(
+  "-unchecked", "-deprecation", "-feature"
+)
 
 resolvers ++= Seq(
   "clojars" at "http://clojars.org/repo/", // for storm
