@@ -46,7 +46,7 @@ def method() {
 }
 ```
 
-Side-effect free methods with no arguments are written like:
+Side-effect free methods with no arguments with a return value are written like:
 ```scala
 def method = {
   ...
@@ -60,7 +60,7 @@ def method(arg1: Type1, arg2: Type2) = {
 }
 ```
 
-Scala uses type inference, but you need to specify the return type of recursive functions:
+Scala uses type inference, but you need to specify the return type of recursive functions. **You should specify the return type for all public methods.**
 ```scala
 def factorial(x: Int): Int = {
   if (x <= 0) 1 else x * factorial(x - 1)
