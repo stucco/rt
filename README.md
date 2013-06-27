@@ -32,24 +32,32 @@ scala notes
 Here are some things to be aware of as you're beginning Scala / reading through the code base.
 * Methods with 1 parameter can be called using infix notation. For example, `obj.method(arg)` can be written as `obj method arg`.
 * Blocks are enclosed in `{ ... }`.
-* Every statement is an expression. The last expression in a block is the implicit return value (a la Ruby).
+* Everything is an expression (even an `if`, and so on). The last expression in a block is the implicit return value (a la Ruby).
 * Methods that have side effects are written/called with Java-like notation such as `obj.doSomething()` or `obj.doSomething(arg)`. Methods that don't have side effects can be written using infix notation, or can omit the `()`. For example, methods can be written like `list.length` or `list drop 1`.
 * Methods with a `void` return value (called `Unit` in scala) are written like:
+    ```scala
     def method() {
       ...
     }
+    ```
 * Side-effect free methods with no arguments are written like:
+    ```scala
     def method = {
       ...
     }
+    ```
 * Methods with a return value are written like:
+    ```scala
     def method(arg1: Type1, arg2: Type2) = {
       ...
     }
+    ```
 * Scala uses type inference, but you need to specify the return type of recursive functions:
+    ```scala
     def factorial(x: Int): Int = {
       if (x <= 0) 1 else x * factorial(x - 1)
     }
+    ```
 * There are no operators in Scala. Methods with one argument can be written in infix notation, so it's easy to make up new constructs that look like operators. Operators that end in a colon are right associative and are called on the RHS object. For example, `arg /: obj` is sugar for `obj./:(arg)`. To construct a list, for example, you can do `1 :: Nil`, which is sugar for `Nil.::(1)` which results in `List(1)`.
 
 sbt resources
