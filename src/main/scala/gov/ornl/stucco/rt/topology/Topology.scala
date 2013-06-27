@@ -70,19 +70,18 @@ object Topology extends Logging {
     */
   def buildTopology(builder: TopologyBuilder) {
     val spout = buildSpout(new Deserializer)
+
     // build spout
     builder.setSpout("rabbitmq", spout, settings[Int]("instances.rabbitmq"))
     builder.setBolt("uuid", new UUIDBolt, settings[Int]("instances.uuid"))
       .shuffleGrouping("rabbitmq")
     builder.setBolt("route", new RouteBolt, settings[Int]("instances.route"))
       .shuffleGrouping("uuid")
+
     // build structured bolts
     builder.setBolt("parse", new ParseBolt, settings[Int]("instances.parse"))
       .shuffleGrouping("route", "structured")
-    builder.setBolt("split", new SplitBolt, settings[Int]("instances.split"))
-      .shuffleGrouping("parse")
-    builder.setBolt("structuredgraph", new StructuredGraphBolt, settings[Int]("instances.structuredgraph"))
-      .shuffleGrouping("split")
+
     // build unstructured bolts
     builder.setBolt("extract", new ExtractBolt, settings[Int]("instances.extract"))
       .shuffleGrouping("route", "unstructured")
@@ -90,23 +89,22 @@ object Topology extends Logging {
       .shuffleGrouping("extract")
     builder.setBolt("relation", new RelationBolt, settings[Int]("instances.relation"))
       .shuffleGrouping("concept")
-    builder.setBolt("unstructuredgraph", new UnstructuredGraphBolt, settings[Int]("instances.unstructuredgraph"))
-      .shuffleGrouping("relation")
+
     // build common bolts
     builder.setBolt("document", new DocumentBolt, settings[Int]("instances.document"))
       .shuffleGrouping("parse").shuffleGrouping("extract")
     builder.setBolt("graph", new GraphBolt, settings[Int]("instances.graph"))
-      .shuffleGrouping("structuredgraph").shuffleGrouping("unstructuredgraph")
+      .shuffleGrouping("parse").shuffleGrouping("relation")
   }
 
   /** Build the spout.
     *
-    * Constructs a RabbitMQ queue and using a given data deserialization scheme,
-    * creates a RabbitMQ spout.
+    * Constructs an AMQP queue and using a given data deserialization scheme,
+    * creates an AMQP spout.
     *
     * @param scheme The scheme to use to deserialize binary data from the queue.
     */
-  def buildSpout(scheme: Scheme) = {
+  def buildSpout(scheme: Scheme): AMQPSpout = {
     val name = settings[String]("rabbitmq.queue.name")
     val durable = settings[Boolean]("rabbitmq.queue.durable")
     val exclusive = settings[Boolean]("rabbitmq.queue.exclusive")

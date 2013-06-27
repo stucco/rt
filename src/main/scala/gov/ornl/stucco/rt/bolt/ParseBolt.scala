@@ -10,13 +10,21 @@ import java.security.MessageDigest
 
 import grizzled.slf4j.Logging
 
+/** A bolt that parses a structured document and produces its
+  * corresponding subgraph.
+  */
 class ParseBolt extends BaseRichBolt with Logging {
+
   private var collector: OutputCollector = _
 
-  def process(uuid: String, json: String) = {
+  /** Process a tuple by computing its subgraph.
+    *
+    * @return `Values` containing the UUID and a subgraph.
+    */
+  def process(uuid: String, json: String): Values = {
     // perform parsing
-    val text = "text here..."
-    new Values(uuid, text)
+    val graph = "text here..."
+    new Values(uuid, graph)
   }
   
   override def prepare(config: JMap[_, _],
@@ -35,6 +43,6 @@ class ParseBolt extends BaseRichBolt with Logging {
   }
 
   override def declareOutputFields(declarer: OutputFieldsDeclarer) {
-    declarer.declare(new Fields("uuid", "text"))
+    declarer.declare(new Fields("uuid", "graph"))
   }
 }
