@@ -29,17 +29,13 @@ V                                                    |     +---------+
 +-------+                            +-----------+   |     | CONCEPT |
 | PARSE |--------------------------->| DOC STORE |<--+     +---------+
 +-------+                            +-----------+         | (uuid: String, text: String, concepts: String)
-| (uuid: String, text: String)          |                  V
-V                                       V______            +----------+
-+-------+                               /      \           | RELATION |
-| SPLIT |                               \______/           +----------+
-+-------+                               | RIAK |           | (uuid: String, text: String, concepts: String, relations: String)
-| (uuid: String, chunk: String)         |      |           V
-V                                       |______|           +----------+
-+----------+                                               | SUBGRAPH |
-| SUBGRAPH |                                               +----------+
-+----------+                                               | (uuid: String, graph: String)
-| (uuid: String, graph: String)                            |
+| (uuid: String, graph: String)         |                  V
+|                                       V______            +----------+
+|                                       /      \           | RELATION |
+|                                       \______/           +----------+
+|                                       | RIAK |           | (uuid: String, graph: String)
+|                                       |      |           V
+|                                       |______|           |
 |                                                          |
 |                   +--------------------------------------+
 V                   V

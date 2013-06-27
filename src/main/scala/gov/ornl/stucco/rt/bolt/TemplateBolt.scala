@@ -8,7 +8,10 @@ import java.util.{Map => JMap}
 
 import grizzled.slf4j.Logging
 
+/** A bolt to be used as a template when writing other bolts.
+  */
 class TemplateBolt extends BaseRichBolt with Logging {
+
   private var collector: OutputCollector = _
 
   def process() = {

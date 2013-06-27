@@ -8,13 +8,23 @@ import java.util.{Map => JMap}
 
 import grizzled.slf4j.Logging
 
+/** A bolt that performs relation extraction and computes the corresponding
+  * subgraph.
+  */
 class RelationBolt extends BaseRichBolt with Logging {
+
   private var collector: OutputCollector = _
 
+  /** Process a tuple by performing relation extraction and computing
+    * the graph.
+    *
+    * @return `Values` containing the UUID and the graph.
+    */
   def process(uuid: String, text: String, concepts: String) = {
     // perform relations extraction
     val relations = "relations..."
-    new Values(uuid, text, concepts, relations)
+    val graph = "graph..."
+    new Values(uuid, graph)
   }
   
   override def prepare(config: JMap[_, _],
@@ -34,6 +44,6 @@ class RelationBolt extends BaseRichBolt with Logging {
   }
 
   override def declareOutputFields(declarer: OutputFieldsDeclarer) {
-    declarer.declare(new Fields("uuid", "text", "concepts", "relations"))
+    declarer.declare(new Fields("uuid", "graph"))
   }
 }

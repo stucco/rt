@@ -1,18 +1,20 @@
+storm:
+  debug: no
+  workers: 3
+
 instances:
   rabbitmq: 2
   uuid: 2
   route: 2
-  document: 2
-  graph: 10
 
   parse: 5
-  split: 5
-  structuredgraph: 5
 
   extract: 5
   concept: 5
   relation: 5
-  unstructuredgraph: 5
+
+  document: 2
+  graph: 10
 
 rabbitmq:
   host: localhost

@@ -8,15 +8,34 @@ import java.util.{Map => JMap}
 
 import grizzled.slf4j.Logging
 
+/** A bolt that sends a tuple to the appropriate pipeline, depending on whether
+  * the tuple contains a structured document or unstructured document.
+  */
 class RouteBolt extends BaseRichBolt with Logging {
+
   private var collector: OutputCollector = _
 
-  def streamId(tuple: Tuple) = {
+  /** Determines the stream that a tuple should be sent to.
+    *
+    * If a tuple contains a structured document, the corresponding Stream Id is
+    * "structured", and if it contains an unstructured document, the Stream Id
+    * is "unstructured". This decision is based on a field in the JSON string.
+    *
+    * @param json A JSON string containing the tuple's data.
+    *
+    * @return A string containing the StreamId of the destination pipeline.
+    */
+  def streamId(json: String) = {
     // decide if "structured" or "unstructured"
     // "structured"
     "structured"
   }
 
+  /** Process a tuple (identity transformation).
+    *
+    * This bolt is responsible for only routing, so it does not need to modify
+    * the ''data'' in the tuple, only the ''destination''.
+    */
   def process(uuid: String, json: String) = {
     new Values(uuid, json)
   }
@@ -32,7 +51,7 @@ class RouteBolt extends BaseRichBolt with Logging {
     debug(s"executing tuple: $tuple")
     val uuid = tuple getStringByField "uuid"
     val json = tuple getStringByField "json"
-    collector.emit(streamId(tuple), tuple, process(uuid, json))
+    collector.emit(streamId(json), tuple, process(uuid, json))
     collector.ack(tuple)
   }
 
