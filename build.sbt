@@ -22,7 +22,6 @@ resolvers ++= Seq(
 )
 
 libraryDependencies ++= Seq(
-  "org.streum" %% "configrity-core" % "1.0.0",
   "org.streum" %% "configrity-yaml" % "1.0.0",
   "org.scalatest" %% "scalatest" % "1.9.1" % "test",
   "junit" % "junit" % "4.10" % "test",
