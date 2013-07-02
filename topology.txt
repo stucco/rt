@@ -14,15 +14,15 @@
 | RMQ SPOUT |
 +-----------+
 | (json: String)
-V
-+------+
-| UUID |
-+------+
-| (uuid: String, json: String)
-V
-+-------+           (uuid: String, json: String)           +---------+
-| ROUTE |-----------------UNSTRUCTURED DATA--------------->| EXTRACT |
-+-------+                                                  +---------+
+V                                                    +---->+-------+            +----------+
++------+                                             |     | TRAIN |            |          |
+| UUID |                                             |     +-------+            |          V______
++------+                                             |     | (train-data: ?)    |          /      \
+| (uuid: String, json: String)                       |     +--------------------+          \______/
+V                                                    |     V            [on startup]       | RIAK |
++-------+           (uuid: String, json: String)     |     +---------+ (train-data: ?)     |      |
+| ROUTE |-----------------UNSTRUCTURED DATA----------+---->| EXTRACT |<--------------------|      |
++-------+                                                  +---------+                     |______|
 | (uuid: String, json: String)                       +-----+ (uuid: String, text: String)
 | STRUCTURED DATA                                    |     V
 V                                                    |     +---------+
