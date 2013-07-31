@@ -8,36 +8,39 @@ import org.streum.configrity.yaml._
 
 import grizzled.slf4j.Logging
 
-import backtype.storm.{Config, LocalCluster, StormSubmitter}
+import backtype.storm.{ Config, LocalCluster, StormSubmitter }
 import backtype.storm.topology.TopologyBuilder
 import backtype.storm.utils.Utils
 import backtype.storm.spout.Scheme
 
 import com.rapportive.storm.spout.AMQPSpout
 
-/** An object to define and run the storm topology.
-  *
-  * This object defines the topology, and then it runs it either
-  * locally or remotely.
-  *
-  * This object builds the storm topology using a `TopologyBuilder`.
-  * Given an IP address for the Nimbus server, it submits the topology
-  * using `StormSubmitter`. Otherwise, it runs the topology locally using
-  * a `LocalCluster`.
-  */
+/**
+ * An object to define and run the storm topology.
+ *
+ * This object defines the topology, and then it runs it either
+ * locally or remotely.
+ *
+ * This object builds the storm topology using a `TopologyBuilder`.
+ * Given an IP address for the Nimbus server, it submits the topology
+ * using `StormSubmitter`. Otherwise, it runs the topology locally using
+ * a `LocalCluster`.
+ */
 object Topology extends Logging {
 
-  /** Location of the settings file.
-    */
+  /**
+   * Location of the settings file.
+   */
   private val settingsFile = "config.yaml"
 
   private val settings = Configuration.load("config.yaml", YAMLFormat)
 
-  /** Create and run the storm topology.
-    *
-    * @param args Empty array or an array containing a single string - the
-    * IP address of the Nimbus machine.
-    */
+  /**
+   * Create and run the storm topology.
+   *
+   * @param args Empty array or an array containing a single string - the
+   * IP address of the Nimbus machine.
+   */
   def main(args: Array[String]) {
     val builder = new TopologyBuilder
     buildTopology(builder)
@@ -60,14 +63,15 @@ object Topology extends Logging {
     }
   }
 
-  /** Build the topology.
-    *
-    * Builds the entire topology for the computation.
-    *
-    * @param builder The `TopologyBuilder` to use.
-    *
-    * @see `topology.txt` - a ASCII art graphical depiction of the topology
-    */
+  /**
+   * Build the topology.
+   *
+   * Builds the entire topology for the computation.
+   *
+   * @param builder The `TopologyBuilder` to use.
+   *
+   * @see `topology.txt` - a ASCII art graphical depiction of the topology
+   */
   def buildTopology(builder: TopologyBuilder) {
     val spout = buildSpout(new Deserializer)
 
@@ -97,13 +101,14 @@ object Topology extends Logging {
       .shuffleGrouping("parse").shuffleGrouping("relation")
   }
 
-  /** Build the spout.
-    *
-    * Constructs an AMQP queue and using a given data deserialization scheme,
-    * creates an AMQP spout.
-    *
-    * @param scheme The scheme to use to deserialize binary data from the queue.
-    */
+  /**
+   * Build the spout.
+   *
+   * Constructs an AMQP queue and using a given data deserialization scheme,
+   * creates an AMQP spout.
+   *
+   * @param scheme The scheme to use to deserialize binary data from the queue.
+   */
   def buildSpout(scheme: Scheme): AMQPSpout = {
     val name = settings[String]("rabbitmq.queue.name")
     val durable = settings[Boolean]("rabbitmq.queue.durable")

@@ -1,32 +1,34 @@
 package gov.ornl.stucco.rt.bolt
 
-import backtype.storm.task.{OutputCollector, TopologyContext}
+import backtype.storm.task.{ OutputCollector, TopologyContext }
 import backtype.storm.topology.base.BaseRichBolt
 import backtype.storm.topology.OutputFieldsDeclarer
-import backtype.storm.tuple.{Fields, Tuple, Values}
-import java.util.{Map => JMap}
+import backtype.storm.tuple.{ Fields, Tuple, Values }
+import java.util.{ Map => JMap }
 
 import grizzled.slf4j.Logging
 
-/** A bolt that extracts text from unstructured sources.
-  */
+/**
+ * A bolt that extracts text from unstructured sources.
+ */
 class ExtractBolt extends BaseRichBolt with Logging {
 
   private var collector: OutputCollector = _
 
-  /** Process a tuple by extracting text it contains.
-    *
-    * @return `Values` containing the UUID and extracted text.
-    */
+  /**
+   * Process a tuple by extracting text it contains.
+   *
+   * @return `Values` containing the UUID and extracted text.
+   */
   def process(uuid: String, json: String): Values = {
     // perform text extraction
     val text = "structured text..."
     new Values(uuid, text)
   }
-  
+
   override def prepare(config: JMap[_, _],
-      context: TopologyContext,
-      collector: OutputCollector) {
+    context: TopologyContext,
+    collector: OutputCollector) {
     info("preparing for operation")
     this.collector = collector
   }
