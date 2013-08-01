@@ -32,7 +32,6 @@ libraryDependencies ++= Seq(
   // can't use provided dep for storm, otherwise sbt run won't work
   // "storm" % "storm" % "0.8.2" % "provided"
   "storm" % "storm" % "0.8.2" exclude("org.slf4j", "slf4j-log4j12"),
-  "com.rabbitmq" % "amqp-client" % "3.1.1",
   "com.xorlev" % "storm-amqp-spout" % "0.2.0",
   "com.basho.riak" % "riak-client" % "1.1.1"
 )
