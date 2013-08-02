@@ -1,6 +1,16 @@
 stucco-rt
 ==========
 
+build status
+------------
+
+master: [![Build Status]
+(https://travis-ci.org/stucco/rt.png?branch=master)]
+(https://travis-ci.org/stucco/rt)
+dev: [![Build Status]
+(https://travis-ci.org/stucco/rt.png?branch=dev)]
+(https://travis-ci.org/stucco/rt)
+
 usage
 -----
 All commands should be run from within the Vagrant VM that is configured from the `dev-setup` repo.
