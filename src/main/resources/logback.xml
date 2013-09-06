@@ -8,36 +8,53 @@
 
   <!-- ===>>> FILE <<<=== -->
   <property name="LOG_NAME" value="stucco-rt" />
+  <property name="LOG_LEVEL" value="DEBUG" />
 
   <!-- ===> LOGSTASH <<<=== -->
   <property name="LOGSTASH_NAME" value="logstash" />
-  <property name="LOG_LEVEL" value="info" />
+  <property name="LOGSTASH_LEVEL" value="INFO" />
 
-  <!-- <<<======================>>> -->
+  <!-- <<<== END USER CONFIGURABLE PROPERTIES ==>>> -->
+
 
   <appender name="stdout" class="ch.qos.logback.core.ConsoleAppender">
+    <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+      <level>WARN</level>
+    </filter>
     <encoder>
       <pattern>${LOG_PATTERN}</pattern>
     </encoder>
   </appender>
 
-  <appender name="file" class="ch.qos.logback.core.FileAppender">
+  <!-- This log file is redundant if logstash is working -->
+  <appender name="file" class="ch.qos.logback.core.rolling.RollingFileAppender">
+    <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+      <level>${LOG_LEVEL}</level>
+    </filter>
     <file>${LOG_NAME}.log</file>
     <encoder>
       <pattern>${LOG_PATTERN}</pattern>
     </encoder>
+    <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+      <fileNamePattern>${LOG_NAME}.%d{yyyy-MM-dd}.log</fileNamePattern>
+      <maxHistory>10</maxHistory>
+    </rollingPolicy>
   </appender>
 
   <appender name="logstash" class="ch.qos.logback.core.rolling.RollingFileAppender">
     <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
-      <level>${LOG_LEVEL}</level>
+      <level>${LOGSTASH_LEVEL}</level>
     </filter>
     <file>${LOGSTASH_NAME}.log</file>
     <encoder class="net.logstash.logback.encoder.LogstashEncoder" />
-    <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-      <fileNamePattern>${LOGSTASH_NAME}.%d{yyyy-MM-dd}.log</fileNamePattern>
-      <maxHistory>30</maxHistory>
+    <rollingPolicy class="ch.qos.logback.core.rolling.FixedWindowRollingPolicy">
+      <fileNamePattern>${LOGSTASH_NAME}.%i.log.zip</fileNamePattern>
+      <minIndex>1</minIndex>
+      <maxIndex>3</maxIndex>
     </rollingPolicy>
+    <triggeringPolicy class="ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy">
+      <maxFileSize>5MB</maxFileSize>
+    </triggeringPolicy>
   </appender>
 
   <root level="all">
