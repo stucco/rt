@@ -18,7 +18,7 @@ class DocumentBolt extends BaseRichBolt with Logging {
   /**
    * Process a tuple by inserting its document into the document store.
    */
-  def process(uuid: String, text: String) {
+  def process(uuid: String, graph: String) {
     // insert into document store
   }
 
@@ -32,8 +32,8 @@ class DocumentBolt extends BaseRichBolt with Logging {
   override def execute(tuple: Tuple) {
     debug(s"executing tuple: $tuple")
     val uuid = tuple getStringByField "uuid"
-    val text = tuple getStringByField "text"
-    process(uuid, text)
+    val graph = tuple getStringByField "graph" //TODO field name will differ based on source, need to handle or change.
+    process(uuid, graph)
     collector.ack(tuple)
   }
 

@@ -1,5 +1,11 @@
 package gov.ornl.stucco.rt.bolt
 
+import morph.ast._
+import morph.ast.Implicits._
+import morph.ast.DSL._
+import morph.parser._
+import morph.parser.Interface._
+import morph.utils.Utils._
 import morph.parser._
 import gov.ornl.stucco.extractors._
 
@@ -28,15 +34,15 @@ class ParseBolt extends BaseRichBolt with Logging {
    */
   def process(uuid: String, json: String): Values = {
     // perform parsing
-    val sourceType = "cve" // determine this based on the input (json)
-    val data = "some string" // get this from the input (json)
-    val (parser, extractor) = sourceType match {
-      case "cve" => (XmlParser, CveExtractor)
-      case "nvd" => (XmlParser, NvdExtractor)
-      // add more cases here
-      // case _ => // default case, what to do?
+    val jsonObj = JsonParser(json) // using morph to get these from the json string...
+    val sourceType = (jsonObj ~> "source" ~> "name").asString
+    val data = (jsonObj ~> "content").asString
+    val graph = sourceType match {
+      case "cve" => CveExtractor(XmlParser(data)).toString
+      case "nvd" => NvdExtractor(XmlParser(data)).toString
+      //TODO: add more cases here
+      case _ => "{ \"edges\":{}, \"vertices\":{} }" //TODO: default case, what to do?
     }
-    val graph = extractor(parser(data))
     new Values(uuid, graph)
   }
 
