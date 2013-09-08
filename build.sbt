@@ -33,7 +33,9 @@ libraryDependencies ++= Seq(
   // "storm" % "storm" % "0.8.2" % "provided"
   "storm" % "storm" % "0.8.2" exclude("org.slf4j", "slf4j-log4j12"),
   "com.xorlev" % "storm-amqp-spout" % "0.2.0",
-  "com.basho.riak" % "riak-client" % "1.1.1"
+  "com.basho.riak" % "riak-client" % "1.1.1",
+  "com.tinkerpop.blueprints" % "blueprints-core" % "2.4.0",
+  "com.tinkerpop.blueprints" % "blueprints-neo4j-graph" % "2.4.0"
 )
 
 // following two sections needed to make sbt assembly work
