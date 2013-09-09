@@ -7,6 +7,9 @@ import backtype.storm.tuple.{ Fields, Tuple, Values }
 import java.util.{ Map => JMap }
 
 import grizzled.slf4j.Logging
+import grizzled.slf4j.Logger
+
+import gov.ornl.stucco.rt.util.Loader
 
 /**
  * A bolt that merges a subgraph into the graph database.
@@ -19,6 +22,10 @@ class GraphBolt extends BaseRichBolt with Logging {
    * Process a tuple by merging its graph into the database.
    */
   def process(uuid: String, graph: String) = {
+    val dbLocation = "/tmp/neo4j"//"/usr/local/neo4j-community-1.9.2/data/graph.db"
+    val loggerRef = Logger(getClass.getName.replace("$", "#").stripSuffix("#"))
+    val loader = new Loader()
+    loader.load(graph, dbLocation, loggerRef.logger)
     // insert into graph db
   }
 
