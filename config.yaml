@@ -14,7 +14,7 @@ instances:
   relation: 5
 
   document: 2
-  graph: 10
+  graph: 1
 
 rabbitmq:
   host: localhost
