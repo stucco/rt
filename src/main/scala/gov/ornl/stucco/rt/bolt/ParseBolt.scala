@@ -41,7 +41,7 @@ class ParseBolt extends BaseRichBolt with Logging {
       case "cve" => CveExtractor(XmlParser(data)).toString
       case "nvd" => NvdExtractor(XmlParser(data)).toString
       //TODO: add more cases here
-      case _ => "{ \"edges\":{}, \"vertices\":{} }" //TODO: default case, what to do?
+      case _ => "{ \"edges\":[], \"vertices\":[] }" //TODO: default case, what to do?
     }
     new Values(uuid, graph)
   }
