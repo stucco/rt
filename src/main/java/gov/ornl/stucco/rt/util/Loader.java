@@ -30,6 +30,7 @@ import org.json.*;
 import org.neo4j.kernel.configuration.Config;
 
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author euf
@@ -39,8 +40,14 @@ public class Loader {
 	private Neo4jGraph graph;
 	private Index<Vertex> vertexIndex;
 	private Index<Edge> edgeIndex;
+	private Logger logger;
 	
-	public void load(String subgraph, String dbLocation, Logger logger){        
+	public Loader(){
+		logger = LoggerFactory.getLogger(Loader.class);
+	}
+
+	public void load(String subgraph, String dbLocation){        
+		
 		final Map<String, String> settings = new HashMap<String, String>();
 		//it should default to "soft" anyway, but sometimes defaults to "gcr" instead depending on environment.  idk.
 		settings.put("cache_type", "soft");
@@ -58,6 +65,8 @@ public class Loader {
 		
 		try
 		{
+			//System.out.println("HEY! loading graph: " + subgraph);
+			logger.info("loading graph: " + subgraph);
 			//g is the subgraph to add, in graphson format.
 			JSONObject g = new JSONObject( subgraph );
 			
@@ -66,12 +75,12 @@ public class Loader {
 			
 			for(int i=0; i<verts.length(); i++){
 				JSONObject v = verts.getJSONObject(i);
-				addVertex(v, logger);
+				addVertex(v);
 			}
 			if(edges != null){
 				for(int i=0; i<edges.length(); i++){
 					JSONObject e = edges.getJSONObject(i);
-					addEdge(e, logger);
+					addEdge(e);
 				}
 			}
 		}
@@ -92,7 +101,7 @@ public class Loader {
 	}
 	
 	
-	private Vertex getVertex(Object vertexId, Logger logger) {
+	private Vertex getVertex(Object vertexId) {
 		Vertex vertex = null;
 		if (vertex == null) {
 			Iterator<Vertex> vertexIterator = vertexIndex.get("name", vertexId).iterator();
@@ -103,10 +112,10 @@ public class Loader {
 		return(vertex);
 	}
 	
-	private Vertex addVertex(JSONObject v, Logger logger) throws IOException, JSONException{
+	private Vertex addVertex(JSONObject v) throws IOException, JSONException{
 		Object vertexId = v.getString("name");
 		Vertex vertex = null;
-		vertex = getVertex(vertexId, logger);
+		vertex = getVertex(vertexId);
 
 		if (vertex == null) { //make new vertex if needed
 			vertex = graph.addVertex(vertexId);
@@ -136,7 +145,7 @@ public class Loader {
 		return(vertex);
 	}
 	
-	private Edge getEdge(Object edgeId, Logger logger) {
+	private Edge getEdge(Object edgeId) {
 		Edge edge = null;
 		Iterator<Edge> edgeIterator = edgeIndex.get("_id", edgeId).iterator();
 		if (edgeIterator.hasNext()) {
@@ -145,14 +154,14 @@ public class Loader {
 		return(edge);
 	}
 	
-	private Edge addEdge(JSONObject e, Logger logger) throws IOException, JSONException {
+	private Edge addEdge(JSONObject e) throws IOException, JSONException {
 		Object edgeId = e.getString("_id");
 		Object dstVertexId = e.getString("_inV");
 		Object srcVertexId = e.getString("_outV");
-		Edge edge = getEdge(edgeId, logger);
+		Edge edge = getEdge(edgeId);
 		if (edge == null) { //TODO this will avoid dupe edges, but will not update edges with new properties.  ok for now, but should change.
 			
-			Vertex srcVertex = getVertex(srcVertexId, logger);
+			Vertex srcVertex = getVertex(srcVertexId);
 			if (srcVertex == null) {
 				String note = "Source vertex not found '" + srcVertexId + "'. Creating placeholder vertex.";
 				//logger.error(error);
@@ -161,12 +170,12 @@ public class Loader {
 				JSONObject v = new JSONObject();
 				v.put("_id", e.getString("_outV")); //TODO this name vs _id issue is kind of dumb ... Is it really still needed?
 				v.put("name", e.getString("_outV"));
-				addVertex(v, logger);
+				addVertex(v);
 				
-				srcVertex = getVertex(srcVertexId, logger); //TODO feels hacky
+				srcVertex = getVertex(srcVertexId); //TODO feels hacky
 			}
 
-			Vertex dstVertex = getVertex(dstVertexId, logger);
+			Vertex dstVertex = getVertex(dstVertexId);
 			if (dstVertex == null) {
 				String note = "Source vertex not found '" + dstVertexId + "'. Creating placeholder vertex.";
 				//logger.error(error);
@@ -175,9 +184,9 @@ public class Loader {
 				JSONObject v = new JSONObject();
 				v.put("_id", e.getString("_inV"));
 				v.put("name", e.getString("_inV"));
-				addVertex(v, logger);
+				addVertex(v);
 				
-				dstVertex = getVertex(dstVertexId, logger); //TODO feels hacky
+				dstVertex = getVertex(dstVertexId); //TODO feels hacky
 			}
 			
 			edge = graph.addEdge(null, srcVertex, dstVertex, e.getString("_label"));
