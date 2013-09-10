@@ -22,7 +22,7 @@ class GraphBolt extends BaseRichBolt with Logging {
    * Process a tuple by merging its graph into the database.
    */
   def process(uuid: String, graph: String) = {
-    val dbLocation = "/tmp/neo4j"//"/usr/local/neo4j-community-1.9.2/data/graph.db"
+    val dbLocation = "/usr/local/neo4j-community-1.9.2/data/graph.db"
     val loggerRef = Logger(getClass.getName.replace("$", "#").stripSuffix("#")).logger
     val loader = new Loader()
     loader.load(graph, dbLocation)
