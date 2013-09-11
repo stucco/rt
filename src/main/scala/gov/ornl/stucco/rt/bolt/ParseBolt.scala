@@ -47,8 +47,9 @@ class ParseBolt extends BaseRichBolt with Logging {
       case "nvd" => NvdExtractor(XmlParser(data)).toString
       case "argus" => ArgusExtractor(XmlParser(data)).toString
       case "cpe" => CpeExtractor(XmlParser(data)).toString
-//      case "hone" => HoneExtractor(CsvParser(data)).toString
+      case "hone" => HoneExtractor(CsvParser(data)).toString
       case "maxmind" => GeoIPExtractor(CsvParser(data)).toString
+      case "graphson" => JsonParser(data).toString
       case _ => "{ \"edges\":[], \"vertices\":[] }"
     }
     new Values(uuid, graph)
