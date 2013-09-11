@@ -57,6 +57,8 @@ class ParseBolt extends BaseRichBolt with Logging {
     debug(s"executing tuple: $tuple")
     val uuid = tuple getStringByField "uuid"
     val json = tuple getStringByField "json"
+    info("got json: " + json)
+    print("got this json thing: " + json + "\n")
     collector.emit(tuple, process(uuid, json))
     collector.ack(tuple)
   }
