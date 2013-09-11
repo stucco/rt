@@ -113,7 +113,11 @@ public class Loader {
 	}
 	
 	private Vertex addVertex(JSONObject v) throws IOException, JSONException{
-		Object vertexId = v.getString("name");
+		Object vertexId = v.optString("name");
+		if(vertexId == ""){
+			vertexId = v.getString("_id");
+			v.putOnce("name", vertexId);
+		}
 		Vertex vertex = null;
 		vertex = getVertex(vertexId);
 
