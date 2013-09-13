@@ -73,14 +73,28 @@ public class Loader {
 			JSONArray verts = g.getJSONArray("vertices");
 			JSONArray edges = g.optJSONArray("edges");
 			
-			for(int i=0; i<verts.length(); i++){
-				JSONObject v = verts.getJSONObject(i);
-				addVertex(v);
+			if(verts != null){
+				for(int i=0; i<verts.length(); i++){
+					JSONObject v = verts.getJSONObject(i);
+					try{
+						addVertex(v);
+					}catch (JSONException ex) {
+						// TODO terrible catch block
+						System.err.println("error with node " + v.toString(2) + "\n" + ex);
+						e.printStackTrace();
+					}
+				}
 			}
 			if(edges != null){
 				for(int i=0; i<edges.length(); i++){
 					JSONObject e = edges.getJSONObject(i);
-					addEdge(e);
+					try{
+						addEdge(e);
+					}catch (JSONException ex) {
+						// TODO terrible catch block
+						System.err.println("error with edge " + e.toString(2) + "\n" + ex);
+						e.printStackTrace();
+					}
 				}
 			}
 		}
@@ -88,11 +102,7 @@ public class Loader {
 			// TODO terrible catch block
 			System.err.println("1: error! " + e);
 			e.printStackTrace();
-		} catch (JSONException e) {
-			// TODO terrible catch block
-			System.err.println("2: error! " + e);
-			e.printStackTrace();
-		}
+		} 
 		finally
 		{
 			//tx.finish();
