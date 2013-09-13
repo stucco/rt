@@ -24,8 +24,8 @@ class GraphBolt extends BaseRichBolt with Logging {
   def process(uuid: String, graph: String) = {
     val dbLocation = "/usr/local/neo4j-community-1.9.2/data/graph.db"
     val loggerRef = Logger(getClass.getName.replace("$", "#").stripSuffix("#")).logger
-    val loader = new Loader()
-    loader.load(graph, dbLocation)
+    val loader = new Loader(dbLocation)
+    loader.load(graph)
     // insert into graph db
   }
 
