@@ -52,6 +52,8 @@ class ParseBolt extends BaseRichBolt with Logging {
       case "graphson" => JsonParser(data).toString
       case _ => "{ \"edges\":[], \"vertices\":[] }"
     }
+    info("generated graphson: " + graph.substring(0,500) + "...")
+    print("made this graphson thing: " + graph.substring(0,500) + "..." + "\n")
     new Values(uuid, graph)
   }
 
@@ -66,8 +68,8 @@ class ParseBolt extends BaseRichBolt with Logging {
     debug(s"executing tuple: $tuple")
     val uuid = tuple getStringByField "uuid"
     val json = tuple getStringByField "json"
-    info("got json: " + json)
-    print("got this json thing: " + json + "\n")
+    info("got json: " + json.substring(0,200) + "...")
+    print("got this json thing: " + json.substring(0,200) + "..." + "\n")
     collector.emit(tuple, process(uuid, json))
     collector.ack(tuple)
   }
