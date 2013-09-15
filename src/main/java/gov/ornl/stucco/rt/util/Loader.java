@@ -3,34 +3,29 @@
  */
 package gov.ornl.stucco.rt.util;
 
-import java.io.FileInputStream;
-import java.io.FileReader;
+
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.Map.Entry;
 
-import com.tinkerpop.blueprints.impls.tg.TinkerGraph;
-import com.tinkerpop.blueprints.impls.tg.TinkerGraphFactory;
-import com.tinkerpop.blueprints.impls.neo4j.Neo4jGraph;
-import com.tinkerpop.blueprints.Graph;
-import com.tinkerpop.blueprints.Index;
-import com.tinkerpop.blueprints.Vertex;
-import com.tinkerpop.blueprints.Edge;
-import com.tinkerpop.blueprints.Direction;
-import com.tinkerpop.blueprints.util.io.graphson.GraphElementFactory;
-import com.tinkerpop.blueprints.util.io.graphson.GraphSONMode;
-import com.tinkerpop.blueprints.util.io.graphson.GraphSONReader;
-import com.tinkerpop.blueprints.util.io.graphson.GraphSONUtility;
-
-import org.json.*;
-import org.neo4j.kernel.configuration.Config;
-
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+import org.json.JSONStringer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.tinkerpop.blueprints.Edge;
+import com.tinkerpop.blueprints.Index;
+import com.tinkerpop.blueprints.Vertex;
+import com.tinkerpop.blueprints.impls.neo4j.Neo4jGraph;
+import com.tinkerpop.blueprints.util.io.graphson.GraphSONMode;
+import com.tinkerpop.blueprints.util.io.graphson.GraphSONUtility;
 
 /**
  * @author euf
@@ -42,9 +37,12 @@ public class Loader {
 	private Index<Edge> edgeIndex;
 	private Logger logger;
 	
-	public Loader(String dbLocation){
+	public Loader(){
 		logger = LoggerFactory.getLogger(Loader.class);
+	}
 
+	public void load(String subgraph, String dbLocation){        
+		
 		final Map<String, String> settings = new HashMap<String, String>();
 		//it should default to "soft" anyway, but sometimes defaults to "gcr" instead depending on environment.  idk.
 		settings.put("cache_type", "soft");
@@ -59,10 +57,9 @@ public class Loader {
 		if (edgeIndex == null) {
 			edgeIndex = graph.createIndex("eName", Edge.class);
 		}
-	}
-
-	public void load(String subgraph){        
-		try{
+		
+		try
+		{
 			//System.out.println("HEY! loading graph: " + subgraph);
 			logger.info("loading graph: " + subgraph);
 			//g is the subgraph to add, in graphson format.
@@ -71,28 +68,14 @@ public class Loader {
 			JSONArray verts = g.getJSONArray("vertices");
 			JSONArray edges = g.optJSONArray("edges");
 			
-			if(verts != null){
-				for(int i=0; i<verts.length(); i++){
-					JSONObject v = verts.getJSONObject(i);
-					try{
-						addVertex(v);
-					}catch (JSONException ex) {
-						// TODO terrible catch block
-						System.err.println("error with node " + v.toString(2) + "\n" + ex);
-						ex.printStackTrace();
-					}
-				}
+			for(int i=0; i<verts.length(); i++){
+				JSONObject v = verts.getJSONObject(i);
+				addVertex(v);
 			}
 			if(edges != null){
 				for(int i=0; i<edges.length(); i++){
 					JSONObject e = edges.getJSONObject(i);
-					try{
-						addEdge(e);
-					}catch (JSONException ex) {
-						// TODO terrible catch block
-						System.err.println("error with edge " + e.toString(2) + "\n" + ex);
-						ex.printStackTrace();
-					}
+					addEdge(e);
 				}
 			}
 		}
@@ -100,7 +83,11 @@ public class Loader {
 			// TODO terrible catch block
 			System.err.println("1: error! " + e);
 			e.printStackTrace();
-		} 
+		} catch (JSONException e) {
+			// TODO terrible catch block
+			System.err.println("2: error! " + e);
+			e.printStackTrace();
+		}
 		finally
 		{
 			//tx.finish();
@@ -132,28 +119,107 @@ public class Loader {
 		if (vertex == null) { //make new vertex if needed
 			vertex = graph.addVertex(vertexId);
 			logger.info("adding vertex: " + v.getString("name") + " " + vertex.toString() );
-		}else{
-			logger.info("updating vertex: " + v.getString("name") + " " + vertex.toString() );
-		}
-		//update vertex properties.
-		String[] keys = JSONObject.getNames(v);
-		for(int i=0; i<keys.length; i++){
-			JSONArray arrVal = v.optJSONArray(keys[i]);
-			if(arrVal != null){ //arrays need special handling: can't just assign a JSONArray as a property
-				String[] vals = new String[arrVal.length()]; //TODO won't necessarily be strings ...
-				for(int j=0; j<vals.length; j++){
-					vals[j] = arrVal.getString(j);
+		
+			//update vertex properties.
+			String[] keys = JSONObject.getNames(v);
+			for(int i=0; i<keys.length; i++){
+				JSONArray arrVal = v.optJSONArray(keys[i]);
+				if(arrVal != null){ //arrays need special handling: can't just assign a JSONArray as a property
+					Set<String> vals = new HashSet<String>(); //TODO won't necessarily be strings ...
+					for(int j=0; j<arrVal.length(); j++){
+						vals.add(arrVal.getString(j));
+					}
+					vertex.setProperty(keys[i], vals);
 				}
-				vertex.setProperty(keys[i], vals);
+				else{
+					Object val = v.get(keys[i]);
+					vertex.setProperty(keys[i], val);
+				}
 			}
-			else{
-				Object val = v.get(keys[i]);
-				vertex.setProperty(keys[i], val);
+		
+		}
+		else{
+			logger.info("updating vertex: " + v.getString("name") + " " + vertex.toString() );
+			Set<String> originalKeys = vertex.getPropertyKeys();
+			JSONObject originalObject = new JSONObject();
+			try {
+				originalObject = new JSONObject(GraphSONUtility.jsonFromElement(vertex, originalKeys, GraphSONMode.NORMAL).toString());
+			} catch (org.codehaus.jettison.json.JSONException e) {
+				e.printStackTrace();
+			}
+			logger.debug("original vertex as JSONObject: " + originalObject);
+			
+			//update vertex properties.
+			String[] keys = JSONObject.getNames(v);
+			for(int i=0; i<keys.length; i++){
+				if ((!keys[i].equals("_id")) && (!keys[i].equals("name"))) {
+					if (originalKeys.contains(keys[i])) {
+						logger.debug("merging property for key '" + keys[i] + "'");
+						
+						Set<String> vals = new HashSet<String>(); //TODO won't necessarily be strings ...
+						JSONArray originalArrVals = originalObject.optJSONArray(keys[i]);
+						if (originalArrVals != null) {
+							for (int j=0; j<originalArrVals.length(); j++) {
+								vals.add(originalArrVals.getString(j));
+							}
+						}
+						else {
+							String val = String.valueOf(vertex.getProperty(keys[i]));
+							vals.add(val);
+						}
+						
+						JSONArray arrVal = v.optJSONArray(keys[i]);
+						if(arrVal != null){ //arrays need special handling: can't just assign a JSONArray as a property
+							for(int j=0; j<arrVal.length(); j++){
+								vals.add(arrVal.getString(j));
+							}
+						}
+						else{
+							String val = String.valueOf(v.get(keys[i]));
+							vals.add(val);
+						}
+						 //don't put a single value into an array
+						if ((!vals.isEmpty()) && (vals.size() > 1)) {
+							logger.debug("merged array property value: " + vals);
+							vertex.setProperty(keys[i], vals);
+						}
+						else if (vals.size() == 1){
+							String singleVal = vals.iterator().next();
+							logger.debug("merged single property value: " + singleVal);
+							vertex.setProperty(keys[i], singleVal);
+						}
+						
+						originalKeys.remove(keys[i]);
+						
+					}
+					else {
+						logger.debug("creating property for key '" + keys[i] + "'");
+						JSONArray arrVal = v.optJSONArray(keys[i]);
+						if(arrVal != null){ //arrays need special handling: can't just assign a JSONArray as a property
+							Set<String> vals = new HashSet<String>(); //TODO won't necessarily be strings ...
+							for(int j=0; j<arrVal.length(); j++){
+								vals.add(arrVal.getString(j));
+							}
+							vertex.setProperty(keys[i], vals);
+						}
+						else{
+							Object val = v.get(keys[i]);
+							vertex.setProperty(keys[i], val);
+						}
+					}
+				}
+				
+			}
+			//any property of the original vertex that was not in the new set of properties, add back
+			for (String propertyKey : originalKeys) {
+				String originalValue = String.valueOf(vertex.getProperty(propertyKey));
+				vertex.setProperty(propertyKey, originalValue);
+				logger.debug("setting key '" + propertyKey + "' back to value '" + originalValue + "'");
 			}
 		}
 		//TODO should remove old index if needed before adding this ...
-		vertexIndex.put("name", v.getString("name"), vertex);
-			
+		vertexIndex.put("name", String.valueOf(vertex.getProperty("name")), vertex);
+		logger.debug("adding vertex: " + String.valueOf(vertex.getProperty("name")) + " " + vertex.toString());	
 		return(vertex);
 	}
 	
@@ -206,9 +272,9 @@ public class Loader {
 			for(int i=0; i<keys.length; i++){
 				JSONArray arrVal = e.optJSONArray(keys[i]);
 				if(arrVal != null){ //arrays need special handling: can't just assign a JSONArray as a property
-					String[] vals = new String[arrVal.length()]; //TODO won't necessarily be strings ...
-					for(int j=0; j<vals.length; j++){
-						vals[j] = arrVal.getString(j);
+					Set<String> vals = new HashSet<String>(); //TODO won't necessarily be strings ...
+					for(int j=0; j<arrVal.length(); j++){
+						vals.add(arrVal.getString(j));
 					}
 					edge.setProperty(keys[i], vals);
 				}
@@ -217,10 +283,91 @@ public class Loader {
 					edge.setProperty(keys[i], val);
 				}
 			}
-			logger.info("adding vertex: " + e.getString("_id") + edge.toString() ); //TODO again w name v id...
-			edgeIndex.put("_id", e.getString("_id"), edge);
 		}
+		else {
+			logger.info("edge already exists... merging properties");
+			Set<String> originalKeys = edge.getPropertyKeys();
+			JSONObject originalObject = new JSONObject();
+			try {
+				originalObject = new JSONObject(GraphSONUtility.jsonFromElement(edge, originalKeys, GraphSONMode.NORMAL).toString());
+			} catch (org.codehaus.jettison.json.JSONException ex) {
+				ex.printStackTrace();
+			}
+			logger.debug("original edge as JSONObject: " + originalObject);
+			
+			//update vertex properties.
+			String[] keys = JSONObject.getNames(e);
+			for(int i=0; i<keys.length; i++){
+				if ((!keys[i].equals("_id")) && (!keys[i].equals("_inV")) && (!keys[i].equals("_outV"))) {
+					if (originalKeys.contains(keys[i])) {
+						logger.debug("merging property for key '" + keys[i] + "'");
+						
+						Set<String> vals = new HashSet<String>(); //TODO won't necessarily be strings ...
+						JSONArray originalArrVals = originalObject.optJSONArray(keys[i]);
+						if (originalArrVals != null) {
+							for (int j=0; j<originalArrVals.length(); j++) {
+								vals.add(originalArrVals.getString(j));
+							}
+						}
+						else {
+							String val = String.valueOf(edge.getProperty(keys[i]));
+							vals.add(val);
+						}
+						
+						JSONArray arrVal = e.optJSONArray(keys[i]);
+						if(arrVal != null){ //arrays need special handling: can't just assign a JSONArray as a property
+							for(int j=0; j<arrVal.length(); j++){
+								vals.add(arrVal.getString(j));
+							}
+						}
+						else{
+							String val = String.valueOf(e.get(keys[i]));
+							vals.add(val);
+						}
+						 //don't put a single value into an array
+						if ((!vals.isEmpty()) && (vals.size() > 1)) {
+							logger.debug("merged array property value: " + vals);
+							edge.setProperty(keys[i], vals);
+						}
+						else if (vals.size() == 1){
+							String singleVal = vals.iterator().next();
+							logger.debug("merged single property value: " + singleVal);
+							edge.setProperty(keys[i], singleVal);
+						}
+						
+						originalKeys.remove(keys[i]);
+						
+					}
+					else {
+						logger.debug("creating property for key '" + keys[i] + "'");
+						JSONArray arrVal = e.optJSONArray(keys[i]);
+						if(arrVal != null){ //arrays need special handling: can't just assign a JSONArray as a property
+							Set<String> vals = new HashSet<String>(); //TODO won't necessarily be strings ...
+							for(int j=0; j<arrVal.length(); j++){
+								vals.add(arrVal.getString(j));
+							}
+							edge.setProperty(keys[i], vals);
+						}
+						else{
+							Object val = e.get(keys[i]);
+							edge.setProperty(keys[i], val);
+						}
+					}
+				}
+				
+			}
+			//any property of the original vertex that was not in the new set of properties, add back
+			for (String propertyKey : originalKeys) {
+				String originalValue = String.valueOf(edge.getProperty(propertyKey));
+				edge.setProperty(propertyKey, originalValue);
+				logger.debug("setting key '" + propertyKey + "' back to value '" + originalValue + "'");
+			}
+		}
+		//TODO should remove old index if needed before adding this ...
+		logger.info("adding edge: " + edge.getProperty("_id") + " " + edge.toString() ); //TODO again w name v id...
+		edgeIndex.put("_id", String.valueOf(edge.getProperty("_id")), edge);
+		
 		return(edge);
 	}
 	
-}
+}}
