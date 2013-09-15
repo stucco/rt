@@ -37,29 +37,27 @@ public class Loader {
 	private Index<Edge> edgeIndex;
 	private Logger logger;
 	
-	public Loader(){
+	public Loader(String dbLocation){
 		logger = LoggerFactory.getLogger(Loader.class);
-	}
 
-	public void load(String subgraph, String dbLocation){        
-		
 		final Map<String, String> settings = new HashMap<String, String>();
 		//it should default to "soft" anyway, but sometimes defaults to "gcr" instead depending on environment.  idk.
 		settings.put("cache_type", "soft");
 		graph = new Neo4jGraph(dbLocation, settings);
-		
+
 		vertexIndex = graph.getIndex("vName", Vertex.class);
 		if (vertexIndex == null) {
 			vertexIndex = graph.createIndex("vName", Vertex.class);
 		}
-		
+
 		edgeIndex = graph.getIndex("eName", Edge.class);
 		if (edgeIndex == null) {
 			edgeIndex = graph.createIndex("eName", Edge.class);
 		}
-		
-		try
-		{
+	}
+
+	public void load(String subgraph){
+		try {
 			//System.out.println("HEY! loading graph: " + subgraph);
 			logger.info("loading graph: " + subgraph);
 			//g is the subgraph to add, in graphson format.
