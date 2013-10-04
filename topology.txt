@@ -14,28 +14,27 @@
 | RMQ SPOUT |
 +-----------+
 | (json: String)
-V                                                    +---->+-------+            +----------+
-+------+                                             |     | TRAIN |            |          |
-| UUID |                                             |     +-------+            |          V______
-+------+                                             |     | (train-data: ?)    |          /      \
-| (uuid: String, json: String)                       |     +--------------------+          \______/
+V                           ______                         +-------+            +----------+
++-----------+              /      \                  +---->| TRAIN |            |          |
+| DOC STORE |------------->\______/                  |     +-------+            |          V______
++-----------+              | RIAK |                  |     | (train-data: ?)    |          /      \
+| (uuid: String,           |      |                  |     +--------------------+          \______/
+|  json: String)           |______|                  |     |                               |      |
 V                                                    |     V            [on startup]       | RIAK |
 +-------+           (uuid: String, json: String)     |     +---------+ (train-data: ?)     |      |
 | ROUTE |-----------------UNSTRUCTURED DATA----------+---->| EXTRACT |<--------------------|      |
 +-------+                                                  +---------+                     |______|
-| (uuid: String, json: String)                       +-----+ (uuid: String, text: String)
-| STRUCTURED DATA                                    |     V
-V                                                    |     +---------+
-+-------+                            +-----------+   |     | CONCEPT |
-| PARSE |--------------------------->| DOC STORE |<--+     +---------+
-+-------+                            +-----------+         | (uuid: String, text: String, concepts: String)
-| (uuid: String, graph: String)         |                  V
-|                                       V______            +----------+
-|                                       /      \           | RELATION |
-|                                       \______/           +----------+
-|                                       | RIAK |           | (uuid: String, graph: String)
-|                                       |      |           V
-|                                       |______|           |
+| (uuid: String, json: String)                             | (uuid: String, text: String)
+| STRUCTURED DATA                                          V
+V                                                          +---------+
++-------+                                                  | CONCEPT |
+| PARSE |                                                  +---------+
++-------+                                                  | (uuid: String, text: String, concepts: String)
+| (uuid: String, graph: String)                            V
+|                                                          +----------+
+|                                                          | RELATION |
+|                                                          +----------+
+|                                                          | (uuid: String, graph: String)
 |                                                          |
 |                   +--------------------------------------+
 V                   V
