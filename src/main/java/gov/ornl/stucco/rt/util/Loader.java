@@ -102,6 +102,7 @@ public class Loader {
 				vertex = vertexIterator.next();
 			}
 		}
+		if(vertex != null) System.out.println("found your vertex bro");
 		return(vertex);
 	}
 	

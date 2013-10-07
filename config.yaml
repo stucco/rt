@@ -1,19 +1,19 @@
 storm:
   debug: no
-  workers: 3
+  workers: 1
 
 instances:
-  rabbitmq: 2
-  uuid: 2
-  route: 2
+  rabbitmq: 1
+  uuid: 1
+  route: 1
 
-  parse: 5
+  parse: 1
 
-  extract: 5
-  concept: 5
-  relation: 5
+  extract: 1
+  concept: 1
+  relation: 1
 
-  document: 2
+  document: 1
   graph: 1
 
 rabbitmq:

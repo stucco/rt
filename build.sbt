@@ -24,8 +24,8 @@ resolvers ++= Seq(
 libraryDependencies ++= Seq(
   "org.streum" %% "configrity-yaml" % "1.0.0",
   "org.scalatest" %% "scalatest" % "1.9.1" % "test",
-  "junit" % "junit" % "4.10" % "test",
-  "com.novocode" % "junit-interface" % "0.10-M4" % "test",
+  "junit" % "junit" % "4.11" % "test",
+  "com.novocode" % "junit-interface" % "0.10" % "test->default",
   "ch.qos.logback" % "logback-classic" % "1.0.13",
   "org.clapper" % "grizzled-slf4j_2.10" % "1.0.1",
   "net.logstash.logback" % "logstash-logback-encoder" % "1.2",
@@ -37,6 +37,8 @@ libraryDependencies ++= Seq(
   "com.tinkerpop.blueprints" % "blueprints-core" % "2.4.0",
   "com.tinkerpop.blueprints" % "blueprints-neo4j-graph" % "2.4.0"
 )
+
+testOptions += Tests.Argument(TestFrameworks.JUnit, "-s", "-v")
 
 // following two sections needed to make sbt assembly work
 // (or we can use a "provided" dependency, but then sbt run won't work)
