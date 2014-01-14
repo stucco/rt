@@ -35,7 +35,7 @@ libraryDependencies ++= Seq(
   "com.xorlev" % "storm-amqp-spout" % "0.2.0",
   "com.basho.riak" % "riak-client" % "1.1.1",
   "com.tinkerpop.blueprints" % "blueprints-core" % "2.4.0",
-  "com.tinkerpop.blueprints" % "blueprints-neo4j-graph" % "2.4.0"
+  "com.thinkaurelius.titan" % "titan-all" % "0.4.0"
 )
 
 // following two sections needed to make sbt assembly work
