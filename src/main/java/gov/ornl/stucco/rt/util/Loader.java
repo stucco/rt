@@ -362,7 +362,7 @@ public class Loader {
 				logger.debug("setting key '" + propertyKey + "' back to value '" + originalValue + "'");
 			}
 		}
-		logger.info("adding edge: " + edge.getProperty("_id") + " " + edge.toString() ); //TODO again w name v id...
+		logger.debug("adding edge: " + edge.getProperty("_id") + " " + edge.toString() ); //TODO again w name v id...
 		return(edge);
 	}
 	
