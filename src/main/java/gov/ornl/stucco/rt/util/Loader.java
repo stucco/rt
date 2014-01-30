@@ -13,6 +13,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.commons.configuration.BaseConfiguration;
+import org.apache.commons.configuration.Configuration;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -23,37 +26,39 @@ import org.slf4j.LoggerFactory;
 import com.tinkerpop.blueprints.Edge;
 import com.tinkerpop.blueprints.Index;
 import com.tinkerpop.blueprints.Vertex;
-import com.tinkerpop.blueprints.impls.neo4j.Neo4jGraph;
 import com.tinkerpop.blueprints.util.io.graphson.GraphSONMode;
 import com.tinkerpop.blueprints.util.io.graphson.GraphSONUtility;
+
+import com.thinkaurelius.titan.core.TitanFactory;
+import com.thinkaurelius.titan.core.TitanGraph;
+import com.thinkaurelius.titan.core.TitanKey;
+import com.thinkaurelius.titan.core.attribute.Geoshape;
+import com.thinkaurelius.titan.graphdb.configuration.GraphDatabaseConfiguration;
 
 /**
  * @author euf
  *
  */
 public class Loader {
-	private Neo4jGraph graph;
-	private Index<Vertex> vertexIndex;
-	private Index<Edge> edgeIndex;
+
+	private TitanGraph graph;
 	private Logger logger;
 	
 	public Loader(String dbLocation){
 		logger = LoggerFactory.getLogger(Loader.class);
 
-		final Map<String, String> settings = new HashMap<String, String>();
-		//it should default to "soft" anyway, but sometimes defaults to "gcr" instead depending on environment.  idk.
-		settings.put("cache_type", "soft");
-		graph = new Neo4jGraph(dbLocation, settings);
+		BaseConfiguration conf = new BaseConfiguration();
+		conf.setProperty("storage.backend","cassandra");
+		conf.setProperty("storage.hostname","127.0.0.1");
+		TitanGraph graph = TitanFactory.open(conf);
 
-		vertexIndex = graph.getIndex("vName", Vertex.class);
-		if (vertexIndex == null) {
-			vertexIndex = graph.createIndex("vName", Vertex.class);
-		}
+		Set<String> vKeys = graph.getIndexedKeys(Vertex.class);
+		if( ! vKeys.contains("name") )
+			graph.createKeyIndex("name",Vertex.class);
 
-		edgeIndex = graph.getIndex("eName", Edge.class);
-		if (edgeIndex == null) {
-			edgeIndex = graph.createIndex("eName", Edge.class);
-		}
+		Set<String> eKeys = graph.getIndexedKeys(Edge.class);
+		if( ! eKeys.contains("name") )
+			graph.createKeyIndex("name",Edge.class);
 	}
 
 	public void load(String subgraph){
@@ -93,14 +98,12 @@ public class Loader {
 		}
 	}
 	
-	
+	//TODO: name vs. _id in vertex vs edge indices - I thought I cleaned that up?  guess not.
 	private Vertex getVertex(Object vertexId) {
 		Vertex vertex = null;
-		if (vertex == null) {
-			Iterator<Vertex> vertexIterator = vertexIndex.get("name", vertexId).iterator();
-			if (vertexIterator.hasNext()) {
-				vertex = vertexIterator.next();
-			}
+		Iterator<Vertex> vertexIterator = graph.getVertices("name",vertexId).iterator();
+		if (vertexIterator.hasNext()) {
+			vertex = vertexIterator.next();
 		}
 		return(vertex);
 	}
@@ -215,15 +218,13 @@ public class Loader {
 				logger.debug("setting key '" + propertyKey + "' back to value '" + originalValue + "'");
 			}
 		}
-		//TODO should remove old index if needed before adding this ...
-		vertexIndex.put("name", String.valueOf(vertex.getProperty("name")), vertex);
 		logger.debug("adding vertex: " + String.valueOf(vertex.getProperty("name")) + " " + vertex.toString());	
 		return(vertex);
 	}
 	
 	private Edge getEdge(Object edgeId) {
 		Edge edge = null;
-		Iterator<Edge> edgeIterator = edgeIndex.get("_id", edgeId).iterator();
+		Iterator<Edge> edgeIterator = graph.getEdges("_id", edgeId).iterator();
 		if (edgeIterator.hasNext()) {
 			edge = edgeIterator.next();
 		}
@@ -361,10 +362,7 @@ public class Loader {
 				logger.debug("setting key '" + propertyKey + "' back to value '" + originalValue + "'");
 			}
 		}
-		//TODO should remove old index if needed before adding this ...
-		logger.info("adding edge: " + edge.getProperty("_id") + " " + edge.toString() ); //TODO again w name v id...
-		edgeIndex.put("_id", String.valueOf(edge.getProperty("_id")), edge);
-		
+		logger.debug("adding edge: " + edge.getProperty("_id") + " " + edge.toString() ); //TODO again w name v id...
 		return(edge);
 	}
 	
