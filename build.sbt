@@ -10,6 +10,8 @@ version := "0.0.1"
 
 scalaVersion := "2.10.2"
 
+logLevel := Level.Warn
+
 fork in run := true
 
 scalacOptions := Seq(
