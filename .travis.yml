@@ -3,5 +3,9 @@ jdk:
   - oraclejdk7
   - openjdk7
 before_install:
-  - maven-rt-build.sh
+  - mvn --non-recursive scm:checkout -Dmodule.name=JSON-java
+  - mvn --non-recursive scm:checkout -Dmodule.name=morph
+  - mvn --non-recursive scm:checkout -Dmodule.name=extractors
+  - mvn --non-recursive scm:checkout -Dmodule.name=entity-extractor
+  - mvn clean install
   - cd stucco-topology

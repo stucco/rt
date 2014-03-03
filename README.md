@@ -17,10 +17,12 @@ dev: [![Build Status](https://travis-ci.org/stucco/rt.png?branch=dev)]
 2. Run the following commands:
 	```
     ./maven-rt-build.sh
-    cd stucco-topology
-    mvn clean package
-    mvn exec:java
 	```
+    cd stucco-topology
+	```
+    mvn clean package
+	```
+    mvn exec:java
 
 ### Package for Deployment to Cluster
 1. Modify the stucco-topology/pom.xml storm dependency section to indicate that the environment will provide the Storm library at runtime, instead of packaging it within the stucco-topology jar as with local execution:
