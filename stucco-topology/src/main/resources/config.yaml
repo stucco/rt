@@ -1,0 +1,38 @@
+storm:
+  debug: true
+  workers: 3
+
+instances:
+  structured_data: 2
+  unstructured_data: 2
+  uuid_struct: 2
+  uuid_unstruct: 2
+  parse: 5
+  concept: 5
+  relation: 5
+  alignment: 1
+
+structured_data:
+  exchange: stucco
+  host: localhost
+  port: 5672
+  username: guest
+  password: guest
+  queue: stucco-in-structured
+  bindings: 
+      - stucco.in.cve.#
+      - stucco.in.nvd.#
+      - stucco.in.cpe.#
+      - stucco.in.argus.#
+      - stucco.in.maxmind.#
+      - stucco.in.hone.#
+
+unstructured_data:
+    exchange: stucco
+    host: localhost
+    port: 5672
+    username: guest
+    password: guest
+    queue: stucco-in-unstructured
+    bindings:
+        - stucco.in.unstructured.#

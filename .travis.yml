@@ -1,6 +1,7 @@
-language: scala
-scala:
-  - 2.10.2
+language: java
 jdk:
   - oraclejdk7
   - openjdk7
+before_install:
+  - ./maven-rt-build.sh
+  - cd stucco-topology
