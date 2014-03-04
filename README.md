@@ -15,7 +15,6 @@ dev: [![Build Status](https://travis-ci.org/stucco/rt.png?branch=dev)]
 ### Compile and Execute Locally
 1. Open a terminal and cd to the rt directory
 2. Run the following commands:
-	
 	```./maven-rt-build.sh```
 	
 	```cd stucco-topology```
