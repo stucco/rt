@@ -163,9 +163,6 @@ public class Topology {
 		else {
 			LocalCluster localCluster = new LocalCluster();
 			localCluster.submitTopology("RT-Topology", config, builder.createTopology());
-			Utils.sleep(5000);
-			localCluster.killTopology("RT-Topology");
-			localCluster.shutdown();
 		}
 	}
 
