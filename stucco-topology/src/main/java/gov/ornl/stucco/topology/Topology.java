@@ -7,7 +7,6 @@ import gov.ornl.stucco.bolt.RelationBolt;
 import gov.ornl.stucco.bolt.UUIDBolt;
 import gov.ornl.stucco.spout.RabbitMQTopicSpout;
 
-import java.io.FileNotFoundException;
 import java.util.List;
 import java.util.Map;
 
@@ -21,7 +20,6 @@ import backtype.storm.StormSubmitter;
 import backtype.storm.generated.AlreadyAliveException;
 import backtype.storm.generated.InvalidTopologyException;
 import backtype.storm.topology.TopologyBuilder;
-import backtype.storm.utils.Utils;
 
 
 public class Topology {
@@ -41,6 +39,8 @@ public class Topology {
 	}
 	
 	public static final String EMPTY_GRAPHSON = "{ \"edges\":[], \"vertices\":[] }";
+	public static final String DOC_SERVICE_CLIENT_HOST = "doc_client_host";
+	public static final String DOC_SERVICE_CLIENT_PORT = "doc_client_port";
 	
 	private TopologyBuilder builder;
 	private Map<String, Object> configMap;
@@ -140,7 +140,14 @@ public class Topology {
 		}
 		Config config = new Config();
 		config.setDebug(debug);
-        
+		
+		if (configMap.containsKey("document_service")) {
+			String host = ((Map<String, String>) configMap.get("document_service")).get("host");
+			Integer port = ((Map<String, Integer>) configMap.get("document_service")).get("port");
+			config.put(DOC_SERVICE_CLIENT_HOST, host);
+			config.put(DOC_SERVICE_CLIENT_PORT, port.intValue());
+		}
+		
 		logger.debug("DEBUG MODE is on.");
 		
 		if (args.length > 0) {
@@ -163,11 +170,9 @@ public class Topology {
 		else {
 			LocalCluster localCluster = new LocalCluster();
 			localCluster.submitTopology("RT-Topology", config, builder.createTopology());
-			Utils.sleep(5000);
-			localCluster.killTopology("RT-Topology");
-			localCluster.shutdown();
 		}
 	}
+
 
 	/**
 	 * @param args

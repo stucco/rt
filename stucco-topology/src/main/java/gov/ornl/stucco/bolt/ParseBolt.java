@@ -1,13 +1,15 @@
 package gov.ornl.stucco.bolt;
 
-import gov.ornl.stucco.morph.ast.StringNode;
-import gov.ornl.stucco.morph.ast.ValueNode;
 import gov.ornl.stucco.extractors.ArgusExtractor;
 import gov.ornl.stucco.extractors.CpeExtractor;
 import gov.ornl.stucco.extractors.CveExtractor;
 import gov.ornl.stucco.extractors.GeoIPExtractor;
 import gov.ornl.stucco.extractors.HoneExtractor;
 import gov.ornl.stucco.extractors.NvdExtractor;
+import gov.ornl.stucco.morph.ast.StringNode;
+import gov.ornl.stucco.morph.ast.ValueNode;
+import gov.ornl.stucco.morph.parser.CsvParser;
+import gov.ornl.stucco.morph.parser.XmlParser;
 import gov.ornl.stucco.topology.Topology;
 
 import java.util.Map;
@@ -30,10 +32,19 @@ public class ParseBolt extends BaseRichBolt {
 	private static final Logger logger = LoggerFactory.getLogger(ParseBolt.class);
 	
 	private OutputCollector collector;
+//	private DocServiceClient docClient;
 
 	@Override
 	public void prepare(@SuppressWarnings("rawtypes") Map stormConf, TopologyContext context, OutputCollector collector) {
 		this.collector = collector;
+//		if ((stormConf.containsKey(Topology.DOC_SERVICE_CLIENT_HOST)) && (stormConf.containsKey(Topology.DOC_SERVICE_CLIENT_PORT))) {
+//			String host = (String) stormConf.get(Topology.DOC_SERVICE_CLIENT_HOST);
+//			int port = ((Long) stormConf.get(Topology.DOC_SERVICE_CLIENT_PORT)).intValue();
+//			this.docClient = new DocServiceClient(host, port);
+//		}
+//		else {
+//			this.docClient = new DocServiceClient();
+//		}
 	}
 
 	@Override
@@ -41,47 +52,59 @@ public class ParseBolt extends BaseRichBolt {
 		String uuid = tuple.getStringByField("uuid");
 		String dataSource = tuple.getStringByField("source");
 		boolean contentIncl = tuple.getBooleanByField("contentIncl");
-		String message = tuple.getStringByField("message");
+		String content = tuple.getStringByField("message");
 		String graph = Topology.EMPTY_GRAPHSON;
 		
-		if (contentIncl) {
-			if (dataSource.contains(".cve")) {
-				StringNode stringNode = CveExtractor.String2StringNode(message);
-				ValueNode nodeData = CveExtractor.extract(stringNode);
-				graph = String.valueOf(nodeData);
-			}
-			else if (dataSource.contains(".nvd")) {
-				StringNode stringNode = NvdExtractor.String2StringNode(message);
-				ValueNode nodeData = NvdExtractor.extract(stringNode);
-				graph = String.valueOf(nodeData);
-			}
-			else if (dataSource.contains(".cpe")) {
-				StringNode stringNode = CpeExtractor.String2StringNode(message);
-				ValueNode nodeData = CpeExtractor.extract(stringNode);
-				graph = String.valueOf(nodeData);
-			}
-			else if (dataSource.contains(".maxmind")) {
-				StringNode stringNode = GeoIPExtractor.String2StringNode(message);
-				ValueNode nodeData = GeoIPExtractor.extract(stringNode);
-				graph = String.valueOf(nodeData);
-			}
-			else if (dataSource.contains(".argus")) {
-				StringNode stringNode = ArgusExtractor.String2StringNode(message);
-				ValueNode nodeData = ArgusExtractor.extract(stringNode);
-				graph = String.valueOf(nodeData);
-			}
-			else if (dataSource.contains(".hone")) {
-				StringNode stringNode = HoneExtractor.String2StringNode(message);
-				ValueNode nodeData = HoneExtractor.extract(stringNode);
-				graph = String.valueOf(nodeData);
-			}
-			else {
-				logger.warn("Unexpected routing key encountered '" + dataSource + "'.");
-			}
+		if (!contentIncl) {
+			String docId = content.trim();
+			logger.debug("Retrieving document content from Document-Service.");
+			
+//			if (docClient != null) {
+//				try {
+//					DocumentObject document = docClient.fetch(docId);
+//					content = document.getDataAsString();
+//				} catch (DocServiceException e) {
+//					logger.error("Could not fetch document from Document-Service.", e);
+//				}
+//			}
+//			else {
+//				logger.warn("Can't retrieve documents because Document-Service client is null.");
+//			}
+		}
+		
+		if (dataSource.contains(".cve")) {
+			ValueNode nodeData = XmlParser.apply(content);
+			ValueNode parsedData = CveExtractor.extract(nodeData);
+			graph = String.valueOf(parsedData);
+		}
+		else if (dataSource.contains(".nvd")) {
+			ValueNode nodeData = XmlParser.apply(content);
+			ValueNode parsedData = NvdExtractor.extract(nodeData);
+			graph = String.valueOf(parsedData);
+		}
+		else if (dataSource.contains(".cpe")) {
+			ValueNode nodeData = XmlParser.apply(content);
+			ValueNode parsedData = CpeExtractor.extract(nodeData);
+			graph = String.valueOf(parsedData);
+		}
+		else if (dataSource.contains(".maxmind")) {
+			ValueNode nodeData = CsvParser.apply(content);
+			ValueNode parsedData = GeoIPExtractor.extract(nodeData);
+			graph = String.valueOf(parsedData);
+		}
+		else if (dataSource.contains(".argus")) {
+			ValueNode nodeData = XmlParser.apply(content);
+			ValueNode parsedData = ArgusExtractor.extract(nodeData);
+			graph = String.valueOf(parsedData);
+		}
+		else if (dataSource.contains(".hone")) {
+			ValueNode nodeData = CsvParser.apply(content);
+			ValueNode parsedData = HoneExtractor.extract(nodeData);
+			graph = String.valueOf(parsedData);
 		}
 		else {
-			//TODO: get document from doc-service
-		}
+			logger.warn("Unexpected routing key encountered '" + dataSource + "'.");
+		}		
 		
 		Values values = new Values(uuid, graph, tuple.getLongByField("timestamp"));
 		logger.debug("emitting " + values);

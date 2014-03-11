@@ -36,3 +36,8 @@ unstructured_data:
     queue: stucco-in-unstructured
     bindings:
         - stucco.in.unstructured.#
+
+document_service:
+    host: localhost
+    port: 8118
+    
