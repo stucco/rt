@@ -95,8 +95,8 @@ public class RabbitMQTopicSpout extends BaseRichSpout {
 				routingKey = response.getEnvelope().getRoutingKey();
 				timestamp = response.getProps().getTimestamp().getTime();
 				Map<String, Object> headerMap = response.getProps().getHeaders();
-				if ((headerMap != null) && (headerMap.containsKey("content"))) {
-					contentIncluded = Boolean.valueOf(String.valueOf(headerMap.get("content")));
+				if ((headerMap != null) && (headerMap.containsKey("HasContent"))) {
+					contentIncluded = Boolean.valueOf(String.valueOf(headerMap.get("HasContent")));
 				}
 				
 				long deliveryTag = response.getEnvelope().getDeliveryTag();
