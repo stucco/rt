@@ -26,6 +26,8 @@ structured_data:
       - stucco.in.argus.#
       - stucco.in.maxmind.#
       - stucco.in.hone.#
+      - stucco.in.metasploit.#
+      - stucco.in.cleanmx.#
 
 unstructured_data:
     exchange: stucco

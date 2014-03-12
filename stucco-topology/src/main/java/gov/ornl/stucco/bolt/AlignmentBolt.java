@@ -1,12 +1,11 @@
 package gov.ornl.stucco.bolt;
 
-import gov.ornl.stucco.util.Loader;
-
 import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import alignment.alignment_v2.Align;
 import backtype.storm.task.OutputCollector;
 import backtype.storm.task.TopologyContext;
 import backtype.storm.topology.OutputFieldsDeclarer;
@@ -27,11 +26,10 @@ public class AlignmentBolt extends BaseRichBolt {
 
 	@Override
 	public void execute(Tuple tuple) {
-		String uuid = tuple.getStringByField("uuid");
 		String graph = tuple.getStringByField("graph");
 		
-		Loader loader = new Loader();
-		loader.load(graph);
+		Align alignment = new Align();
+		alignment.load(graph);
 		
 		logger.debug("adding subgraph: " + graph);
 		collector.ack(tuple);

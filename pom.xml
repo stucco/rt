@@ -12,6 +12,8 @@
 	  <module>morph</module>
       <module>extractors</module>
       <module>entity-extractor</module>
+      <module>graph-alignment</module>
+      <module>document-service-client-java</module>
   </modules>
   <build>
       <plugins>
