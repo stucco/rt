@@ -78,98 +78,98 @@ public class ParseBolt extends BaseRichBolt {
 		}
 		
 		if (dataSource.contains(".cve")) {
-			ValueNode nodeData = null;
+			ValueNode parsedData = null;
 			try{
-				nodeData = XmlParser.apply(content);
+				ValueNode nodeData = XmlParser.apply(content);
+				parsedData = CveExtractor.extract(nodeData);
 			} catch (ParsingException e) {
 				logger.error("Error in parsing cve!", e);
 			}
-			if(nodeData != null){
-				ValueNode parsedData = CveExtractor.extract(nodeData);
+			if(parsedData != null){
 				graph = String.valueOf(parsedData);
 			}
 		}
 		else if (dataSource.contains(".nvd")) {
-			ValueNode nodeData = null;
+			ValueNode parsedData = null;
 			try{
-				nodeData = XmlParser.apply(content);
+				ValueNode nodeData = XmlParser.apply(content);
+				parsedData = NvdExtractor.extract(nodeData);
 			} catch (ParsingException e) {
 				logger.error("Error in parsing nvd!", e);
 			}
-			if(nodeData != null){
-				ValueNode parsedData = NvdExtractor.extract(nodeData);
+			if(parsedData != null){
 				graph = String.valueOf(parsedData);
 			}
 		}
 		else if (dataSource.contains(".cpe")) {
-			ValueNode nodeData = null;
+			ValueNode parsedData = null;
 			try{
-				nodeData = XmlParser.apply(content);
+				ValueNode nodeData = XmlParser.apply(content);
+				parsedData = CpeExtractor.extract(nodeData);
 			} catch (ParsingException e) {
 				logger.error("Error in parsing cpe!", e);
 			}
-			if(nodeData != null){
-				ValueNode parsedData = CpeExtractor.extract(nodeData);
+			if(parsedData != null){
 				graph = String.valueOf(parsedData);
 			}
 		}
 		else if (dataSource.contains(".maxmind")) {
-			ValueNode nodeData = null;
+			ValueNode parsedData = null;
 			try{
-				nodeData = CsvParser.apply(content);
+				ValueNode nodeData = CsvParser.apply(content);
+				parsedData = GeoIPExtractor.extract(nodeData);
 			} catch (ParsingException e) {
 				logger.error("Error in parsing maxmind!", e);
 			}
-			if(nodeData != null){
-				ValueNode parsedData = GeoIPExtractor.extract(nodeData);
+			if(parsedData != null){
 				graph = String.valueOf(parsedData);
 			}
 		}
 		else if (dataSource.contains(".argus")) {
-			ValueNode nodeData = null;
+			ValueNode parsedData = null;
 			try{
-				nodeData = XmlParser.apply(content);
+				ValueNode nodeData = CsvParser.apply(content);
+				parsedData = ArgusExtractor.extract(nodeData);
 			} catch (ParsingException e) {
 				logger.error("Error in parsing argus!", e);
 			}
-			if(nodeData != null){
-				ValueNode parsedData = ArgusExtractor.extract(nodeData);
+			if(parsedData != null){
 				graph = String.valueOf(parsedData);
 			}
 		}
 		else if (dataSource.contains(".hone")) {
-			ValueNode nodeData = null;
+			ValueNode parsedData = null;
 			try{
-				nodeData = CsvParser.apply(content);
+				ValueNode nodeData = CsvParser.apply(content);
+				parsedData = HoneExtractor.extract(nodeData);
 			} catch (ParsingException e) {
 				logger.error("Error in parsing hone!", e);
 			}
-			if(nodeData != null){
-				ValueNode parsedData = HoneExtractor.extract(nodeData);
+			if(parsedData != null){
 				graph = String.valueOf(parsedData);
 			}
 		}
 		else if (dataSource.contains(".metasploit")) {
-			ValueNode nodeData = null;
+			ValueNode parsedData = null;
 			try{
-				nodeData = CsvParser.apply(content);
+				ValueNode nodeData = CsvParser.apply(content);
+				parsedData = MetasploitExtractor.extract(nodeData);
 			} catch (ParsingException e) {
 				logger.error("Error in parsing hone!", e);
 			}
-			if(nodeData != null){
-				ValueNode parsedData = MetasploitExtractor.extract(nodeData);
+			if(parsedData != null){
 				graph = String.valueOf(parsedData);
 			}
 		}
 		else if (dataSource.contains(".cleanmx")) {
-			ValueNode nodeData = null;
+			ValueNode parsedData = null;
 			try{
-				nodeData = XmlParser.apply(content);
+				ValueNode nodeData = XmlParser.apply(content);
+				parsedData = CleanMxVirusExtractor.extract(nodeData);
 			} catch (ParsingException e) {
 				logger.error("Error in parsing hone!", e);
 			}
-			if(nodeData != null){
-				ValueNode parsedData = CleanMxVirusExtractor.extract(nodeData);
+			if(parsedData != null){
 				graph = String.valueOf(parsedData);
 			}
 		}

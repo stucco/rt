@@ -27,41 +27,15 @@ public class UUIDBolt extends BaseRichBolt {
 	private static final Logger logger = LoggerFactory.getLogger(UUIDBolt.class);
 	
 	private OutputCollector collector;
-	private DocServiceClient docClient;
 
 	@Override
 	public void prepare(@SuppressWarnings("rawtypes") Map stormConf, TopologyContext context, OutputCollector collector) {
 			this.collector = collector;
-			if ((stormConf.containsKey(Topology.DOC_SERVICE_CLIENT_HOST)) && (stormConf.containsKey(Topology.DOC_SERVICE_CLIENT_PORT))) {
-				String host = (String) stormConf.get(Topology.DOC_SERVICE_CLIENT_HOST);
-				int port = ((Long) stormConf.get(Topology.DOC_SERVICE_CLIENT_PORT)).intValue();
-				this.docClient = new DocServiceClient(host, port);
-			}
-			else {
-				this.docClient = new DocServiceClient();
-			}
 	}
 
 	@Override
 	public void execute(Tuple tuple) {
 		String content = tuple.getStringByField("message");
-		boolean contentIncl = tuple.getBooleanByField("contentIncl");
-		if (!contentIncl) {
-			String docId = content.trim();
-			logger.debug("Retrieving document content from Document-Service for id '" + docId + "'.");
-			
-			if (docClient != null) {
-				try {
-					DocumentObject document = docClient.fetch(docId);
-					content = document.getDataAsString();
-				} catch (DocServiceException e) {
-					logger.error("Could not fetch document from Document-Service.", e);
-				}
-			}
-			else {
-				logger.warn("Can't retrieve documents because Document-Service client is null.");
-			}
-		}
 		
 		UUID uuid = UUID.nameUUIDFromBytes(content.getBytes());
 		MessageDigest md = null;
@@ -74,7 +48,7 @@ public class UUIDBolt extends BaseRichBolt {
 			logger.error("UUID algorithm cannot be found.", ex);
 		}
 		
-		Values values = new Values(uuid.toString(), tuple.getStringByField("source"), tuple.getLongByField("timestamp"), contentIncl, tuple.getStringByField("message"));
+		Values values = new Values(uuid.toString(), tuple.getStringByField("source"), tuple.getLongByField("timestamp"), tuple.getBooleanByField("contentIncl"), content);
 		logger.debug("emitting " + values);
 		collector.emit(tuple, values);
 		collector.ack(tuple);
