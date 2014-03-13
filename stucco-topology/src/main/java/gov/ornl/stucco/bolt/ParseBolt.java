@@ -83,7 +83,9 @@ public class ParseBolt extends BaseRichBolt {
 				ValueNode nodeData = XmlParser.apply(content);
 				parsedData = CveExtractor.extract(nodeData);
 			} catch (ParsingException e) {
-				logger.error("Error in parsing cve!", e);
+				logger.error("ParsingException in parsing cve!", e);
+			} catch (Exception e) {
+				logger.error("Other Error in parsing cve!", e);
 			}
 			if(parsedData != null){
 				graph = String.valueOf(parsedData);
@@ -95,7 +97,9 @@ public class ParseBolt extends BaseRichBolt {
 				ValueNode nodeData = XmlParser.apply(content);
 				parsedData = NvdExtractor.extract(nodeData);
 			} catch (ParsingException e) {
-				logger.error("Error in parsing nvd!", e);
+				logger.error("ParsingException in parsing nvd!", e);
+			} catch (Exception e) {
+				logger.error("Other Error in parsing nvd!", e);
 			}
 			if(parsedData != null){
 				graph = String.valueOf(parsedData);
@@ -107,7 +111,9 @@ public class ParseBolt extends BaseRichBolt {
 				ValueNode nodeData = XmlParser.apply(content);
 				parsedData = CpeExtractor.extract(nodeData);
 			} catch (ParsingException e) {
-				logger.error("Error in parsing cpe!", e);
+				logger.error("ParsingException in parsing cpe!", e);
+			} catch (Exception e) {
+				logger.error("Other Error in parsing cpe!", e);
 			}
 			if(parsedData != null){
 				graph = String.valueOf(parsedData);
@@ -119,7 +125,9 @@ public class ParseBolt extends BaseRichBolt {
 				ValueNode nodeData = CsvParser.apply(content);
 				parsedData = GeoIPExtractor.extract(nodeData);
 			} catch (ParsingException e) {
-				logger.error("Error in parsing maxmind!", e);
+				logger.error("ParsingException in parsing maxmind!", e);
+			} catch (Exception e) {
+				logger.error("Other Error in parsing maxmind!", e);
 			}
 			if(parsedData != null){
 				graph = String.valueOf(parsedData);
@@ -131,7 +139,9 @@ public class ParseBolt extends BaseRichBolt {
 				ValueNode nodeData = CsvParser.apply(content);
 				parsedData = ArgusExtractor.extract(nodeData);
 			} catch (ParsingException e) {
-				logger.error("Error in parsing argus!", e);
+				logger.error("ParsingException in parsing argus!", e);
+			} catch (Exception e) {
+				logger.error("Other Error in parsing argus!", e);
 			}
 			if(parsedData != null){
 				graph = String.valueOf(parsedData);
@@ -143,7 +153,9 @@ public class ParseBolt extends BaseRichBolt {
 				ValueNode nodeData = CsvParser.apply(content);
 				parsedData = HoneExtractor.extract(nodeData);
 			} catch (ParsingException e) {
-				logger.error("Error in parsing hone!", e);
+				logger.error("ParsingException in parsing hone!", e);
+			} catch (Exception e) {
+				logger.error("Other Error in parsing hone!", e);
 			}
 			if(parsedData != null){
 				graph = String.valueOf(parsedData);
@@ -155,7 +167,9 @@ public class ParseBolt extends BaseRichBolt {
 				ValueNode nodeData = CsvParser.apply(content);
 				parsedData = MetasploitExtractor.extract(nodeData);
 			} catch (ParsingException e) {
-				logger.error("Error in parsing hone!", e);
+				logger.error("ParsingException in parsing metasploit!", e);
+			} catch (Exception e) {
+				logger.error("Other Error in parsing metasploit!", e);
 			}
 			if(parsedData != null){
 				graph = String.valueOf(parsedData);
@@ -167,7 +181,9 @@ public class ParseBolt extends BaseRichBolt {
 				ValueNode nodeData = XmlParser.apply(content);
 				parsedData = CleanMxVirusExtractor.extract(nodeData);
 			} catch (ParsingException e) {
-				logger.error("Error in parsing hone!", e);
+				logger.error("ParsingException in parsing cleanmx!", e);
+			} catch (Exception e) {
+				logger.error("Other Error in parsing cleanmx!", e);
 			}
 			if(parsedData != null){
 				graph = String.valueOf(parsedData);
