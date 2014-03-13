@@ -97,7 +97,7 @@ public class ParseBolt extends BaseRichBolt {
 			graph = String.valueOf(parsedData);
 		}
 		else if (dataSource.contains(".argus")) {
-			ValueNode nodeData = XmlParser.apply(content);
+			ValueNode nodeData = CsvParser.apply(content);
 			ValueNode parsedData = ArgusExtractor.extract(nodeData);
 			graph = String.valueOf(parsedData);
 		}
