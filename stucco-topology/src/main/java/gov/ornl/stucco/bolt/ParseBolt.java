@@ -1,10 +1,12 @@
 package gov.ornl.stucco.bolt;
 
 import gov.ornl.stucco.extractors.ArgusExtractor;
+import gov.ornl.stucco.extractors.CleanMxVirusExtractor;
 import gov.ornl.stucco.extractors.CpeExtractor;
 import gov.ornl.stucco.extractors.CveExtractor;
 import gov.ornl.stucco.extractors.GeoIPExtractor;
 import gov.ornl.stucco.extractors.HoneExtractor;
+import gov.ornl.stucco.extractors.MetasploitExtractor;
 import gov.ornl.stucco.extractors.NvdExtractor;
 import gov.ornl.stucco.morph.ast.ValueNode;
 import gov.ornl.stucco.morph.parser.CsvParser;
@@ -102,6 +104,16 @@ public class ParseBolt extends BaseRichBolt {
 		else if (dataSource.contains(".hone")) {
 			ValueNode nodeData = CsvParser.apply(content);
 			ValueNode parsedData = HoneExtractor.extract(nodeData);
+			graph = String.valueOf(parsedData);
+		}
+		else if (dataSource.contains(".metasploit")) {
+			ValueNode nodeData = CsvParser.apply(content);
+			ValueNode parsedData = MetasploitExtractor.extract(nodeData);
+			graph = String.valueOf(parsedData);
+		}
+		else if (dataSource.contains(".cleanmx")) {
+			ValueNode nodeData = XmlParser.apply(content);
+			ValueNode parsedData = CleanMxVirusExtractor.extract(nodeData);
 			graph = String.valueOf(parsedData);
 		}
 		else {
