@@ -77,44 +77,100 @@ public class ParseBolt extends BaseRichBolt {
 		}
 		
 		if (dataSource.contains(".cve")) {
-			ValueNode nodeData = XmlParser.apply(content);
-			ValueNode parsedData = CveExtractor.extract(nodeData);
-			graph = String.valueOf(parsedData);
+			ValueNode nodeData = null;
+			try{
+				nodeData = XmlParser.apply(content);
+			} catch (ParsingException e) {
+				logger.error("Error in parsing cve!", e);
+			}
+			if(nodeData){
+				ValueNode parsedData = CveExtractor.extract(nodeData);
+				graph = String.valueOf(parsedData);
+			}
 		}
 		else if (dataSource.contains(".nvd")) {
-			ValueNode nodeData = XmlParser.apply(content);
-			ValueNode parsedData = NvdExtractor.extract(nodeData);
-			graph = String.valueOf(parsedData);
+			ValueNode nodeData = null;
+			try{
+				nodeData = XmlParser.apply(content);
+			} catch (ParsingException e) {
+				logger.error("Error in parsing nvd!", e);
+			}
+			if(nodeData){
+				ValueNode parsedData = NvdExtractor.extract(nodeData);
+				graph = String.valueOf(parsedData);
+			}
 		}
 		else if (dataSource.contains(".cpe")) {
-			ValueNode nodeData = XmlParser.apply(content);
-			ValueNode parsedData = CpeExtractor.extract(nodeData);
-			graph = String.valueOf(parsedData);
+			ValueNode nodeData = null;
+			try{
+				nodeData = XmlParser.apply(content);
+			} catch (ParsingException e) {
+				logger.error("Error in parsing cpe!", e);
+			}
+			if(nodeData){
+				ValueNode parsedData = CpeExtractor.extract(nodeData);
+				graph = String.valueOf(parsedData);
+			}
 		}
 		else if (dataSource.contains(".maxmind")) {
-			ValueNode nodeData = CsvParser.apply(content);
-			ValueNode parsedData = GeoIPExtractor.extract(nodeData);
-			graph = String.valueOf(parsedData);
+			ValueNode nodeData = null;
+			try{
+				nodeData = CsvParser.apply(content);
+			} catch (ParsingException e) {
+				logger.error("Error in parsing maxmind!", e);
+			}
+			if(nodeData){
+				ValueNode parsedData = GeoIPExtractor.extract(nodeData);
+				graph = String.valueOf(parsedData);
+			}
 		}
 		else if (dataSource.contains(".argus")) {
-			ValueNode nodeData = CsvParser.apply(content);
-			ValueNode parsedData = ArgusExtractor.extract(nodeData);
-			graph = String.valueOf(parsedData);
+			ValueNode nodeData = null;
+			try{
+				nodeData = XmlParser.apply(content);
+			} catch (ParsingException e) {
+				logger.error("Error in parsing argus!", e);
+			}
+			if(nodeData){
+				ValueNode parsedData = ArgusExtractor.extract(nodeData);
+				graph = String.valueOf(parsedData);
+			}
 		}
 		else if (dataSource.contains(".hone")) {
-			ValueNode nodeData = CsvParser.apply(content);
-			ValueNode parsedData = HoneExtractor.extract(nodeData);
-			graph = String.valueOf(parsedData);
+			ValueNode nodeData = null;
+			try{
+				nodeData = CsvParser.apply(content);
+			} catch (ParsingException e) {
+				logger.error("Error in parsing hone!", e);
+			}
+			if(nodeData){
+				ValueNode parsedData = HoneExtractor.extract(nodeData);
+				graph = String.valueOf(parsedData);
+			}
 		}
 		else if (dataSource.contains(".metasploit")) {
-			ValueNode nodeData = CsvParser.apply(content);
-			ValueNode parsedData = MetasploitExtractor.extract(nodeData);
-			graph = String.valueOf(parsedData);
+			ValueNode nodeData = null;
+			try{
+				nodeData = CsvParser.apply(content);
+			} catch (ParsingException e) {
+				logger.error("Error in parsing hone!", e);
+			}
+			if(nodeData){
+				ValueNode parsedData = MetasploitExtractor.extract(nodeData);
+				graph = String.valueOf(parsedData);
+			}
 		}
 		else if (dataSource.contains(".cleanmx")) {
-			ValueNode nodeData = XmlParser.apply(content);
-			ValueNode parsedData = CleanMxVirusExtractor.extract(nodeData);
-			graph = String.valueOf(parsedData);
+			ValueNode nodeData = null;
+			try{
+				nodeData = XmlParser.apply(content);
+			} catch (ParsingException e) {
+				logger.error("Error in parsing hone!", e);
+			}
+			if(nodeData){
+				ValueNode parsedData = CleanMxVirusExtractor.extract(nodeData);
+				graph = String.valueOf(parsedData);
+			}
 		}
 		else {
 			logger.warn("Unexpected routing key encountered '" + dataSource + "'.");

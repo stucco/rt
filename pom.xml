@@ -9,7 +9,7 @@
   </properties>
   <modules>
       <module>JSON-java</module>
-	  <module>morph</module>
+      <module>morph</module>
       <module>extractors</module>
       <module>entity-extractor</module>
       <module>graph-alignment</module>
@@ -24,6 +24,15 @@
               <configuration>
                   <connectionUrl>scm:git:https://github.com/stucco/${module.name}.git</connectionUrl>
                   <checkoutDirectory>${module.name}</checkoutDirectory>
+              </configuration>
+          </plugin>
+          <plugin>
+              <artifactId>maven-compiler-plugin</artifactId>
+              <version>2.3.2</version>
+              <configuration>
+                  <source>1.6</source>
+                  <target>1.6</target>
+                  <compilerArgument></compilerArgument>
               </configuration>
           </plugin>
       </plugins>
