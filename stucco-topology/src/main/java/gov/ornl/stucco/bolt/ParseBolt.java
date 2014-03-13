@@ -11,6 +11,7 @@ import gov.ornl.stucco.extractors.NvdExtractor;
 import gov.ornl.stucco.morph.ast.ValueNode;
 import gov.ornl.stucco.morph.parser.CsvParser;
 import gov.ornl.stucco.morph.parser.XmlParser;
+import gov.ornl.stucco.morph.parser.ParsingException;
 import gov.ornl.stucco.topology.Topology;
 import gov.pnnl.stucco.doc_service_client.DocServiceClient;
 import gov.pnnl.stucco.doc_service_client.DocServiceException;
@@ -83,7 +84,7 @@ public class ParseBolt extends BaseRichBolt {
 			} catch (ParsingException e) {
 				logger.error("Error in parsing cve!", e);
 			}
-			if(nodeData){
+			if(nodeData != null){
 				ValueNode parsedData = CveExtractor.extract(nodeData);
 				graph = String.valueOf(parsedData);
 			}
@@ -95,7 +96,7 @@ public class ParseBolt extends BaseRichBolt {
 			} catch (ParsingException e) {
 				logger.error("Error in parsing nvd!", e);
 			}
-			if(nodeData){
+			if(nodeData != null){
 				ValueNode parsedData = NvdExtractor.extract(nodeData);
 				graph = String.valueOf(parsedData);
 			}
@@ -107,7 +108,7 @@ public class ParseBolt extends BaseRichBolt {
 			} catch (ParsingException e) {
 				logger.error("Error in parsing cpe!", e);
 			}
-			if(nodeData){
+			if(nodeData != null){
 				ValueNode parsedData = CpeExtractor.extract(nodeData);
 				graph = String.valueOf(parsedData);
 			}
@@ -119,7 +120,7 @@ public class ParseBolt extends BaseRichBolt {
 			} catch (ParsingException e) {
 				logger.error("Error in parsing maxmind!", e);
 			}
-			if(nodeData){
+			if(nodeData != null){
 				ValueNode parsedData = GeoIPExtractor.extract(nodeData);
 				graph = String.valueOf(parsedData);
 			}
@@ -131,7 +132,7 @@ public class ParseBolt extends BaseRichBolt {
 			} catch (ParsingException e) {
 				logger.error("Error in parsing argus!", e);
 			}
-			if(nodeData){
+			if(nodeData != null){
 				ValueNode parsedData = ArgusExtractor.extract(nodeData);
 				graph = String.valueOf(parsedData);
 			}
@@ -143,7 +144,7 @@ public class ParseBolt extends BaseRichBolt {
 			} catch (ParsingException e) {
 				logger.error("Error in parsing hone!", e);
 			}
-			if(nodeData){
+			if(nodeData != null){
 				ValueNode parsedData = HoneExtractor.extract(nodeData);
 				graph = String.valueOf(parsedData);
 			}
@@ -155,7 +156,7 @@ public class ParseBolt extends BaseRichBolt {
 			} catch (ParsingException e) {
 				logger.error("Error in parsing hone!", e);
 			}
-			if(nodeData){
+			if(nodeData != null){
 				ValueNode parsedData = MetasploitExtractor.extract(nodeData);
 				graph = String.valueOf(parsedData);
 			}
@@ -167,7 +168,7 @@ public class ParseBolt extends BaseRichBolt {
 			} catch (ParsingException e) {
 				logger.error("Error in parsing hone!", e);
 			}
-			if(nodeData){
+			if(nodeData != null){
 				ValueNode parsedData = CleanMxVirusExtractor.extract(nodeData);
 				graph = String.valueOf(parsedData);
 			}
