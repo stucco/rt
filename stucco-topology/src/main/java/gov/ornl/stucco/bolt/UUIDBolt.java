@@ -74,7 +74,7 @@ public class UUIDBolt extends BaseRichBolt {
 			logger.error("UUID algorithm cannot be found.", ex);
 		}
 		
-		Values values = new Values(uuid.toString(), tuple.getStringByField("source"), tuple.getLongByField("timestamp"), contentIncl, content);
+		Values values = new Values(uuid.toString(), tuple.getStringByField("source"), tuple.getLongByField("timestamp"), contentIncl, tuple.getStringByField("message"));
 		logger.debug("emitting " + values);
 		collector.emit(tuple, values);
 		collector.ack(tuple);
