@@ -8,6 +8,7 @@ instances:
   uuid_struct: 2
   uuid_unstruct: 2
   parse: 5
+  extract: 5
   concept: 5
   relation: 5
   alignment: 1

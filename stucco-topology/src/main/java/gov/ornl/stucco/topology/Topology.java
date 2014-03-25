@@ -2,6 +2,7 @@ package gov.ornl.stucco.topology;
 
 import gov.ornl.stucco.bolt.AlignmentBolt;
 import gov.ornl.stucco.bolt.ConceptBolt;
+import gov.ornl.stucco.bolt.ExtractBolt;
 import gov.ornl.stucco.bolt.ParseBolt;
 import gov.ornl.stucco.bolt.RelationBolt;
 import gov.ornl.stucco.bolt.UUIDBolt;
@@ -33,6 +34,7 @@ public class Topology {
 		UUID_STRUCT,
 		PARSE,
 		UUID_UNSTRUCT,
+		EXTRACT,
 		CONCEPT,
 		RELATION,
 		ALIGNMENT
@@ -57,6 +59,7 @@ public class Topology {
 		Integer parseInstances = DEFAULT_INSTANCES;
 		Integer unstructSpoutInstances = DEFAULT_INSTANCES;
 		Integer unstructUuidInstances = DEFAULT_INSTANCES;
+		Integer extractInstances = DEFAULT_INSTANCES;
 		Integer conceptInstances = DEFAULT_INSTANCES;
 		Integer realtionInstances = DEFAULT_INSTANCES;
 		Integer alignmentInstances = DEFAULT_INSTANCES;
@@ -66,6 +69,7 @@ public class Topology {
 			parseInstances = ((Map<String, Integer>) configMap.get("instances")).get(BOLTS.PARSE.toString().toLowerCase());
 			unstructSpoutInstances = ((Map<String, Integer>) configMap.get("instances")).get(BOLTS.UNSTRUCTURED_DATA.toString().toLowerCase());
 			unstructUuidInstances = ((Map<String, Integer>) configMap.get("instances")).get(BOLTS.UUID_UNSTRUCT.toString().toLowerCase());
+			extractInstances = ((Map<String, Integer>) configMap.get("instances")).get(BOLTS.EXTRACT.toString().toLowerCase());
 			conceptInstances = ((Map<String, Integer>) configMap.get("instances")).get(BOLTS.CONCEPT.toString().toLowerCase());
 			realtionInstances = ((Map<String, Integer>) configMap.get("instances")).get(BOLTS.RELATION.toString().toLowerCase());
 			alignmentInstances = ((Map<String, Integer>) configMap.get("instances")).get(BOLTS.ALIGNMENT.toString().toLowerCase());
@@ -95,7 +99,10 @@ public class Topology {
 		builder.setBolt(BOLTS.UUID_UNSTRUCT.toString().toLowerCase(), (new UUIDBolt()), unstructUuidInstances).shuffleGrouping(BOLTS.UNSTRUCTURED_DATA.toString().toLowerCase());
 		logger.debug("bolt [" + BOLTS.UUID_UNSTRUCT.toString().toLowerCase() + "] built with " + unstructUuidInstances + " instances.");
 		
-		builder.setBolt(BOLTS.CONCEPT.toString().toLowerCase(), (new ConceptBolt()), conceptInstances).shuffleGrouping(BOLTS.UUID_UNSTRUCT.toString().toLowerCase());
+		builder.setBolt(BOLTS.EXTRACT.toString().toLowerCase(), (new ExtractBolt()), extractInstances).shuffleGrouping(BOLTS.UUID_UNSTRUCT.toString().toLowerCase());
+		logger.debug("bolt [" + BOLTS.EXTRACT.toString().toLowerCase() + "] built with " + extractInstances + " instances.");
+		
+		builder.setBolt(BOLTS.CONCEPT.toString().toLowerCase(), (new ConceptBolt()), conceptInstances).shuffleGrouping(BOLTS.EXTRACT.toString().toLowerCase());
 		logger.debug("bolt [" + BOLTS.CONCEPT.toString().toLowerCase() + "] built with " + conceptInstances + " instances.");
 		
 		builder.setBolt(BOLTS.RELATION.toString().toLowerCase(), (new RelationBolt()), realtionInstances).shuffleGrouping(BOLTS.CONCEPT.toString().toLowerCase());
