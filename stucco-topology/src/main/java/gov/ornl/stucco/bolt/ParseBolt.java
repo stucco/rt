@@ -136,7 +136,7 @@ public class ParseBolt extends BaseRichBolt {
 		else if (dataSource.contains(".argus")) {
 			ValueNode parsedData = null;
 			try{
-				ValueNode nodeData = CsvParser.apply(content);
+				ValueNode nodeData = XmlParser.apply(content);
 				parsedData = ArgusExtractor.extract(nodeData);
 			} catch (ParsingException e) {
 				logger.error("ParsingException in parsing argus!", e);
