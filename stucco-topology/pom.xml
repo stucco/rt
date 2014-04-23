@@ -153,6 +153,10 @@
 					<includePluginDependencies>false</includePluginDependencies>
 					<classpathScope>compile</classpathScope>
 					<mainClass>${main.class}</mainClass>
+					<!-- NOTE: only workers (and parse bolt specifically) need large heap size, only needed here becuase using localCluster -->
+					<arguments>
+						<argument>-Xmx8g</argument>
+					</arguments>
 				</configuration>
 			</plugin>
 		</plugins>

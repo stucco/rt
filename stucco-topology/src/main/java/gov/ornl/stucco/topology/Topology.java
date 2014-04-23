@@ -139,7 +139,7 @@ public class Topology {
 	
 	
 	@SuppressWarnings("unchecked")
-	public void runTopology(String[] args) {
+	public void runTopology(String name) {
 		//set up the storm configuration
 		Boolean debug = ((Map<String, Boolean>) configMap.get("storm")).get("debug");
 		if (debug == null) {
@@ -156,18 +156,26 @@ public class Topology {
 		}
 		
 		logger.debug("DEBUG MODE is on.");
-		
-		if (args.length > 0) {
+
+		if (name != null) {
+			//don't bother with worker number and childOpts if using localCluster
 			Integer workers = ((Map<String, Integer>) configMap.get("storm")).get("workers");
 			if (workers == null) {
 				workers = new Integer(DEFAULT_INSTANCES);
 			}
-			config.setNumWorkers(workers.intValue());
-            
 			logger.debug("Preparing to submit topology with configuration of " + workers + " worker instances.");
-            
+			config.setNumWorkers(workers.intValue());
+
+			String childOpts = ((Map<String, String>) configMap.get("storm")).get("childOpts");
+			if (childOpts != null) {
+				logger.debug("Settiing childOpts of: " + childOpts);	
+				config.put(Config.WORKER_CHILDOPTS, childOpts);
+			}else{
+				logger.debug("no childOpts specified in config.");	
+			}
+
 			try {
-				StormSubmitter.submitTopology(args[0], config, builder.createTopology());
+				StormSubmitter.submitTopology(name, config, builder.createTopology());
 			} catch (AlreadyAliveException e) {
 				logger.error("Topology is already running.", e);
 			} catch (InvalidTopologyException e) {
@@ -186,7 +194,8 @@ public class Topology {
 	 */
 	public static void main(String[] args) {
 		Topology topo = new Topology();
-		topo.runTopology(args);
+		//TODO: handle args, only pass name here
+		topo.runTopology(null);
 	}
 
 }
