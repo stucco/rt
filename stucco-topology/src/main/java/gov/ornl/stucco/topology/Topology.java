@@ -43,6 +43,7 @@ public class Topology {
 	public static final String EMPTY_GRAPHSON = "{ \"edges\":[], \"vertices\":[] }";
 	public static final String DOC_SERVICE_CLIENT_HOST = "doc_client_host";
 	public static final String DOC_SERVICE_CLIENT_PORT = "doc_client_port";
+	public static final int LOCAL_MODE_PARALLELISM = 2;
 	
 	private TopologyBuilder builder;
 	private Map<String, Object> configMap;
@@ -183,6 +184,7 @@ public class Topology {
 			}
 		}
 		else {
+			config.put(Config.TOPOLOGY_MAX_TASK_PARALLELISM, LOCAL_MODE_PARALLELISM);
 			LocalCluster localCluster = new LocalCluster();
 			localCluster.submitTopology("RT-Topology", config, builder.createTopology());
 		}
