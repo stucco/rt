@@ -1,7 +1,7 @@
 storm:
   debug: true
   workers: 3
-  childOpts: "-Xmx8g"
+  childOpts: "-Xmx12g"
 
 instances:
   structured_data: 2
