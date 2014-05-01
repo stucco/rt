@@ -8,7 +8,7 @@ instances:
   unstructured_data: 2
   uuid_struct: 2
   uuid_unstruct: 2
-  parse: 5
+  parse: 1
   extract: 5
   concept: 5
   relation: 5
