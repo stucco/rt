@@ -193,10 +193,10 @@ public class ParseBolt extends BaseRichBolt {
 			logger.warn("Unexpected routing key encountered '" + dataSource + "'.");
 		}
 		String singleLine = graph;
-		logger.debug(singleLine.replaceAll("\n", ""));
+		//logger.debug(singleLine.replaceAll("\n", ""));
 		
 		Values values = new Values(uuid, graph, tuple.getLongByField("timestamp"));
-		logger.debug("emitting " + values);
+		//logger.debug("emitting " + values);
 		collector.emit(tuple, values);
 		collector.ack(tuple);
 	}
