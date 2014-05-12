@@ -148,6 +148,7 @@ public class Topology {
 		}
 		Config config = new Config();
 		config.setDebug(debug);
+		config.setMessageTimeoutSecs(21600); //TODO: read this from config
 		
 		if (configMap.containsKey("document_service")) {
 			String host = ((Map<String, String>) configMap.get("document_service")).get("host");
