@@ -12,7 +12,7 @@
 
 	<!-- ===>>> FILES <<<=== -->
 	<property name="LOG_NAME" value="stucco-rt" />
-	<property name="LOG_LEVEL" value="DEBUG" />
+	<property name="LOG_LEVEL" value="INFO" />
 
 	<!-- ===> LOGSTASH <<<=== -->
 	<property name="LOGSTASH_NAME" value="logstash" />

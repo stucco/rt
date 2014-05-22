@@ -1,5 +1,5 @@
 storm:
-  debug: true
+  debug: false
   workers: 3
   childOpts: "-Xmx12g"
 
