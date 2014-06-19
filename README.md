@@ -6,6 +6,8 @@ master: [![Build Status](https://travis-ci.org/stucco/rt.png?branch=master)]
 (https://travis-ci.org/stucco/rt)
 dev: [![Build Status](https://travis-ci.org/stucco/rt.png?branch=dev)]
 (https://travis-ci.org/stucco/rt)
+de-storm: [![Build Status](https://travis-ci.org/stucco/rt.png?branch=de-storm)]
+(https://travis-ci.org/stucco/rt)
 
 ## Running Topology
 
