@@ -2,16 +2,18 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>gov.ornl.stucco</groupId>
   <artifactId>rt</artifactId>
-  <version>0.0.1-SNAPSHOT</version>
+  <version>1.0.0</version>
   <packaging>pom</packaging>
   <properties>
-      <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<maven.test.skip>true</maven.test.skip>
   </properties>
   <modules>
       <module>JSON-java</module>
       <module>morph</module>
       <module>extractors</module>
       <module>entity-extractor</module>
+      <module>relation-extractor</module>
       <module>graph-alignment</module>
       <module>document-service-client-java</module>
   </modules>
@@ -30,8 +32,8 @@
               <artifactId>maven-compiler-plugin</artifactId>
               <version>2.3.2</version>
               <configuration>
-                  <source>1.6</source>
-                  <target>1.6</target>
+                  <source>1.7</source>
+                  <target>1.7</target>
                   <compilerArgument></compilerArgument>
               </configuration>
           </plugin>

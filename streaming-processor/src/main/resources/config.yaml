@@ -1,0 +1,24 @@
+structured_data:
+  exchange: stucco
+  host: localhost
+  port: 5672
+  username: guest
+  password: guest
+  queue: stucco-in-structured
+  bindings: 
+      - stucco.in.structured.#
+
+unstructured_data:
+    exchange: stucco
+    host: localhost
+    port: 5672
+    username: guest
+    password: guest
+    queue: stucco-in-unstructured
+    bindings:
+        - stucco.in.unstructured.#
+
+document_service:
+    host: localhost
+    port: 8118
+    
