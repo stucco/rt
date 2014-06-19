@@ -6,34 +6,31 @@ master: [![Build Status](https://travis-ci.org/stucco/rt.png?branch=master)]
 (https://travis-ci.org/stucco/rt)
 dev: [![Build Status](https://travis-ci.org/stucco/rt.png?branch=dev)]
 (https://travis-ci.org/stucco/rt)
+de-storm: [![Build Status](https://travis-ci.org/stucco/rt.png?branch=de-storm)]
+(https://travis-ci.org/stucco/rt)
 
 ## Running Topology
 
 ### Prerequisites
 * RabbitMQ running on the default port 5672
-* [document-service](https://github.com/stucco/document-service) running on the default port 4001
-* Titan/query-service running
+* [document-service](https://github.com/stucco/document-service) running on the default port 8118
+* Rexster/Titan/query-service running
+* [Supervisord](http://supervisord.org/introduction.html) installed via:
+
+		pip install supervisor --pre
+		
+	or
+		
+		easy_install supervisor
 
 ### Compile and Execute Locally
 1. Open a terminal and cd to the rt directory
 2. Run the following commands:
 	
 		./maven-rt-build.sh
-		cd stucco-topology
+		cd streaming-processor
 		mvn clean package
-		mvn exec:java
-
-### Package for Deployment to Cluster
-1. Modify the stucco-topology/pom.xml storm dependency section to indicate that the environment will provide the Storm library at runtime, instead of packaging it within the stucco-topology jar as with local execution:
-
-		<dependency>
-			<groupId>storm</groupId>
-			<artifactId>storm</artifactId>
-			<version>[0.9.0.1,)</version>
-			<scope>provided</scope>
-		</dependency>
-	
-2. Follow steps above in the [Compile and Execute Locally](#Compile and Execute Locally) section
+		supervisord -c target/classes/supervisord.conf
 
 ## Eclipse Development
 
@@ -44,3 +41,9 @@ dev: [![Build Status](https://travis-ci.org/stucco/rt.png?branch=dev)]
 5. Use the URI `https://github.com/stucco/rt.git`
 6. Right click the repository and select `Import Projects...`
 7. Select `Import Existing Projects` and the pom.xml should be shown
+
+## To Do
+
+1. Implement configuration with etcd, defaulting to local config.yaml if etcd is not running
+2. Add the RMQ message's timestamp to the subgraph that is passed to alignment
+3. Implement doc-service-java-client method to fetch extracted text from doc-service, and use this method in the UnstructuredTransformer
