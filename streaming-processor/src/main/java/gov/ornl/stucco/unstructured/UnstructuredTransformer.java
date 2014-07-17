@@ -1,15 +1,17 @@
 package gov.ornl.stucco.unstructured;
 
+import gov.ornl.stucco.ConfigLoader;
 import gov.ornl.stucco.RabbitMQConsumer;
 import gov.ornl.stucco.RelationExtractor;
 import gov.ornl.stucco.entity.EntityExtractor;
 import gov.ornl.stucco.entity.models.Sentences;
 import gov.pnnl.stucco.doc_service_client.DocServiceClient;
 import gov.pnnl.stucco.doc_service_client.DocServiceException;
-import gov.pnnl.stucco.doc_service_client.DocumentObject;
 
+import java.util.List;
 import java.util.Map;
 
+import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -19,20 +21,28 @@ import com.rabbitmq.client.GetResponse;
 
 public class UnstructuredTransformer {
 	private static final Logger logger = LoggerFactory.getLogger(UnstructuredTransformer.class);
-	
 	private static final String PROCESS_NAME = "UNSTRUCTURED";
 	
-	private final String[] bindingKeys = {"stucco.in.unstructured.#"};
 	private RabbitMQConsumer consumer;
-	
 	private DocServiceClient docClient;
 	private EntityExtractor entityExtractor;
 	private RelationExtractor relationExtractor;
 	private Align alignment;
 	
-	//TODO pull config from yaml file or etcd
-	public UnstructuredTransformer(/*configurations*/) {
-		consumer = new RabbitMQConsumer("stucco", "stucco-in-unstructured", "localhost", 5672, "guest", "guest", bindingKeys);
+	public UnstructuredTransformer() {
+		Map<String, Object> configMap = ConfigLoader.getConfig("unstructured_data");
+		String exchange = String.valueOf(configMap.get("exchange"));
+		String queue = String.valueOf(configMap.get("queue"));
+		String host = String.valueOf(configMap.get("host"));
+		int port = Integer.parseInt(String.valueOf(configMap.get("port")));
+		String user = String.valueOf(configMap.get("username"));
+		String password = String.valueOf(configMap.get("password"));
+		@SuppressWarnings("unchecked")
+		List<String> bindings = (List<String>) configMap.get("bindings");
+		String[] bindingKeys = new String[bindings.size()];
+		bindingKeys = bindings.toArray(bindingKeys);
+		
+		consumer = new RabbitMQConsumer(exchange, queue, host, port, user, password, bindingKeys);
 		consumer.openQueue();
 		
 		try {
@@ -45,7 +55,10 @@ public class UnstructuredTransformer {
 		
 		alignment = new Align();
 		
-		docClient = new DocServiceClient("localhost", 8118);
+		configMap = ConfigLoader.getConfig("document_service");
+		host = String.valueOf(configMap.get("host"));
+		port = Integer.parseInt(String.valueOf(configMap.get("port")));
+		docClient = new DocServiceClient(host, port);
 	}
 
 	
@@ -76,9 +89,8 @@ public class UnstructuredTransformer {
 					logger.debug("Retrieving document content from Document-Service for id '" + docId + "'.");
 
 					try {
-						//TODO: get the extracted text here
-						DocumentObject document = docClient.fetch(docId);
-						content = document.getDataAsString();
+						JSONObject jsonObject = docClient.fetchExtractedText(docId);
+						content = jsonObject.getString("text");
 					} catch (DocServiceException e) {
 						logger.error("Could not fetch document '" + docId + "' from Document-Service.", e);
 					}
@@ -104,12 +116,12 @@ public class UnstructuredTransformer {
 				alignment.load(graph);
 				
 				//Ack the message was processed and can be discarded from the queue
-				logger.info("Acking: " + routingKey + " deliveryTag=[" + deliveryTag + "]");
+				logger.debug("Acking: " + routingKey + " deliveryTag=[" + deliveryTag + "]");
 				consumer.messageProcessed(deliveryTag);
 			}
 			else {
 				consumer.retryMessage(deliveryTag);
-				logger.info("Retrying: " + routingKey + " deliveryTag=[" + deliveryTag + "]");
+				logger.debug("Retrying: " + routingKey + " deliveryTag=[" + deliveryTag + "]");
 			}
 			
 			//Get next message from queue
@@ -118,6 +130,7 @@ public class UnstructuredTransformer {
 		
 		consumer.close();
 	}
+
 
 	/**
 	 * @param args

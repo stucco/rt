@@ -1,7 +1,9 @@
 package gov.ornl.stucco.structured;
 
+import java.util.List;
 import java.util.Map;
 
+import gov.ornl.stucco.ConfigLoader;
 import gov.ornl.stucco.RabbitMQConsumer;
 import gov.ornl.stucco.extractors.ArgusExtractor;
 import gov.ornl.stucco.extractors.CleanMxVirusExtractor;
@@ -27,24 +29,35 @@ import alignment.alignment_v2.Align;
 import com.rabbitmq.client.GetResponse;
 
 public class StructuredTransformer {
-private static final Logger logger = LoggerFactory.getLogger(StructuredTransformer.class);
-	
+	private static final Logger logger = LoggerFactory.getLogger(StructuredTransformer.class);
 	private static final String PROCESS_NAME = "STRUCTURED";
 
-	private final String[] bindingKeys = {"stucco.in.structured.#"};
 	private RabbitMQConsumer consumer;
 
 	private DocServiceClient docClient;
 	private Align alignment;
 	
-	//TODO: pull config from yaml file or etcd
-	public StructuredTransformer(/*config*/) {
-		consumer = new RabbitMQConsumer("stucco", "stucco-in-structured", "localhost", 5672, "guest", "guest", bindingKeys);
+	public StructuredTransformer() {
+		Map<String, Object> configMap = ConfigLoader.getConfig("structured_data");
+		String exchange = String.valueOf(configMap.get("exchange"));
+		String queue = String.valueOf(configMap.get("queue"));
+		String host = String.valueOf(configMap.get("host"));
+		int port = Integer.parseInt(String.valueOf(configMap.get("port")));
+		String user = String.valueOf(configMap.get("username"));
+		String password = String.valueOf(configMap.get("password"));
+		@SuppressWarnings("unchecked")
+		List<String> bindings = (List<String>) configMap.get("bindings");
+		String[] bindingKeys = new String[bindings.size()];
+		bindingKeys = bindings.toArray(bindingKeys);
+		consumer = new RabbitMQConsumer(exchange, queue, host, port, user, password, bindingKeys);
 		consumer.openQueue();
 		
 		alignment = new Align();
 		
-		docClient = new DocServiceClient("localhost", 8118);
+		configMap = ConfigLoader.getConfig("document_service");
+		host = String.valueOf(configMap.get("host"));
+		port = Integer.parseInt(String.valueOf(configMap.get("port")));
+		docClient = new DocServiceClient(host, port);
 	}
 	
 	
@@ -206,12 +219,12 @@ private static final Logger logger = LoggerFactory.getLogger(StructuredTransform
 				alignment.load(graph);
 				
 				//Ack the message was processed and can be discarded from the queue
-				logger.info("Acking: " + routingKey + " deliveryTag=[" + deliveryTag + "]");
+				logger.debug("Acking: " + routingKey + " deliveryTag=[" + deliveryTag + "]");
 				consumer.messageProcessed(deliveryTag);
 			}
 			else {
 				consumer.retryMessage(deliveryTag);
-				logger.info("Retrying: " + routingKey + " deliveryTag=[" + deliveryTag + "]");
+				logger.debug("Retrying: " + routingKey + " deliveryTag=[" + deliveryTag + "]");
 			}
 			
 			//Get next message from queue

@@ -8,11 +8,23 @@
 		<maven.test.skip>true</maven.test.skip>
         <main.class>gov.ornl.stucco.structured.StructuredTransformer</main.class>
   </properties>
+  <repositories>
+  	<repository>
+		<id>Sonatype-public</id>
+		<name>SnakeYAML repository</name>
+		<url>http://oss.sonatype.org/content/groups/public/</url>
+	</repository>
+  </repositories>
   <dependencies>
   	<dependency>
 		<groupId>com.rabbitmq</groupId>
 		<artifactId>amqp-client</artifactId>
 		<version>3.2.2</version>
+	</dependency>
+	<dependency>
+		<groupId>org.yaml</groupId>
+		<artifactId>snakeyaml</artifactId>
+		<version>1.14-SNAPSHOT</version>
 	</dependency>
 	<dependency>
 		<groupId>org.slf4j</groupId>
