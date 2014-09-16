@@ -5,20 +5,22 @@ structured_data:
   username: guest
   password: guest
   queue: stucco-in-structured
+  emptyQueueSleepTime: 30000
   bindings: 
       - stucco.in.structured.#
 
 unstructured_data:
-    exchange: stucco
-    host: localhost
-    port: 5672
-    username: guest
-    password: guest
-    queue: stucco-in-unstructured
-    bindings:
-        - stucco.in.unstructured.#
+  exchange: stucco
+  host: localhost
+  port: 5672
+  username: guest
+  password: guest
+  queue: stucco-in-unstructured
+  emptyQueueSleepTime: 30000
+  bindings:
+      - stucco.in.unstructured.#
 
 document_service:
-    host: localhost
-    port: 8000
-    
+  host: localhost
+  port: 8000
+  

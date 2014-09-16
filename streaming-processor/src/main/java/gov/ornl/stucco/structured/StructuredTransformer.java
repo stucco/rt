@@ -36,6 +36,7 @@ public class StructuredTransformer {
 
 	private DocServiceClient docClient;
 	private Align alignment;
+	private int sleepTime;
 	
 	public StructuredTransformer() {
 		Map<String, Object> configMap = ConfigLoader.getConfig("structured_data");
@@ -45,6 +46,7 @@ public class StructuredTransformer {
 		int port = Integer.parseInt(String.valueOf(configMap.get("port")));
 		String user = String.valueOf(configMap.get("username"));
 		String password = String.valueOf(configMap.get("password"));
+		int sleepTime = Integer.parseInt(String.valueOf(configMap.get("emptyQueueSleepTime")));
 		@SuppressWarnings("unchecked")
 		List<String> bindings = (List<String>) configMap.get("bindings");
 		String[] bindingKeys = new String[bindings.size()];
@@ -230,8 +232,12 @@ public class StructuredTransformer {
 			//Get next message from queue
 			response = consumer.getMessage();
 		}
-		
 		consumer.close();
+		try{
+			Thread.sleep(sleepTime);
+		} catch (InterruptedException consumed) {
+			//don't care in this case, exiting anyway.
+		}
 	}
 	
 	/**

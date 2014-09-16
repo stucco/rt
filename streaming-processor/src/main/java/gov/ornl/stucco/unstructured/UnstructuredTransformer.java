@@ -28,6 +28,7 @@ public class UnstructuredTransformer {
 	private EntityExtractor entityExtractor;
 	private RelationExtractor relationExtractor;
 	private Align alignment;
+	private int sleepTime;
 	
 	public UnstructuredTransformer() {
 		Map<String, Object> configMap = ConfigLoader.getConfig("unstructured_data");
@@ -37,6 +38,7 @@ public class UnstructuredTransformer {
 		int port = Integer.parseInt(String.valueOf(configMap.get("port")));
 		String user = String.valueOf(configMap.get("username"));
 		String password = String.valueOf(configMap.get("password"));
+		sleepTime = Integer.parseInt(String.valueOf(configMap.get("emptyQueueSleepTime")));
 		@SuppressWarnings("unchecked")
 		List<String> bindings = (List<String>) configMap.get("bindings");
 		String[] bindingKeys = new String[bindings.size()];
@@ -129,6 +131,11 @@ public class UnstructuredTransformer {
 		}
 		
 		consumer.close();
+		try{
+			Thread.sleep(sleepTime);
+		} catch (InterruptedException consumed) {
+			//don't care in this case, exiting anyway.
+		}
 	}
 
 
