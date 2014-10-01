@@ -25,6 +25,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import alignment.alignment_v2.Align;
+import HTMLExtractor.SophosExtractor;
+import HTMLExtractor.BugtraqExtractor;
 
 import com.rabbitmq.client.GetResponse;
 
@@ -210,6 +212,77 @@ public class StructuredTransformer {
 					}
 					if(parsedData != null){
 						graph = String.valueOf(parsedData);
+					}
+				}else if (routingKey.contains(".sophos")) {//TODO: testing
+					ValueNode parsedData = null;
+					try{
+						String summary = null;
+						String details = null;
+						String[] items = content.split("\n");
+						for(String item : items){
+							String docId = item.split(" ")[0];
+							String sourceURL = item.split(" ")[1];
+							String itemContent = null;
+							try {
+								DocumentObject document = docClient.fetch(docId);
+								itemContent = document.getDataAsString();
+							} catch (DocServiceException e) {
+								logger.error("Could not fetch document '" + docId + "' from Document-Service. URL was: " + sourceURL, e);
+							}
+							if(sourceURL.contains("/detailed-analysis.aspx")){
+								details = itemContent;
+							}else if(sourceURL.contains(".aspx")){
+								summary = itemContent;
+							}
+						}
+						if(summary != null && details != null){
+							SophosExtractor sophosExt = new SophosExtractor(summary, details);
+							graph = sophosExt.getGraph().toString();
+						}
+					} catch (ParsingException e) {
+						logger.error("ParsingException in parsing sophos!", e);
+					} catch (Exception e) {
+						logger.error("Other Error in parsing sophos!", e);
+					}
+				}else if (routingKey.contains(".bugtraq")) {//TODO: testing
+					ValueNode parsedData = null;
+					try{
+						String info = null;
+						String discussion = null;
+						String exploit = null;
+						String solution = null;
+						String references = null;
+						String[] items = content.split("\n");
+						for(String item : items){
+							String docId = item.split(" ")[0];
+							String sourceURL = item.split(" ")[1];
+							String itemContent = null;
+							try {
+								DocumentObject document = docClient.fetch(docId);
+								itemContent = document.getDataAsString();
+							} catch (DocServiceException e) {
+								logger.error("Could not fetch document '" + docId + "' from Document-Service. URL was: " + sourceURL, e);
+							}
+							if(sourceURL.contains("/info")){
+								info = itemContent;
+							}else if(sourceURL.contains("/discussion")){
+								discussion = itemContent;
+							}else if(sourceURL.contains("/exploit")){
+								exploit = itemContent;
+							}else if(sourceURL.contains("/solution")){
+								solution = itemContent;
+							}else if(sourceURL.contains("/references")){
+								references = itemContent;
+							}
+						}
+						if(info != null && discussion != null && exploit != null && solution != null && references != null){
+							BugtraqExtractor bugtraqExt = new BugtraqExtractor(info, discussion, exploit, solution, references);
+							graph = bugtraqExt.getGraph().toString();
+						}
+					} catch (ParsingException e) {
+						logger.error("ParsingException in parsing bugtraq!", e);
+					} catch (Exception e) {
+						logger.error("Other Error in parsing bugtraq!", e);
 					}
 				}
 				else {

@@ -12,6 +12,7 @@
       <module>JSON-java</module>
       <module>morph</module>
       <module>extractors</module>
+      <module>html-extractor</module>
       <module>entity-extractor</module>
       <module>relation-extractor</module>
       <module>graph-alignment</module>
