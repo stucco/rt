@@ -233,11 +233,15 @@ public class StructuredTransformer {
 								details = itemContent;
 							}else if(sourceURL.contains(".aspx")){
 								summary = itemContent;
+							}else{
+								logger.warn("unexpected URL (sophos) " + sourceURL);
 							}
 						}
 						if(summary != null && details != null){
 							SophosExtractor sophosExt = new SophosExtractor(summary, details);
 							graph = sophosExt.getGraph().toString();
+						}else{
+							logger.warn("Sophos: some required fields were null, skipping group.\nMessage was:" + content);
 						}
 					} catch (ParsingException e) {
 						logger.error("ParsingException in parsing sophos!", e);
@@ -273,11 +277,15 @@ public class StructuredTransformer {
 								solution = itemContent;
 							}else if(sourceURL.contains("/references")){
 								references = itemContent;
+							}else{
+								logger.warn("unexpected URL (bugtraq) " + sourceURL);
 							}
 						}
 						if(info != null && discussion != null && exploit != null && solution != null && references != null){
 							BugtraqExtractor bugtraqExt = new BugtraqExtractor(info, discussion, exploit, solution, references);
 							graph = bugtraqExt.getGraph().toString();
+						}else{
+							logger.warn("Bugtraq: some required fields were null, skipping group.\nMessage was:" + content);
 						}
 					} catch (ParsingException e) {
 						logger.error("ParsingException in parsing bugtraq!", e);
