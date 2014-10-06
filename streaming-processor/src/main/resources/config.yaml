@@ -22,5 +22,5 @@ unstructured_data:
 
 document_service:
   host: localhost
-  port: 8000
+  port: 8118
   
