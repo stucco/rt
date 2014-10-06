@@ -11,8 +11,10 @@ import gov.ornl.stucco.extractors.CpeExtractor;
 import gov.ornl.stucco.extractors.CveExtractor;
 import gov.ornl.stucco.extractors.GeoIPExtractor;
 import gov.ornl.stucco.extractors.HoneExtractor;
+import gov.ornl.stucco.extractors.LoginEventExtractor;
 import gov.ornl.stucco.extractors.MetasploitExtractor;
 import gov.ornl.stucco.extractors.NvdExtractor;
+import gov.ornl.stucco.extractors.PackageListExtractor;
 import gov.ornl.stucco.morph.ast.ValueNode;
 import gov.ornl.stucco.morph.parser.CsvParser;
 import gov.ornl.stucco.morph.parser.ParsingException;
@@ -74,7 +76,11 @@ public class StructuredTransformer {
 			if (response.getBody() != null) {
 				String message = new String(response.getBody());
 				
-				long timestamp = response.getProps().getTimestamp().getTime();
+				long timestamp = 0;
+				if (response.getProps().getTimestamp() != null) {
+					timestamp = response.getProps().getTimestamp().getTime();
+				}
+
 				boolean contentIncluded = false;
 				Map<String, Object> headerMap = response.getProps().getHeaders();
 				if ((headerMap != null) && (headerMap.containsKey("HasContent"))) {
@@ -159,7 +165,7 @@ public class StructuredTransformer {
 				else if (routingKey.contains(".argus")) {
 					ValueNode parsedData = null;
 					try{
-						ValueNode nodeData = XmlParser.apply(content);
+						ValueNode nodeData = CsvParser.apply(content);
 						parsedData = (ValueNode) ArgusExtractor.extract(nodeData);
 					} catch (ParsingException e) {
 						logger.error("ParsingException in parsing argus!", e);
@@ -207,6 +213,34 @@ public class StructuredTransformer {
 						logger.error("ParsingException in parsing cleanmx!", e);
 					} catch (Exception e) {
 						logger.error("Other Error in parsing cleanmx!", e);
+					}
+					if(parsedData != null){
+						graph = String.valueOf(parsedData);
+					}
+				}
+				else if (routingKey.contains(".login_events")) {
+					ValueNode parsedData = null;
+					try{
+						ValueNode nodeData = CsvParser.apply(content);
+						parsedData = (ValueNode) LoginEventExtractor.extract(nodeData);
+					} catch (ParsingException e) {
+						logger.error("ParsingException in parsing login events!", e);
+					} catch (Exception e) {
+						logger.error("Other Error in parsing login events!", e);
+					}
+					if(parsedData != null){
+						graph = String.valueOf(parsedData);
+					}
+				}
+				else if (routingKey.contains(".installed_package")) {
+					ValueNode parsedData = null;
+					try{
+						ValueNode nodeData = CsvParser.apply(content);
+						parsedData = (ValueNode) PackageListExtractor.extract(nodeData);
+					} catch (ParsingException e) {
+						logger.error("ParsingException in package list!", e);
+					} catch (Exception e) {
+						logger.error("Other Error in parsing package list!", e);
 					}
 					if(parsedData != null){
 						graph = String.valueOf(parsedData);
