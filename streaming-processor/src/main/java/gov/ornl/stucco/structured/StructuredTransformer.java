@@ -224,10 +224,10 @@ public class StructuredTransformer {
 					try{
 						String summary = null;
 						String details = null;
-						String[] items = content.split("\n");
+						String[] items = content.split("\\r?\\n");
 						for(String item : items){
-							String docId = item.split(" ")[0];
-							String sourceURL = item.split(" ")[1];
+							String docId = item.split("\\s+")[0];
+							String sourceURL = item.split("\\s+")[1];
 							String itemContent = null;
 							try {
 								DocumentObject document = docClient.fetch(docId);
@@ -262,10 +262,10 @@ public class StructuredTransformer {
 						String exploit = null;
 						String solution = null;
 						String references = null;
-						String[] items = content.split("\n");
+						String[] items = content.split("\\r?\\n");
 						for(String item : items){
-							String docId = item.split(" ")[0];
-							String sourceURL = item.split(" ")[1];
+							String docId = item.split("\\s+")[0];
+							String sourceURL = item.split("\\s+")[1];
 							String itemContent = null;
 							try {
 								DocumentObject document = docClient.fetch(docId);
