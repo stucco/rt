@@ -115,10 +115,14 @@ public class StructuredTransformer {
 						parsedData = (ValueNode) CveExtractor.extract(nodeData);
 					} catch (ParsingException e) {
 						logger.error("ParsingException in parsing cve!", e);
+						if (!contentIncluded) logger.error("Problem docid was:\n"+message);
 						logger.error("Problem content was:\n"+content);
+						graph = null;
 					} catch (Exception e) {
 						logger.error("Other Error in parsing cve!", e);
+						if (!contentIncluded) logger.error("Problem docid was:\n"+message);
 						logger.error("Problem content was:\n"+content);
+						graph = null;
 					}
 					if(parsedData != null){
 						graph = String.valueOf(parsedData);
@@ -131,10 +135,14 @@ public class StructuredTransformer {
 						parsedData = (ValueNode) NvdExtractor.extract(nodeData);
 					} catch (ParsingException e) {
 						logger.error("ParsingException in parsing nvd!", e);
+						if (!contentIncluded) logger.error("Problem docid was:\n"+message);
 						logger.error("Problem content was:\n"+content);
+						graph = null;
 					} catch (Exception e) {
 						logger.error("Other Error in parsing nvd!", e);
+						if (!contentIncluded) logger.error("Problem docid was:\n"+message);
 						logger.error("Problem content was:\n"+content);
+						graph = null;
 					}
 					if(parsedData != null){
 						graph = String.valueOf(parsedData);
@@ -147,10 +155,14 @@ public class StructuredTransformer {
 						parsedData = (ValueNode) CpeExtractor.extract(nodeData);
 					} catch (ParsingException e) {
 						logger.error("ParsingException in parsing cpe!", e);
+						if (!contentIncluded) logger.error("Problem docid was:\n"+message);
 						logger.error("Problem content was:\n"+content);
+						graph = null;
 					} catch (Exception e) {
 						logger.error("Other Error in parsing cpe!", e);
+						if (!contentIncluded) logger.error("Problem docid was:\n"+message);
 						logger.error("Problem content was:\n"+content);
+						graph = null;
 					}
 					if(parsedData != null){
 						graph = String.valueOf(parsedData);
@@ -163,10 +175,14 @@ public class StructuredTransformer {
 						parsedData = (ValueNode) GeoIPExtractor.extract(nodeData);
 					} catch (ParsingException e) {
 						logger.error("ParsingException in parsing maxmind!", e);
+						if (!contentIncluded) logger.error("Problem docid was:\n"+message);
 						logger.error("Problem content was:\n"+content);
+						graph = null;
 					} catch (Exception e) {
 						logger.error("Other Error in parsing maxmind!", e);
+						if (!contentIncluded) logger.error("Problem docid was:\n"+message);
 						logger.error("Problem content was:\n"+content);
+						graph = null;
 					}
 					if(parsedData != null){
 						graph = String.valueOf(parsedData);
@@ -179,10 +195,14 @@ public class StructuredTransformer {
 						parsedData = (ValueNode) ArgusExtractor.extract(nodeData);
 					} catch (ParsingException e) {
 						logger.error("ParsingException in parsing argus!", e);
+						if (!contentIncluded) logger.error("Problem docid was:\n"+message);
 						logger.error("Problem content was:\n"+content);
+						graph = null;
 					} catch (Exception e) {
 						logger.error("Other Error in parsing argus!", e);
+						if (!contentIncluded) logger.error("Problem docid was:\n"+message);
 						logger.error("Problem content was:\n"+content);
+						graph = null;
 					}
 					if(parsedData != null){
 						graph = String.valueOf(parsedData);
@@ -195,10 +215,14 @@ public class StructuredTransformer {
 						parsedData = (ValueNode) HoneExtractor.extract(nodeData);
 					} catch (ParsingException e) {
 						logger.error("ParsingException in parsing hone!", e);
+						if (!contentIncluded) logger.error("Problem docid was:\n"+message);
 						logger.error("Problem content was:\n"+content);
+						graph = null;
 					} catch (Exception e) {
 						logger.error("Other Error in parsing hone!", e);
+						if (!contentIncluded) logger.error("Problem docid was:\n"+message);
 						logger.error("Problem content was:\n"+content);
+						graph = null;
 					}
 					if(parsedData != null){
 						graph = String.valueOf(parsedData);
@@ -211,10 +235,14 @@ public class StructuredTransformer {
 						parsedData = (ValueNode) MetasploitExtractor.extract(nodeData);
 					} catch (ParsingException e) {
 						logger.error("ParsingException in parsing metasploit!", e);
+						if (!contentIncluded) logger.error("Problem docid was:\n"+message);
 						logger.error("Problem content was:\n"+content);
+						graph = null;
 					} catch (Exception e) {
 						logger.error("Other Error in parsing metasploit!", e);
+						if (!contentIncluded) logger.error("Problem docid was:\n"+message);
 						logger.error("Problem content was:\n"+content);
+						graph = null;
 					}
 					if(parsedData != null){
 						graph = String.valueOf(parsedData);
@@ -227,10 +255,14 @@ public class StructuredTransformer {
 						parsedData = (ValueNode) CleanMxVirusExtractor.extract(nodeData);
 					} catch (ParsingException e) {
 						logger.error("ParsingException in parsing cleanmx!", e);
+						if (!contentIncluded) logger.error("Problem docid was:\n"+message);
 						logger.error("Problem content was:\n"+content);
+						graph = null;
 					} catch (Exception e) {
 						logger.error("Other Error in parsing cleanmx!", e);
+						if (!contentIncluded) logger.error("Problem docid was:\n"+message);
 						logger.error("Problem content was:\n"+content);
+						graph = null;
 					}
 					if(parsedData != null){
 						graph = String.valueOf(parsedData);
@@ -268,9 +300,13 @@ public class StructuredTransformer {
 					} catch (ParsingException e) {
 						logger.error("ParsingException in parsing sophos!", e);
 						logger.error("Problem content was:\n"+content);
+						if (!contentIncluded) logger.error("Problem docid was one of:\n"+message);
+						graph = null;
 					} catch (Exception e) {
 						logger.error("Other Error in parsing sophos!", e);
 						logger.error("Problem content was:\n"+content);
+						if (!contentIncluded) logger.error("Problem docid was one of:\n"+message);
+						graph = null;
 					}
 				}else if (routingKey.contains(".bugtraq")) {//TODO: testing
 					ValueNode parsedData = null;
@@ -313,10 +349,14 @@ public class StructuredTransformer {
 						}
 					} catch (ParsingException e) {
 						logger.error("ParsingException in parsing bugtraq!", e);
+						if (!contentIncluded) logger.error("Problem docid was one of:\n"+message);
 						logger.error("Problem content was:\n"+content);
+						graph = null;
 					} catch (Exception e) {
 						logger.error("Other Error in parsing bugtraq!", e);
+						if (!contentIncluded) logger.error("Problem docid was one of:\n"+message);
 						logger.error("Problem content was:\n"+content);
+						graph = null;
 					}
 				}
 				else if (routingKey.contains(".login_events")) {
@@ -326,10 +366,14 @@ public class StructuredTransformer {
 						parsedData = (ValueNode) LoginEventExtractor.extract(nodeData);
 					} catch (ParsingException e) {
 						logger.error("ParsingException in parsing login events!", e);
+						if (!contentIncluded) logger.error("Problem docid was:\n"+message);
 						logger.error("Problem content was:\n"+content);
+						graph = null;
 					} catch (Exception e) {
 						logger.error("Other Error in parsing login events!", e);
+						if (!contentIncluded) logger.error("Problem docid was:\n"+message);
 						logger.error("Problem content was:\n"+content);
+						graph = null;
 					}
 					if(parsedData != null){
 						graph = String.valueOf(parsedData);
@@ -342,10 +386,14 @@ public class StructuredTransformer {
 						parsedData = (ValueNode) PackageListExtractor.extract(nodeData);
 					} catch (ParsingException e) {
 						logger.error("ParsingException in package list!", e);
+						if (!contentIncluded) logger.error("Problem docid was:\n"+message);
 						logger.error("Problem content was:\n"+content);
+						graph = null;
 					} catch (Exception e) {
 						logger.error("Other Error in parsing package list!", e);
+						if (!contentIncluded) logger.error("Problem docid was:\n"+message);
 						logger.error("Problem content was:\n"+content);
+						graph = null;
 					}
 					if(parsedData != null){
 						graph = String.valueOf(parsedData);
@@ -357,7 +405,7 @@ public class StructuredTransformer {
 
 				//TODO: Add timestamp into subgraph
 				//Merge subgraph into full knowledge graph
-				alignment.load(graph);
+				if(graph != null) alignment.load(graph);
 				
 				//Ack the message was processed and can be discarded from the queue
 				logger.debug("Acking: " + routingKey + " deliveryTag=[" + deliveryTag + "]");
