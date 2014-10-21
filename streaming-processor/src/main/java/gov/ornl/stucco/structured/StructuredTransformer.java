@@ -93,7 +93,7 @@ public class StructuredTransformer {
 			
 				//Get the document from the document server, if necessary
 				String content = message;
-				if (!contentIncluded) {
+				if (!contentIncluded && !routingKey.contains(".sophos") && !routingKey.contains(".bugtraq")) {
 					String docId = content.trim();
 					logger.debug("Retrieving document content from Document-Service for id '" + docId + "'.");
 
