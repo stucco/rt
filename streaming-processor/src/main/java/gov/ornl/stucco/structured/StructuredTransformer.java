@@ -72,7 +72,7 @@ public class StructuredTransformer {
 		GetResponse response = consumer.getMessage();
 		
 		while (response != null) {
-			String routingKey = response.getEnvelope().getRoutingKey();
+			String routingKey = response.getEnvelope().getRoutingKey().toLowerCase();
 			long deliveryTag = response.getEnvelope().getDeliveryTag();
 			
 			if (response.getBody() != null) {
@@ -248,7 +248,7 @@ public class StructuredTransformer {
 						graph = String.valueOf(parsedData);
 					}
 				}
-				else if (routingKey.contains(".cleanmx")) {
+				else if (routingKey.replaceAll("\\-", "").contains(".cleanmx")) {
 					ValueNode parsedData = null;
 					try{
 						ValueNode nodeData = XmlParser.apply(content);
