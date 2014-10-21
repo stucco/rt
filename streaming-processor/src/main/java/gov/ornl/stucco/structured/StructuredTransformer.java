@@ -102,6 +102,7 @@ public class StructuredTransformer {
 						content = document.getDataAsString();
 					} catch (DocServiceException e) {
 						logger.error("Could not fetch document '" + docId + "' from Document-Service.", e);
+						logger.error("Message content was:\n"+message);
 					}
 				}
 				
@@ -282,6 +283,7 @@ public class StructuredTransformer {
 								itemContent = document.getDataAsString();
 							} catch (DocServiceException e) {
 								logger.error("Could not fetch document '" + docId + "' from Document-Service. URL was: " + sourceURL, e);
+								logger.error("Complete message content was:\n"+content);
 							}
 							if(sourceURL.contains("/detailed-analysis.aspx")){
 								details = itemContent;
@@ -326,6 +328,7 @@ public class StructuredTransformer {
 								itemContent = document.getDataAsString();
 							} catch (DocServiceException e) {
 								logger.error("Could not fetch document '" + docId + "' from Document-Service. URL was: " + sourceURL, e);
+								logger.error("Complete message content was:\n"+content);
 							}
 							if(sourceURL.contains("/info")){
 								info = itemContent;
