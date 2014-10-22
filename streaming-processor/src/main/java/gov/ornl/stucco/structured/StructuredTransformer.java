@@ -72,7 +72,7 @@ public class StructuredTransformer {
 		GetResponse response = consumer.getMessage();
 		
 		while (response != null) {
-			String routingKey = response.getEnvelope().getRoutingKey();
+			String routingKey = response.getEnvelope().getRoutingKey().toLowerCase();
 			long deliveryTag = response.getEnvelope().getDeliveryTag();
 			
 			if (response.getBody() != null) {
@@ -93,7 +93,7 @@ public class StructuredTransformer {
 			
 				//Get the document from the document server, if necessary
 				String content = message;
-				if (!contentIncluded) {
+				if (!contentIncluded && !routingKey.contains(".sophos") && !routingKey.contains(".bugtraq")) {
 					String docId = content.trim();
 					logger.debug("Retrieving document content from Document-Service for id '" + docId + "'.");
 
@@ -102,6 +102,7 @@ public class StructuredTransformer {
 						content = document.getDataAsString();
 					} catch (DocServiceException e) {
 						logger.error("Could not fetch document '" + docId + "' from Document-Service.", e);
+						logger.error("Message content was:\n"+message);
 					}
 				}
 				
@@ -248,7 +249,7 @@ public class StructuredTransformer {
 						graph = String.valueOf(parsedData);
 					}
 				}
-				else if (routingKey.contains(".cleanmx")) {
+				else if (routingKey.replaceAll("\\-", "").contains(".cleanmx")) {
 					ValueNode parsedData = null;
 					try{
 						ValueNode nodeData = XmlParser.apply(content);
@@ -282,6 +283,7 @@ public class StructuredTransformer {
 								itemContent = document.getDataAsString();
 							} catch (DocServiceException e) {
 								logger.error("Could not fetch document '" + docId + "' from Document-Service. URL was: " + sourceURL, e);
+								logger.error("Complete message content was:\n"+content);
 							}
 							if(sourceURL.contains("/detailed-analysis.aspx")){
 								details = itemContent;
@@ -326,6 +328,7 @@ public class StructuredTransformer {
 								itemContent = document.getDataAsString();
 							} catch (DocServiceException e) {
 								logger.error("Could not fetch document '" + docId + "' from Document-Service. URL was: " + sourceURL, e);
+								logger.error("Complete message content was:\n"+content);
 							}
 							if(sourceURL.contains("/info")){
 								info = itemContent;
