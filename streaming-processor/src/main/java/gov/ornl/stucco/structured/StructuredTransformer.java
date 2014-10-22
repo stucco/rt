@@ -329,7 +329,7 @@ public class StructuredTransformer {
 							}
 							if(sourceURL.contains("/info")){
 								info = itemContent;
-							}else if(sourceURL.contains("/discussion")){
+							}else if(sourceURL.contains("/discuss")){ //interestingly, "/discuss" and "/discussion" are both valid urls for this item
 								discussion = itemContent;
 							}else if(sourceURL.contains("/exploit")){
 								exploit = itemContent;
