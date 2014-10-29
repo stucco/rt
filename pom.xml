@@ -9,35 +9,35 @@
 		<maven.test.skip>true</maven.test.skip>
   </properties>
   <modules>
-      <module>JSON-java</module>
-      <module>morph</module>
-      <module>extractors</module>
-      <module>html-extractor</module>
-      <module>entity-extractor</module>
-      <module>relation-extractor</module>
-      <module>graph-alignment</module>
-      <module>document-service-client-java</module>
+    <module>JSON-java</module>
+    <module>morph</module>
+    <module>extractors</module>
+    <module>html-extractor</module>
+    <module>entity-extractor</module>
+    <module>relation-extractor</module>
+    <module>graph-alignment</module>
+    <module>document-service-client-java</module>
   </modules>
   <build>
-      <plugins>
-          <plugin>
-              <groupId>org.apache.maven.plugins</groupId>
-              <artifactId>maven-scm-plugin</artifactId>
-              <version>1.9</version>
-              <configuration>
-                  <connectionUrl>scm:git:https://github.com/stucco/${module.name}.git</connectionUrl>
-                  <checkoutDirectory>${module.name}</checkoutDirectory>
-              </configuration>
-          </plugin>
-          <plugin>
-              <artifactId>maven-compiler-plugin</artifactId>
-              <version>2.3.2</version>
-              <configuration>
-                  <source>1.7</source>
-                  <target>1.7</target>
-                  <compilerArgument></compilerArgument>
-              </configuration>
-          </plugin>
-      </plugins>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-scm-plugin</artifactId>
+        <version>1.9</version>
+        <configuration>
+          <connectionUrl>scm:git:https://github.com/stucco/${module.name}.git</connectionUrl>
+          <checkoutDirectory>${module.name}</checkoutDirectory>
+        </configuration>
+      </plugin>
+      <plugin>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>2.3.2</version>
+        <configuration>
+          <source>1.7</source>
+          <target>1.7</target>
+          <compilerArgument></compilerArgument>
+        </configuration>
+      </plugin>
+    </plugins>
   </build>
 </project>
