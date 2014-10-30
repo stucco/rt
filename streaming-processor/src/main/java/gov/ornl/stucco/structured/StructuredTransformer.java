@@ -40,6 +40,8 @@ public class StructuredTransformer {
 
 	private DocServiceClient docClient;
 	private Align alignment;
+	
+	private boolean persistent;
 	private int sleepTime;
 	
 	public StructuredTransformer() {
@@ -50,6 +52,7 @@ public class StructuredTransformer {
 		int port = Integer.parseInt(String.valueOf(configMap.get("port")));
 		String user = String.valueOf(configMap.get("username"));
 		String password = String.valueOf(configMap.get("password"));
+		persistent = Boolean.parseBoolean(String.valueOf(configMap.get("persistent")));
 		int sleepTime = Integer.parseInt(String.valueOf(configMap.get("emptyQueueSleepTime")));
 		@SuppressWarnings("unchecked")
 		List<String> bindings = (List<String>) configMap.get("bindings");
@@ -71,362 +74,364 @@ public class StructuredTransformer {
 		//Get message from the queue
 		GetResponse response = consumer.getMessage();
 		
-		while (response != null) {
-			String routingKey = response.getEnvelope().getRoutingKey().toLowerCase();
-			long deliveryTag = response.getEnvelope().getDeliveryTag();
-			
-			if (response.getBody() != null) {
-				String message = new String(response.getBody());
+		while(persistent){
+			while (response != null) {
+				String routingKey = response.getEnvelope().getRoutingKey().toLowerCase();
+				long deliveryTag = response.getEnvelope().getDeliveryTag();
 				
-				long timestamp = 0;
-				if (response.getProps().getTimestamp() != null) {
-					timestamp = response.getProps().getTimestamp().getTime();
-				}
-
-				boolean contentIncluded = false;
-				Map<String, Object> headerMap = response.getProps().getHeaders();
-				if ((headerMap != null) && (headerMap.containsKey("HasContent"))) {
-					contentIncluded = Boolean.valueOf(String.valueOf(headerMap.get("HasContent")));
-				}
+				if (response.getBody() != null) {
+					String message = new String(response.getBody());
+					
+					long timestamp = 0;
+					if (response.getProps().getTimestamp() != null) {
+						timestamp = response.getProps().getTimestamp().getTime();
+					}
+	
+					boolean contentIncluded = false;
+					Map<String, Object> headerMap = response.getProps().getHeaders();
+					if ((headerMap != null) && (headerMap.containsKey("HasContent"))) {
+						contentIncluded = Boolean.valueOf(String.valueOf(headerMap.get("HasContent")));
+					}
+					
+					logger.debug("Recieved: " + routingKey + " deliveryTag=[" + deliveryTag + "] message- "+ message);
 				
-				logger.debug("Recieved: " + routingKey + " deliveryTag=[" + deliveryTag + "] message- "+ message);
-			
-				//Get the document from the document server, if necessary
-				String content = message;
-				if (!contentIncluded && !routingKey.contains(".sophos") && !routingKey.contains(".bugtraq")) {
-					String docId = content.trim();
-					logger.debug("Retrieving document content from Document-Service for id '" + docId + "'.");
-
-					try {
-						DocumentObject document = docClient.fetch(docId);
-						content = document.getDataAsString();
-					} catch (DocServiceException e) {
-						logger.error("Could not fetch document '" + docId + "' from Document-Service.", e);
-						logger.error("Message content was:\n"+message);
+					//Get the document from the document server, if necessary
+					String content = message;
+					if (!contentIncluded && !routingKey.contains(".sophos") && !routingKey.contains(".bugtraq")) {
+						String docId = content.trim();
+						logger.debug("Retrieving document content from Document-Service for id '" + docId + "'.");
+	
+						try {
+							DocumentObject document = docClient.fetch(docId);
+							content = document.getDataAsString();
+						} catch (DocServiceException e) {
+							logger.error("Could not fetch document '" + docId + "' from Document-Service.", e);
+							logger.error("Message content was:\n"+message);
+						}
 					}
-				}
-				
-				//Construct the subgraph by parsing the structured data
-				String graph = null;
-				
-				if (routingKey.contains(".cve")) {
-					ValueNode parsedData = null;
-					try{
-						ValueNode nodeData = XmlParser.apply(content);
-						parsedData = (ValueNode) CveExtractor.extract(nodeData);
-					} catch (ParsingException e) {
-						logger.error("ParsingException in parsing cve!", e);
-						if (!contentIncluded) logger.error("Problem docid was:\n"+message);
-						logger.error("Problem content was:\n"+content);
-						graph = null;
-					} catch (Exception e) {
-						logger.error("Other Error in parsing cve!", e);
-						if (!contentIncluded) logger.error("Problem docid was:\n"+message);
-						logger.error("Problem content was:\n"+content);
-						graph = null;
+					
+					//Construct the subgraph by parsing the structured data
+					String graph = null;
+					
+					if (routingKey.contains(".cve")) {
+						ValueNode parsedData = null;
+						try{
+							ValueNode nodeData = XmlParser.apply(content);
+							parsedData = (ValueNode) CveExtractor.extract(nodeData);
+						} catch (ParsingException e) {
+							logger.error("ParsingException in parsing cve!", e);
+							if (!contentIncluded) logger.error("Problem docid was:\n"+message);
+							logger.error("Problem content was:\n"+content);
+							graph = null;
+						} catch (Exception e) {
+							logger.error("Other Error in parsing cve!", e);
+							if (!contentIncluded) logger.error("Problem docid was:\n"+message);
+							logger.error("Problem content was:\n"+content);
+							graph = null;
+						}
+						if(parsedData != null){
+							graph = String.valueOf(parsedData);
+						}
 					}
-					if(parsedData != null){
-						graph = String.valueOf(parsedData);
+					else if (routingKey.contains(".nvd")) {
+						ValueNode parsedData = null;
+						try{
+							ValueNode nodeData = XmlParser.apply(content);
+							parsedData = (ValueNode) NvdExtractor.extract(nodeData);
+						} catch (ParsingException e) {
+							logger.error("ParsingException in parsing nvd!", e);
+							if (!contentIncluded) logger.error("Problem docid was:\n"+message);
+							logger.error("Problem content was:\n"+content);
+							graph = null;
+						} catch (Exception e) {
+							logger.error("Other Error in parsing nvd!", e);
+							if (!contentIncluded) logger.error("Problem docid was:\n"+message);
+							logger.error("Problem content was:\n"+content);
+							graph = null;
+						}
+						if(parsedData != null){
+							graph = String.valueOf(parsedData);
+						}
 					}
-				}
-				else if (routingKey.contains(".nvd")) {
-					ValueNode parsedData = null;
-					try{
-						ValueNode nodeData = XmlParser.apply(content);
-						parsedData = (ValueNode) NvdExtractor.extract(nodeData);
-					} catch (ParsingException e) {
-						logger.error("ParsingException in parsing nvd!", e);
-						if (!contentIncluded) logger.error("Problem docid was:\n"+message);
-						logger.error("Problem content was:\n"+content);
-						graph = null;
-					} catch (Exception e) {
-						logger.error("Other Error in parsing nvd!", e);
-						if (!contentIncluded) logger.error("Problem docid was:\n"+message);
-						logger.error("Problem content was:\n"+content);
-						graph = null;
+					else if (routingKey.contains(".cpe")) {
+						ValueNode parsedData = null;
+						try{
+							ValueNode nodeData = XmlParser.apply(content);
+							parsedData = (ValueNode) CpeExtractor.extract(nodeData);
+						} catch (ParsingException e) {
+							logger.error("ParsingException in parsing cpe!", e);
+							if (!contentIncluded) logger.error("Problem docid was:\n"+message);
+							logger.error("Problem content was:\n"+content);
+							graph = null;
+						} catch (Exception e) {
+							logger.error("Other Error in parsing cpe!", e);
+							if (!contentIncluded) logger.error("Problem docid was:\n"+message);
+							logger.error("Problem content was:\n"+content);
+							graph = null;
+						}
+						if(parsedData != null){
+							graph = String.valueOf(parsedData);
+						}
 					}
-					if(parsedData != null){
-						graph = String.valueOf(parsedData);
+					else if (routingKey.contains(".maxmind")) {
+						ValueNode parsedData = null;
+						try{
+							ValueNode nodeData = CsvParser.apply(content);
+							parsedData = (ValueNode) GeoIPExtractor.extract(nodeData);
+						} catch (ParsingException e) {
+							logger.error("ParsingException in parsing maxmind!", e);
+							if (!contentIncluded) logger.error("Problem docid was:\n"+message);
+							logger.error("Problem content was:\n"+content);
+							graph = null;
+						} catch (Exception e) {
+							logger.error("Other Error in parsing maxmind!", e);
+							if (!contentIncluded) logger.error("Problem docid was:\n"+message);
+							logger.error("Problem content was:\n"+content);
+							graph = null;
+						}
+						if(parsedData != null){
+							graph = String.valueOf(parsedData);
+						}
 					}
-				}
-				else if (routingKey.contains(".cpe")) {
-					ValueNode parsedData = null;
-					try{
-						ValueNode nodeData = XmlParser.apply(content);
-						parsedData = (ValueNode) CpeExtractor.extract(nodeData);
-					} catch (ParsingException e) {
-						logger.error("ParsingException in parsing cpe!", e);
-						if (!contentIncluded) logger.error("Problem docid was:\n"+message);
-						logger.error("Problem content was:\n"+content);
-						graph = null;
-					} catch (Exception e) {
-						logger.error("Other Error in parsing cpe!", e);
-						if (!contentIncluded) logger.error("Problem docid was:\n"+message);
-						logger.error("Problem content was:\n"+content);
-						graph = null;
+					else if (routingKey.contains(".argus")) {
+						ValueNode parsedData = null;
+						try{
+							ValueNode nodeData = CsvParser.apply(content);
+							parsedData = (ValueNode) ArgusExtractor.extract(nodeData);
+						} catch (ParsingException e) {
+							logger.error("ParsingException in parsing argus!", e);
+							if (!contentIncluded) logger.error("Problem docid was:\n"+message);
+							logger.error("Problem content was:\n"+content);
+							graph = null;
+						} catch (Exception e) {
+							logger.error("Other Error in parsing argus!", e);
+							if (!contentIncluded) logger.error("Problem docid was:\n"+message);
+							logger.error("Problem content was:\n"+content);
+							graph = null;
+						}
+						if(parsedData != null){
+							graph = String.valueOf(parsedData);
+						}
 					}
-					if(parsedData != null){
-						graph = String.valueOf(parsedData);
+					else if (routingKey.contains(".hone")) {
+						ValueNode parsedData = null;
+						try{
+							ValueNode nodeData = CsvParser.apply(content);
+							parsedData = (ValueNode) HoneExtractor.extract(nodeData);
+						} catch (ParsingException e) {
+							logger.error("ParsingException in parsing hone!", e);
+							if (!contentIncluded) logger.error("Problem docid was:\n"+message);
+							logger.error("Problem content was:\n"+content);
+							graph = null;
+						} catch (Exception e) {
+							logger.error("Other Error in parsing hone!", e);
+							if (!contentIncluded) logger.error("Problem docid was:\n"+message);
+							logger.error("Problem content was:\n"+content);
+							graph = null;
+						}
+						if(parsedData != null){
+							graph = String.valueOf(parsedData);
+						}
 					}
-				}
-				else if (routingKey.contains(".maxmind")) {
-					ValueNode parsedData = null;
-					try{
-						ValueNode nodeData = CsvParser.apply(content);
-						parsedData = (ValueNode) GeoIPExtractor.extract(nodeData);
-					} catch (ParsingException e) {
-						logger.error("ParsingException in parsing maxmind!", e);
-						if (!contentIncluded) logger.error("Problem docid was:\n"+message);
-						logger.error("Problem content was:\n"+content);
-						graph = null;
-					} catch (Exception e) {
-						logger.error("Other Error in parsing maxmind!", e);
-						if (!contentIncluded) logger.error("Problem docid was:\n"+message);
-						logger.error("Problem content was:\n"+content);
-						graph = null;
+					else if (routingKey.contains(".metasploit")) {
+						ValueNode parsedData = null;
+						try{
+							ValueNode nodeData = CsvParser.apply(content);
+							parsedData = (ValueNode) MetasploitExtractor.extract(nodeData);
+						} catch (ParsingException e) {
+							logger.error("ParsingException in parsing metasploit!", e);
+							if (!contentIncluded) logger.error("Problem docid was:\n"+message);
+							logger.error("Problem content was:\n"+content);
+							graph = null;
+						} catch (Exception e) {
+							logger.error("Other Error in parsing metasploit!", e);
+							if (!contentIncluded) logger.error("Problem docid was:\n"+message);
+							logger.error("Problem content was:\n"+content);
+							graph = null;
+						}
+						if(parsedData != null){
+							graph = String.valueOf(parsedData);
+						}
 					}
-					if(parsedData != null){
-						graph = String.valueOf(parsedData);
-					}
-				}
-				else if (routingKey.contains(".argus")) {
-					ValueNode parsedData = null;
-					try{
-						ValueNode nodeData = CsvParser.apply(content);
-						parsedData = (ValueNode) ArgusExtractor.extract(nodeData);
-					} catch (ParsingException e) {
-						logger.error("ParsingException in parsing argus!", e);
-						if (!contentIncluded) logger.error("Problem docid was:\n"+message);
-						logger.error("Problem content was:\n"+content);
-						graph = null;
-					} catch (Exception e) {
-						logger.error("Other Error in parsing argus!", e);
-						if (!contentIncluded) logger.error("Problem docid was:\n"+message);
-						logger.error("Problem content was:\n"+content);
-						graph = null;
-					}
-					if(parsedData != null){
-						graph = String.valueOf(parsedData);
-					}
-				}
-				else if (routingKey.contains(".hone")) {
-					ValueNode parsedData = null;
-					try{
-						ValueNode nodeData = CsvParser.apply(content);
-						parsedData = (ValueNode) HoneExtractor.extract(nodeData);
-					} catch (ParsingException e) {
-						logger.error("ParsingException in parsing hone!", e);
-						if (!contentIncluded) logger.error("Problem docid was:\n"+message);
-						logger.error("Problem content was:\n"+content);
-						graph = null;
-					} catch (Exception e) {
-						logger.error("Other Error in parsing hone!", e);
-						if (!contentIncluded) logger.error("Problem docid was:\n"+message);
-						logger.error("Problem content was:\n"+content);
-						graph = null;
-					}
-					if(parsedData != null){
-						graph = String.valueOf(parsedData);
-					}
-				}
-				else if (routingKey.contains(".metasploit")) {
-					ValueNode parsedData = null;
-					try{
-						ValueNode nodeData = CsvParser.apply(content);
-						parsedData = (ValueNode) MetasploitExtractor.extract(nodeData);
-					} catch (ParsingException e) {
-						logger.error("ParsingException in parsing metasploit!", e);
-						if (!contentIncluded) logger.error("Problem docid was:\n"+message);
-						logger.error("Problem content was:\n"+content);
-						graph = null;
-					} catch (Exception e) {
-						logger.error("Other Error in parsing metasploit!", e);
-						if (!contentIncluded) logger.error("Problem docid was:\n"+message);
-						logger.error("Problem content was:\n"+content);
-						graph = null;
-					}
-					if(parsedData != null){
-						graph = String.valueOf(parsedData);
-					}
-				}
-				else if (routingKey.replaceAll("\\-", "").contains(".cleanmx")) {
-					ValueNode parsedData = null;
-					try{
-						ValueNode nodeData = XmlParser.apply(content);
-						parsedData = (ValueNode) CleanMxVirusExtractor.extract(nodeData);
-					} catch (ParsingException e) {
-						logger.error("ParsingException in parsing cleanmx!", e);
-						if (!contentIncluded) logger.error("Problem docid was:\n"+message);
-						logger.error("Problem content was:\n"+content);
-						graph = null;
-					} catch (Exception e) {
-						logger.error("Other Error in parsing cleanmx!", e);
-						if (!contentIncluded) logger.error("Problem docid was:\n"+message);
-						logger.error("Problem content was:\n"+content);
-						graph = null;
-					}
-					if(parsedData != null){
-						graph = String.valueOf(parsedData);
-					}
-				}else if (routingKey.contains(".sophos")) {//TODO: testing
-					ValueNode parsedData = null;
-					try{
-						String summary = null;
-						String details = null;
-						String[] items = content.split("\\r?\\n");
-						for(String item : items){
-							String docId = item.split("\\s+")[0];
-							String sourceURL = item.split("\\s+")[1];
-							String itemContent = null;
-							try {
-								DocumentObject document = docClient.fetch(docId);
-								itemContent = document.getDataAsString();
-							} catch (DocServiceException e) {
-								logger.error("Could not fetch document '" + docId + "' from Document-Service. URL was: " + sourceURL, e);
-								logger.error("Complete message content was:\n"+content);
+					else if (routingKey.replaceAll("\\-", "").contains(".cleanmx")) {
+						ValueNode parsedData = null;
+						try{
+							ValueNode nodeData = XmlParser.apply(content);
+							parsedData = (ValueNode) CleanMxVirusExtractor.extract(nodeData);
+						} catch (ParsingException e) {
+							logger.error("ParsingException in parsing cleanmx!", e);
+							if (!contentIncluded) logger.error("Problem docid was:\n"+message);
+							logger.error("Problem content was:\n"+content);
+							graph = null;
+						} catch (Exception e) {
+							logger.error("Other Error in parsing cleanmx!", e);
+							if (!contentIncluded) logger.error("Problem docid was:\n"+message);
+							logger.error("Problem content was:\n"+content);
+							graph = null;
+						}
+						if(parsedData != null){
+							graph = String.valueOf(parsedData);
+						}
+					}else if (routingKey.contains(".sophos")) {//TODO: testing
+						ValueNode parsedData = null;
+						try{
+							String summary = null;
+							String details = null;
+							String[] items = content.split("\\r?\\n");
+							for(String item : items){
+								String docId = item.split("\\s+")[0];
+								String sourceURL = item.split("\\s+")[1];
+								String itemContent = null;
+								try {
+									DocumentObject document = docClient.fetch(docId);
+									itemContent = document.getDataAsString();
+								} catch (DocServiceException e) {
+									logger.error("Could not fetch document '" + docId + "' from Document-Service. URL was: " + sourceURL, e);
+									logger.error("Complete message content was:\n"+content);
+								}
+								if(sourceURL.contains("/detailed-analysis.aspx")){
+									details = itemContent;
+								}else if(sourceURL.contains(".aspx")){
+									summary = itemContent;
+								}else{
+									logger.warn("unexpected URL (sophos) " + sourceURL);
+								}
 							}
-							if(sourceURL.contains("/detailed-analysis.aspx")){
-								details = itemContent;
-							}else if(sourceURL.contains(".aspx")){
-								summary = itemContent;
+							if(summary != null && details != null){
+								SophosExtractor sophosExt = new SophosExtractor(summary, details);
+								graph = sophosExt.getGraph().toString();
 							}else{
-								logger.warn("unexpected URL (sophos) " + sourceURL);
+								logger.warn("Sophos: some required fields were null, skipping group.\nMessage was:" + content);
 							}
+						} catch (ParsingException e) {
+							logger.error("ParsingException in parsing sophos!", e);
+							logger.error("Problem content was:\n"+content);
+							if (!contentIncluded) logger.error("Problem docid was one of:\n"+message);
+							graph = null;
+						} catch (Exception e) {
+							logger.error("Other Error in parsing sophos!", e);
+							logger.error("Problem content was:\n"+content);
+							if (!contentIncluded) logger.error("Problem docid was one of:\n"+message);
+							graph = null;
 						}
-						if(summary != null && details != null){
-							SophosExtractor sophosExt = new SophosExtractor(summary, details);
-							graph = sophosExt.getGraph().toString();
-						}else{
-							logger.warn("Sophos: some required fields were null, skipping group.\nMessage was:" + content);
-						}
-					} catch (ParsingException e) {
-						logger.error("ParsingException in parsing sophos!", e);
-						logger.error("Problem content was:\n"+content);
-						if (!contentIncluded) logger.error("Problem docid was one of:\n"+message);
-						graph = null;
-					} catch (Exception e) {
-						logger.error("Other Error in parsing sophos!", e);
-						logger.error("Problem content was:\n"+content);
-						if (!contentIncluded) logger.error("Problem docid was one of:\n"+message);
-						graph = null;
-					}
-				}else if (routingKey.contains(".bugtraq")) {//TODO: testing
-					ValueNode parsedData = null;
-					try{
-						String info = null;
-						String discussion = null;
-						String exploit = null;
-						String solution = null;
-						String references = null;
-						String[] items = content.split("\\r?\\n");
-						for(String item : items){
-							String docId = item.split("\\s+")[0];
-							String sourceURL = item.split("\\s+")[1];
-							String itemContent = null;
-							try {
-								DocumentObject document = docClient.fetch(docId);
-								itemContent = document.getDataAsString();
-							} catch (DocServiceException e) {
-								logger.error("Could not fetch document '" + docId + "' from Document-Service. URL was: " + sourceURL, e);
-								logger.error("Complete message content was:\n"+content);
+					}else if (routingKey.contains(".bugtraq")) {//TODO: testing
+						ValueNode parsedData = null;
+						try{
+							String info = null;
+							String discussion = null;
+							String exploit = null;
+							String solution = null;
+							String references = null;
+							String[] items = content.split("\\r?\\n");
+							for(String item : items){
+								String docId = item.split("\\s+")[0];
+								String sourceURL = item.split("\\s+")[1];
+								String itemContent = null;
+								try {
+									DocumentObject document = docClient.fetch(docId);
+									itemContent = document.getDataAsString();
+								} catch (DocServiceException e) {
+									logger.error("Could not fetch document '" + docId + "' from Document-Service. URL was: " + sourceURL, e);
+									logger.error("Complete message content was:\n"+content);
+								}
+								if(sourceURL.contains("/info")){
+									info = itemContent;
+								}else if(sourceURL.contains("/discuss")){ //interestingly, "/discuss" and "/discussion" are both valid urls for this item
+									discussion = itemContent;
+								}else if(sourceURL.contains("/exploit")){
+									exploit = itemContent;
+								}else if(sourceURL.contains("/solution")){
+									solution = itemContent;
+								}else if(sourceURL.contains("/references")){
+									references = itemContent;
+								}else{
+									logger.warn("unexpected URL (bugtraq) " + sourceURL);
+								}
 							}
-							if(sourceURL.contains("/info")){
-								info = itemContent;
-							}else if(sourceURL.contains("/discuss")){ //interestingly, "/discuss" and "/discussion" are both valid urls for this item
-								discussion = itemContent;
-							}else if(sourceURL.contains("/exploit")){
-								exploit = itemContent;
-							}else if(sourceURL.contains("/solution")){
-								solution = itemContent;
-							}else if(sourceURL.contains("/references")){
-								references = itemContent;
+							if(info != null && discussion != null && exploit != null && solution != null && references != null){
+								BugtraqExtractor bugtraqExt = new BugtraqExtractor(info, discussion, exploit, solution, references);
+								graph = bugtraqExt.getGraph().toString();
 							}else{
-								logger.warn("unexpected URL (bugtraq) " + sourceURL);
+								logger.warn("Bugtraq: some required fields were null, skipping group.\nMessage was:" + content);
 							}
+						} catch (ParsingException e) {
+							logger.error("ParsingException in parsing bugtraq!", e);
+							if (!contentIncluded) logger.error("Problem docid was one of:\n"+message);
+							logger.error("Problem content was:\n"+content);
+							graph = null;
+						} catch (Exception e) {
+							logger.error("Other Error in parsing bugtraq!", e);
+							if (!contentIncluded) logger.error("Problem docid was one of:\n"+message);
+							logger.error("Problem content was:\n"+content);
+							graph = null;
 						}
-						if(info != null && discussion != null && exploit != null && solution != null && references != null){
-							BugtraqExtractor bugtraqExt = new BugtraqExtractor(info, discussion, exploit, solution, references);
-							graph = bugtraqExt.getGraph().toString();
-						}else{
-							logger.warn("Bugtraq: some required fields were null, skipping group.\nMessage was:" + content);
+					}
+					else if (routingKey.contains(".login_events")) {
+						ValueNode parsedData = null;
+						try{
+							ValueNode nodeData = CsvParser.apply(content);
+							parsedData = (ValueNode) LoginEventExtractor.extract(nodeData);
+						} catch (ParsingException e) {
+							logger.error("ParsingException in parsing login events!", e);
+							if (!contentIncluded) logger.error("Problem docid was:\n"+message);
+							logger.error("Problem content was:\n"+content);
+							graph = null;
+						} catch (Exception e) {
+							logger.error("Other Error in parsing login events!", e);
+							if (!contentIncluded) logger.error("Problem docid was:\n"+message);
+							logger.error("Problem content was:\n"+content);
+							graph = null;
 						}
-					} catch (ParsingException e) {
-						logger.error("ParsingException in parsing bugtraq!", e);
-						if (!contentIncluded) logger.error("Problem docid was one of:\n"+message);
-						logger.error("Problem content was:\n"+content);
-						graph = null;
-					} catch (Exception e) {
-						logger.error("Other Error in parsing bugtraq!", e);
-						if (!contentIncluded) logger.error("Problem docid was one of:\n"+message);
-						logger.error("Problem content was:\n"+content);
-						graph = null;
+						if(parsedData != null){
+							graph = String.valueOf(parsedData);
+						}
 					}
-				}
-				else if (routingKey.contains(".login_events")) {
-					ValueNode parsedData = null;
-					try{
-						ValueNode nodeData = CsvParser.apply(content);
-						parsedData = (ValueNode) LoginEventExtractor.extract(nodeData);
-					} catch (ParsingException e) {
-						logger.error("ParsingException in parsing login events!", e);
-						if (!contentIncluded) logger.error("Problem docid was:\n"+message);
-						logger.error("Problem content was:\n"+content);
-						graph = null;
-					} catch (Exception e) {
-						logger.error("Other Error in parsing login events!", e);
-						if (!contentIncluded) logger.error("Problem docid was:\n"+message);
-						logger.error("Problem content was:\n"+content);
-						graph = null;
+					else if (routingKey.contains(".installed_package")) {
+						ValueNode parsedData = null;
+						try{
+							ValueNode nodeData = CsvParser.apply(content);
+							parsedData = (ValueNode) PackageListExtractor.extract(nodeData);
+						} catch (ParsingException e) {
+							logger.error("ParsingException in package list!", e);
+							if (!contentIncluded) logger.error("Problem docid was:\n"+message);
+							logger.error("Problem content was:\n"+content);
+							graph = null;
+						} catch (Exception e) {
+							logger.error("Other Error in parsing package list!", e);
+							if (!contentIncluded) logger.error("Problem docid was:\n"+message);
+							logger.error("Problem content was:\n"+content);
+							graph = null;
+						}
+						if(parsedData != null){
+							graph = String.valueOf(parsedData);
+						}
 					}
-					if(parsedData != null){
-						graph = String.valueOf(parsedData);
+					else {
+						logger.warn("Unexpected routing key encountered '" + routingKey + "'.");
 					}
-				}
-				else if (routingKey.contains(".installed_package")) {
-					ValueNode parsedData = null;
-					try{
-						ValueNode nodeData = CsvParser.apply(content);
-						parsedData = (ValueNode) PackageListExtractor.extract(nodeData);
-					} catch (ParsingException e) {
-						logger.error("ParsingException in package list!", e);
-						if (!contentIncluded) logger.error("Problem docid was:\n"+message);
-						logger.error("Problem content was:\n"+content);
-						graph = null;
-					} catch (Exception e) {
-						logger.error("Other Error in parsing package list!", e);
-						if (!contentIncluded) logger.error("Problem docid was:\n"+message);
-						logger.error("Problem content was:\n"+content);
-						graph = null;
-					}
-					if(parsedData != null){
-						graph = String.valueOf(parsedData);
-					}
+	
+					//TODO: Add timestamp into subgraph
+					//Merge subgraph into full knowledge graph
+					if(graph != null) alignment.load(graph);
+					
+					//Ack the message was processed and can be discarded from the queue
+					logger.debug("Acking: " + routingKey + " deliveryTag=[" + deliveryTag + "]");
+					consumer.messageProcessed(deliveryTag);
 				}
 				else {
-					logger.warn("Unexpected routing key encountered '" + routingKey + "'.");
+					consumer.retryMessage(deliveryTag);
+					logger.debug("Retrying: " + routingKey + " deliveryTag=[" + deliveryTag + "]");
 				}
-
-				//TODO: Add timestamp into subgraph
-				//Merge subgraph into full knowledge graph
-				if(graph != null) alignment.load(graph);
 				
-				//Ack the message was processed and can be discarded from the queue
-				logger.debug("Acking: " + routingKey + " deliveryTag=[" + deliveryTag + "]");
-				consumer.messageProcessed(deliveryTag);
+				//Get next message from queue
+				response = consumer.getMessage();
 			}
-			else {
-				consumer.retryMessage(deliveryTag);
-				logger.debug("Retrying: " + routingKey + " deliveryTag=[" + deliveryTag + "]");
+			consumer.close();
+			try{
+				Thread.sleep(sleepTime);
+			} catch (InterruptedException consumed) {
+				//don't care in this case, exiting anyway.
 			}
-			
-			//Get next message from queue
-			response = consumer.getMessage();
-		}
-		consumer.close();
-		try{
-			Thread.sleep(sleepTime);
-		} catch (InterruptedException consumed) {
-			//don't care in this case, exiting anyway.
 		}
 	}
 	

@@ -28,6 +28,8 @@ public class UnstructuredTransformer {
 	private EntityExtractor entityExtractor;
 	private RelationExtractor relationExtractor;
 	private Align alignment;
+	
+	private boolean persistent;
 	private int sleepTime;
 	
 	public UnstructuredTransformer() {
@@ -38,6 +40,7 @@ public class UnstructuredTransformer {
 		int port = Integer.parseInt(String.valueOf(configMap.get("port")));
 		String user = String.valueOf(configMap.get("username"));
 		String password = String.valueOf(configMap.get("password"));
+		persistent = Boolean.parseBoolean(String.valueOf(configMap.get("persistent")));
 		sleepTime = Integer.parseInt(String.valueOf(configMap.get("emptyQueueSleepTime")));
 		@SuppressWarnings("unchecked")
 		List<String> bindings = (List<String>) configMap.get("bindings");
@@ -68,73 +71,75 @@ public class UnstructuredTransformer {
 		//Get message from the queue
 		GetResponse response = consumer.getMessage();
 		
-		while (response != null) {
-			String routingKey = response.getEnvelope().getRoutingKey();
-			long deliveryTag = response.getEnvelope().getDeliveryTag();
-			
-			if (response.getBody() != null) {
-				String message = new String(response.getBody());
+		while(persistent){
+			while (response != null) {
+				String routingKey = response.getEnvelope().getRoutingKey();
+				long deliveryTag = response.getEnvelope().getDeliveryTag();
 				
-				long timestamp = response.getProps().getTimestamp().getTime();
-				boolean contentIncluded = false;
-				Map<String, Object> headerMap = response.getProps().getHeaders();
-				if ((headerMap != null) && (headerMap.containsKey("HasContent"))) {
-					contentIncluded = Boolean.valueOf(String.valueOf(headerMap.get("HasContent")));
-				}
-				
-				logger.debug("Recieved: " + routingKey + " deliveryTag=[" + deliveryTag + "] message- "+ message);
-			
-				//Get the document from the document server, if necessary
-				String content = message;
-				if (!contentIncluded) {
-					String docId = content.trim();
-					logger.debug("Retrieving document content from Document-Service for id '" + docId + "'.");
-
-					try {
-						JSONObject jsonObject = docClient.fetchExtractedText(docId);
-						content = jsonObject.getString("text");
-					} catch (DocServiceException e) {
-						logger.error("Could not fetch document '" + docId + "' from Document-Service.", e);
+				if (response.getBody() != null) {
+					String message = new String(response.getBody());
+					
+					long timestamp = response.getProps().getTimestamp().getTime();
+					boolean contentIncluded = false;
+					Map<String, Object> headerMap = response.getProps().getHeaders();
+					if ((headerMap != null) && (headerMap.containsKey("HasContent"))) {
+						contentIncluded = Boolean.valueOf(String.valueOf(headerMap.get("HasContent")));
 					}
-				}
+					
+					logger.debug("Recieved: " + routingKey + " deliveryTag=[" + deliveryTag + "] message- "+ message);
 				
-				//Label the entities/concepts in the document
-				Sentences sentences = entityExtractor.getAnnotatedText(content);
-				
-				//Extract the data source name from the routing key
-				String dataSource = routingKey;
-				int index = routingKey.indexOf(PROCESS_NAME.toLowerCase());
-				if (index > -1) {
-					dataSource = routingKey.substring(index + PROCESS_NAME.length());
-					if (dataSource.startsWith(".")) {
-						dataSource = dataSource.substring(1);
+					//Get the document from the document server, if necessary
+					String content = message;
+					if (!contentIncluded) {
+						String docId = content.trim();
+						logger.debug("Retrieving document content from Document-Service for id '" + docId + "'.");
+	
+						try {
+							JSONObject jsonObject = docClient.fetchExtractedText(docId);
+							content = jsonObject.getString("text");
+						} catch (DocServiceException e) {
+							logger.error("Could not fetch document '" + docId + "' from Document-Service.", e);
+						}
 					}
+					
+					//Label the entities/concepts in the document
+					Sentences sentences = entityExtractor.getAnnotatedText(content);
+					
+					//Extract the data source name from the routing key
+					String dataSource = routingKey;
+					int index = routingKey.indexOf(PROCESS_NAME.toLowerCase());
+					if (index > -1) {
+						dataSource = routingKey.substring(index + PROCESS_NAME.length());
+						if (dataSource.startsWith(".")) {
+							dataSource = dataSource.substring(1);
+						}
+					}
+					//Construct the subgraph from the concepts and relationships
+					String graph = relationExtractor.getGraph(dataSource, sentences);
+					
+					//TODO: Add timestamp into subgraph
+					//Merge subgraph into full knowledge graph
+					alignment.load(graph);
+					
+					//Ack the message was processed and can be discarded from the queue
+					logger.debug("Acking: " + routingKey + " deliveryTag=[" + deliveryTag + "]");
+					consumer.messageProcessed(deliveryTag);
 				}
-				//Construct the subgraph from the concepts and relationships
-				String graph = relationExtractor.getGraph(dataSource, sentences);
+				else {
+					consumer.retryMessage(deliveryTag);
+					logger.debug("Retrying: " + routingKey + " deliveryTag=[" + deliveryTag + "]");
+				}
 				
-				//TODO: Add timestamp into subgraph
-				//Merge subgraph into full knowledge graph
-				alignment.load(graph);
-				
-				//Ack the message was processed and can be discarded from the queue
-				logger.debug("Acking: " + routingKey + " deliveryTag=[" + deliveryTag + "]");
-				consumer.messageProcessed(deliveryTag);
-			}
-			else {
-				consumer.retryMessage(deliveryTag);
-				logger.debug("Retrying: " + routingKey + " deliveryTag=[" + deliveryTag + "]");
+				//Get next message from queue
+				response = consumer.getMessage();
 			}
 			
-			//Get next message from queue
-			response = consumer.getMessage();
-		}
-		
-		consumer.close();
-		try{
-			Thread.sleep(sleepTime);
-		} catch (InterruptedException consumed) {
-			//don't care in this case, exiting anyway.
+			consumer.close();
+			try{
+				Thread.sleep(sleepTime);
+			} catch (InterruptedException consumed) {
+				//don't care in this case, exiting anyway.
+			}
 		}
 	}
 

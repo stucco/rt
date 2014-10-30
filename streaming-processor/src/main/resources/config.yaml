@@ -6,6 +6,7 @@ structured_data:
   password: guest
   queue: stucco-in-structured
   emptyQueueSleepTime: 90000
+  persistent: true
   bindings: 
       - stucco.in.structured.#
 
@@ -17,6 +18,7 @@ unstructured_data:
   password: guest
   queue: stucco-in-unstructured
   emptyQueueSleepTime: 90000
+  persistent: true
   bindings:
       - stucco.in.unstructured.#
 
