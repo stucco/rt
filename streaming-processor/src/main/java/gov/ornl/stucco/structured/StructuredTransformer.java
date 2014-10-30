@@ -53,7 +53,7 @@ public class StructuredTransformer {
 		String user = String.valueOf(configMap.get("username"));
 		String password = String.valueOf(configMap.get("password"));
 		persistent = Boolean.parseBoolean(String.valueOf(configMap.get("persistent")));
-		int sleepTime = Integer.parseInt(String.valueOf(configMap.get("emptyQueueSleepTime")));
+		sleepTime = Integer.parseInt(String.valueOf(configMap.get("emptyQueueSleepTime")));
 		@SuppressWarnings("unchecked")
 		List<String> bindings = (List<String>) configMap.get("bindings");
 		String[] bindingKeys = new String[bindings.size()];
