@@ -70,7 +70,7 @@ public class UnstructuredTransformer {
 	public void run() {
 		GetResponse response;
 		
-		while(persistent){
+		do{
 			//Get message from the queue
 			response = consumer.getMessage();
 			while (response != null) {
@@ -134,14 +134,13 @@ public class UnstructuredTransformer {
 				//Get next message from queue
 				response = consumer.getMessage();
 			}
-			
-			consumer.close();
 			try{
 				Thread.sleep(sleepTime);
 			} catch (InterruptedException consumed) {
 				//don't care in this case, exiting anyway.
 			}
-		}
+		}while(persistent);
+		consumer.close();
 	}
 
 
