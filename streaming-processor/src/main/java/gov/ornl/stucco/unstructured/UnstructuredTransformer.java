@@ -68,10 +68,11 @@ public class UnstructuredTransformer {
 
 	
 	public void run() {
-		//Get message from the queue
-		GetResponse response = consumer.getMessage();
+		GetResponse response;
 		
 		while(persistent){
+			//Get message from the queue
+			response = consumer.getMessage();
 			while (response != null) {
 				String routingKey = response.getEnvelope().getRoutingKey();
 				long deliveryTag = response.getEnvelope().getDeliveryTag();
