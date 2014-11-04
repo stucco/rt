@@ -122,12 +122,12 @@ public class StructuredTransformer {
 						} catch (ParsingException e) {
 							logger.error("ParsingException in parsing cve!", e);
 							if (!contentIncluded) logger.error("Problem docid was:\n"+message);
-							logger.error("Problem content was:\n"+content);
+							else logger.error("Problem content was:\n"+content);
 							graph = null;
 						} catch (Exception e) {
 							logger.error("Other Error in parsing cve!", e);
 							if (!contentIncluded) logger.error("Problem docid was:\n"+message);
-							logger.error("Problem content was:\n"+content);
+							else logger.error("Problem content was:\n"+content);
 							graph = null;
 						}
 						if(parsedData != null){
@@ -142,12 +142,12 @@ public class StructuredTransformer {
 						} catch (ParsingException e) {
 							logger.error("ParsingException in parsing nvd!", e);
 							if (!contentIncluded) logger.error("Problem docid was:\n"+message);
-							logger.error("Problem content was:\n"+content);
+							else logger.error("Problem content was:\n"+content);
 							graph = null;
 						} catch (Exception e) {
 							logger.error("Other Error in parsing nvd!", e);
 							if (!contentIncluded) logger.error("Problem docid was:\n"+message);
-							logger.error("Problem content was:\n"+content);
+							else logger.error("Problem content was:\n"+content);
 							graph = null;
 						}
 						if(parsedData != null){
@@ -162,12 +162,12 @@ public class StructuredTransformer {
 						} catch (ParsingException e) {
 							logger.error("ParsingException in parsing cpe!", e);
 							if (!contentIncluded) logger.error("Problem docid was:\n"+message);
-							logger.error("Problem content was:\n"+content);
+							else logger.error("Problem content was:\n"+content);
 							graph = null;
 						} catch (Exception e) {
 							logger.error("Other Error in parsing cpe!", e);
 							if (!contentIncluded) logger.error("Problem docid was:\n"+message);
-							logger.error("Problem content was:\n"+content);
+							else logger.error("Problem content was:\n"+content);
 							graph = null;
 						}
 						if(parsedData != null){
@@ -182,12 +182,12 @@ public class StructuredTransformer {
 						} catch (ParsingException e) {
 							logger.error("ParsingException in parsing maxmind!", e);
 							if (!contentIncluded) logger.error("Problem docid was:\n"+message);
-							logger.error("Problem content was:\n"+content);
+							else logger.error("Problem content was:\n"+content);
 							graph = null;
 						} catch (Exception e) {
 							logger.error("Other Error in parsing maxmind!", e);
 							if (!contentIncluded) logger.error("Problem docid was:\n"+message);
-							logger.error("Problem content was:\n"+content);
+							else logger.error("Problem content was:\n"+content);
 							graph = null;
 						}
 						if(parsedData != null){
@@ -202,12 +202,12 @@ public class StructuredTransformer {
 						} catch (ParsingException e) {
 							logger.error("ParsingException in parsing argus!", e);
 							if (!contentIncluded) logger.error("Problem docid was:\n"+message);
-							logger.error("Problem content was:\n"+content);
+							else logger.error("Problem content was:\n"+content);
 							graph = null;
 						} catch (Exception e) {
 							logger.error("Other Error in parsing argus!", e);
 							if (!contentIncluded) logger.error("Problem docid was:\n"+message);
-							logger.error("Problem content was:\n"+content);
+							else logger.error("Problem content was:\n"+content);
 							graph = null;
 						}
 						if(parsedData != null){
@@ -222,12 +222,12 @@ public class StructuredTransformer {
 						} catch (ParsingException e) {
 							logger.error("ParsingException in parsing hone!", e);
 							if (!contentIncluded) logger.error("Problem docid was:\n"+message);
-							logger.error("Problem content was:\n"+content);
+							else logger.error("Problem content was:\n"+content);
 							graph = null;
 						} catch (Exception e) {
 							logger.error("Other Error in parsing hone!", e);
 							if (!contentIncluded) logger.error("Problem docid was:\n"+message);
-							logger.error("Problem content was:\n"+content);
+							else logger.error("Problem content was:\n"+content);
 							graph = null;
 						}
 						if(parsedData != null){
@@ -242,12 +242,12 @@ public class StructuredTransformer {
 						} catch (ParsingException e) {
 							logger.error("ParsingException in parsing metasploit!", e);
 							if (!contentIncluded) logger.error("Problem docid was:\n"+message);
-							logger.error("Problem content was:\n"+content);
+							else logger.error("Problem content was:\n"+content);
 							graph = null;
 						} catch (Exception e) {
 							logger.error("Other Error in parsing metasploit!", e);
 							if (!contentIncluded) logger.error("Problem docid was:\n"+message);
-							logger.error("Problem content was:\n"+content);
+							else logger.error("Problem content was:\n"+content);
 							graph = null;
 						}
 						if(parsedData != null){
@@ -262,12 +262,12 @@ public class StructuredTransformer {
 						} catch (ParsingException e) {
 							logger.error("ParsingException in parsing cleanmx!", e);
 							if (!contentIncluded) logger.error("Problem docid was:\n"+message);
-							logger.error("Problem content was:\n"+content);
+							else logger.error("Problem content was:\n"+content);
 							graph = null;
 						} catch (Exception e) {
 							logger.error("Other Error in parsing cleanmx!", e);
 							if (!contentIncluded) logger.error("Problem docid was:\n"+message);
-							logger.error("Problem content was:\n"+content);
+							else logger.error("Problem content was:\n"+content);
 							graph = null;
 						}
 						if(parsedData != null){
@@ -358,12 +358,12 @@ public class StructuredTransformer {
 						} catch (ParsingException e) {
 							logger.error("ParsingException in parsing bugtraq!", e);
 							if (!contentIncluded) logger.error("Problem docid was one of:\n"+message);
-							logger.error("Problem content was:\n"+content);
+							else logger.error("Problem content was:\n"+content);
 							graph = null;
 						} catch (Exception e) {
 							logger.error("Other Error in parsing bugtraq!", e);
 							if (!contentIncluded) logger.error("Problem docid was one of:\n"+message);
-							logger.error("Problem content was:\n"+content);
+							else logger.error("Problem content was:\n"+content);
 							graph = null;
 						}
 					}
@@ -375,12 +375,12 @@ public class StructuredTransformer {
 						} catch (ParsingException e) {
 							logger.error("ParsingException in parsing login events!", e);
 							if (!contentIncluded) logger.error("Problem docid was:\n"+message);
-							logger.error("Problem content was:\n"+content);
+							else logger.error("Problem content was:\n"+content);
 							graph = null;
 						} catch (Exception e) {
 							logger.error("Other Error in parsing login events!", e);
 							if (!contentIncluded) logger.error("Problem docid was:\n"+message);
-							logger.error("Problem content was:\n"+content);
+							else logger.error("Problem content was:\n"+content);
 							graph = null;
 						}
 						if(parsedData != null){
@@ -395,12 +395,12 @@ public class StructuredTransformer {
 						} catch (ParsingException e) {
 							logger.error("ParsingException in package list!", e);
 							if (!contentIncluded) logger.error("Problem docid was:\n"+message);
-							logger.error("Problem content was:\n"+content);
+							else logger.error("Problem content was:\n"+content);
 							graph = null;
 						} catch (Exception e) {
 							logger.error("Other Error in parsing package list!", e);
 							if (!contentIncluded) logger.error("Problem docid was:\n"+message);
-							logger.error("Problem content was:\n"+content);
+							else logger.error("Problem content was:\n"+content);
 							graph = null;
 						}
 						if(parsedData != null){
