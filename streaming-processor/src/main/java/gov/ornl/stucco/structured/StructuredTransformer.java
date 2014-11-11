@@ -308,13 +308,13 @@ public class StructuredTransformer {
 							}
 						} catch (ParsingException e) {
 							logger.error("ParsingException in parsing sophos!", e);
-							logger.error("Problem content was:\n"+content);
 							if (!contentIncluded) logger.error("Problem docid was one of:\n"+message);
+							else logger.error("Problem content was:\n"+content);
 							graph = null;
 						} catch (Exception e) {
 							logger.error("Other Error in parsing sophos!", e);
-							logger.error("Problem content was:\n"+content);
 							if (!contentIncluded) logger.error("Problem docid was one of:\n"+message);
+							else logger.error("Problem content was:\n"+content);
 							graph = null;
 						}
 					}else if (routingKey.replaceAll("\\-", "").contains(".fsecure")) {//TODO: testing
@@ -323,13 +323,13 @@ public class StructuredTransformer {
 								graph = fSecureExt.getGraph().toString();
 						} catch (ParsingException e) {
 							logger.error("ParsingException in parsing fsecure!", e);
-							logger.error("Problem content was:\n"+content);
 							if (!contentIncluded) logger.error("Problem message was:\n"+message);
+							else logger.error("Problem content was:\n"+content);
 							graph = null;
 						} catch (Exception e) {
 							logger.error("Other Error in parsing fsecure!", e);
-							logger.error("Problem content was:\n"+content);
 							if (!contentIncluded) logger.error("Problem message was:\n"+message);
+							else logger.error("Problem content was:\n"+content);
 							graph = null;
 						}
 					}else if (routingKey.contains(".malwaredomainlist")) {//TODO: testing
@@ -338,13 +338,13 @@ public class StructuredTransformer {
 								graph = mdlExt.getGraph().toString();
 						} catch (ParsingException e) {
 							logger.error("ParsingException in parsing malwaredomainlist!", e);
-							logger.error("Problem content was:\n"+content);
 							if (!contentIncluded) logger.error("Problem message was:\n"+message);
+							else logger.error("Problem content was:\n"+content);
 							graph = null;
 						} catch (Exception e) {
 							logger.error("Other Error in parsing malwaredomainlist!", e);
-							logger.error("Problem content was:\n"+content);
 							if (!contentIncluded) logger.error("Problem message was:\n"+message);
+							else logger.error("Problem content was:\n"+content);
 							graph = null;
 						}
 					}else if (routingKey.contains(".bugtraq")) {//TODO: testing
