@@ -27,6 +27,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import alignment.alignment_v2.Align;
+import HTMLExtractor.FSecureExtractor;
+import HTMLExtractor.MalwareDomainListExtractor;
 import HTMLExtractor.SophosExtractor;
 import HTMLExtractor.BugtraqExtractor;
 
@@ -313,6 +315,36 @@ public class StructuredTransformer {
 							logger.error("Other Error in parsing sophos!", e);
 							logger.error("Problem content was:\n"+content);
 							if (!contentIncluded) logger.error("Problem docid was one of:\n"+message);
+							graph = null;
+						}
+					}else if (routingKey.replaceAll("\\-", "").contains(".fsecure")) {//TODO: testing
+						try {
+								FSecureExtractor fSecureExt = new FSecureExtractor(content);
+								graph = fSecureExt.getGraph().toString();
+						} catch (ParsingException e) {
+							logger.error("ParsingException in parsing fsecure!", e);
+							logger.error("Problem content was:\n"+content);
+							if (!contentIncluded) logger.error("Problem message was:\n"+message);
+							graph = null;
+						} catch (Exception e) {
+							logger.error("Other Error in parsing fsecure!", e);
+							logger.error("Problem content was:\n"+content);
+							if (!contentIncluded) logger.error("Problem message was:\n"+message);
+							graph = null;
+						}
+					}else if (routingKey.contains(".malwaredomainlist")) {//TODO: testing
+						try {
+								MalwareDomainListExtractor mdlExt = new MalwareDomainListExtractor(content);
+								graph = mdlExt.getGraph().toString();
+						} catch (ParsingException e) {
+							logger.error("ParsingException in parsing malwaredomainlist!", e);
+							logger.error("Problem content was:\n"+content);
+							if (!contentIncluded) logger.error("Problem message was:\n"+message);
+							graph = null;
+						} catch (Exception e) {
+							logger.error("Other Error in parsing malwaredomainlist!", e);
+							logger.error("Problem content was:\n"+content);
+							if (!contentIncluded) logger.error("Problem message was:\n"+message);
 							graph = null;
 						}
 					}else if (routingKey.contains(".bugtraq")) {//TODO: testing
