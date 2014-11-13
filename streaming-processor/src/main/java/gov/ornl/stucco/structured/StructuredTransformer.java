@@ -276,7 +276,6 @@ public class StructuredTransformer {
 							graph = String.valueOf(parsedData);
 						}
 					}else if (routingKey.contains(".sophos")) {//TODO: testing
-						ValueNode parsedData = null;
 						try{
 							String summary = null;
 							String details = null;
@@ -348,7 +347,6 @@ public class StructuredTransformer {
 							graph = null;
 						}
 					}else if (routingKey.contains(".bugtraq")) {//TODO: testing
-						ValueNode parsedData = null;
 						try{
 							String info = null;
 							String discussion = null;
