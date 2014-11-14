@@ -12,7 +12,7 @@ mvn -q --non-recursive scm:checkout -Dmodule.name=document-service-client-java
 
 # build rt
 mvn -q clean install -Dmaven.test.skip=true
-mvn -q clean package
+mvn -q clean package -Dmaven.test.skip=true
 
 # cleanup
 rm -rf JSON-java
