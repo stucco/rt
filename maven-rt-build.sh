@@ -10,6 +10,8 @@ mvn -q --non-recursive scm:checkout -Dmodule.name=relation-extractor
 mvn -q --non-recursive scm:checkout -Dmodule.name=graph-alignment
 mvn -q --non-recursive scm:checkout -Dmodule.name=document-service-client-java
 mvn -q clean install -Dmaven.test.skip=true
+mvn -q clean package
+
 rm -rf JSON-java
 rm -rf morph
 rm -rf html-extractor
