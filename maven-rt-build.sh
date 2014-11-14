@@ -1,6 +1,6 @@
 #!/bin/sh
 
-#checkout all modules
+# checkout all modules
 mvn -q --non-recursive scm:checkout -Dmodule.name=JSON-java
 mvn -q --non-recursive scm:checkout -Dmodule.name=morph
 mvn -q --non-recursive scm:checkout -Dmodule.name=html-extractor
@@ -9,9 +9,12 @@ mvn -q --non-recursive scm:checkout -Dmodule.name=entity-extractor
 mvn -q --non-recursive scm:checkout -Dmodule.name=relation-extractor
 mvn -q --non-recursive scm:checkout -Dmodule.name=graph-alignment
 mvn -q --non-recursive scm:checkout -Dmodule.name=document-service-client-java
+
+# build rt
 mvn -q clean install -Dmaven.test.skip=true
 mvn -q clean package
 
+# cleanup
 rm -rf JSON-java
 rm -rf morph
 rm -rf html-extractor
