@@ -28,9 +28,7 @@ de-storm: [![Build Status](https://travis-ci.org/stucco/rt.png?branch=de-storm)]
 2. Run the following commands:
 	
 		./maven-rt-build.sh
-		cd streaming-processor
-		mvn clean package
-		supervisord -c target/classes/supervisord.conf
+		supervisord -c supervisord.conf
 
 ## Eclipse Development
 
