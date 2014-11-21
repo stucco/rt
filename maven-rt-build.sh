@@ -12,7 +12,9 @@ mvn -q --non-recursive scm:checkout -Dmodule.name=document-service-client-java
 
 echo "Building rt..."
 mvn -q clean install
+cd streaming-processor
 mvn -q clean package -Dmaven.test.skip=true
+cd ..
 
 echo "Cleaning up modules..."
 rm -rf JSON-java
@@ -23,3 +25,4 @@ rm -rf entity-extractor
 rm -rf relation-extractor
 rm -rf graph-alignment
 rm -rf document-service-client-java
+
