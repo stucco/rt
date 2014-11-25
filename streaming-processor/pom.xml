@@ -93,8 +93,6 @@
       <resource>
         <directory>src/main/resources</directory>
         <includes>
-          <include>supervisord.conf</include>
-          <include>config.yaml</include>
           <include>logback.xml</include>
         </includes>
       </resource>

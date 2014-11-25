@@ -5,6 +5,7 @@ import gov.ornl.stucco.RabbitMQConsumer;
 import gov.ornl.stucco.RelationExtractor;
 import gov.ornl.stucco.entity.EntityExtractor;
 import gov.ornl.stucco.entity.models.Sentences;
+import gov.ornl.stucco.structured.StructuredTransformer;
 import gov.pnnl.stucco.doc_service_client.DocServiceClient;
 import gov.pnnl.stucco.doc_service_client.DocServiceException;
 
@@ -33,7 +34,17 @@ public class UnstructuredTransformer {
 	private int sleepTime;
 	
 	public UnstructuredTransformer() {
-		Map<String, Object> configMap = ConfigLoader.getConfig("unstructured_data");
+		ConfigLoader configLoader = new ConfigLoader();
+		init(configLoader);
+	}
+	
+	public UnstructuredTransformer(String configFile) {
+		ConfigLoader configLoader = new ConfigLoader(configFile);
+		init(configLoader);
+	}
+	
+	private void init(ConfigLoader configLoader){
+		Map<String, Object> configMap = configLoader.getConfig("unstructured_data");
 		String exchange = String.valueOf(configMap.get("exchange"));
 		String queue = String.valueOf(configMap.get("queue"));
 		String host = String.valueOf(configMap.get("host"));
@@ -60,7 +71,7 @@ public class UnstructuredTransformer {
 		
 		alignment = new Align();
 		
-		configMap = ConfigLoader.getConfig("document_service");
+		configMap = configLoader.getConfig("document_service");
 		host = String.valueOf(configMap.get("host"));
 		port = Integer.parseInt(String.valueOf(configMap.get("port")));
 		docClient = new DocServiceClient(host, port);
@@ -148,7 +159,13 @@ public class UnstructuredTransformer {
 	 * @param args
 	 */
 	public static void main(String[] args) {
-		UnstructuredTransformer unstructProcess = new UnstructuredTransformer();
+		UnstructuredTransformer unstructProcess;
+		if(args.length == 0){
+			unstructProcess = new UnstructuredTransformer();
+		}
+		else{
+			unstructProcess = new UnstructuredTransformer(args[0]);
+		}
 		unstructProcess.run();
 	}
 }

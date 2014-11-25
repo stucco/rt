@@ -47,7 +47,17 @@ public class StructuredTransformer {
 	private int sleepTime;
 	
 	public StructuredTransformer() {
-		Map<String, Object> configMap = ConfigLoader.getConfig("structured_data");
+		ConfigLoader configLoader = new ConfigLoader();
+		init(configLoader);
+	}
+	
+	public StructuredTransformer(String configFile) {
+		ConfigLoader configLoader = new ConfigLoader(configFile);
+		init(configLoader);
+	}
+	
+	private void init(ConfigLoader configLoader) {
+		Map<String, Object> configMap = configLoader.getConfig("structured_data");
 		String exchange = String.valueOf(configMap.get("exchange"));
 		String queue = String.valueOf(configMap.get("queue"));
 		String host = String.valueOf(configMap.get("host"));
@@ -65,7 +75,7 @@ public class StructuredTransformer {
 		
 		alignment = new Align();
 		
-		configMap = ConfigLoader.getConfig("document_service");
+		configMap = configLoader.getConfig("document_service");
 		host = String.valueOf(configMap.get("host"));
 		port = Integer.parseInt(String.valueOf(configMap.get("port")));
 		docClient = new DocServiceClient(host, port);
@@ -470,7 +480,13 @@ public class StructuredTransformer {
 	 * @param args
 	 */
 	public static void main(String[] args) {
-		StructuredTransformer structProcess = new StructuredTransformer();
+		StructuredTransformer structProcess;
+		if(args.length == 0){
+			structProcess = new StructuredTransformer();
+		}
+		else{
+			structProcess = new StructuredTransformer(args[0]);
+		}
 		structProcess.run();
 	}
 
