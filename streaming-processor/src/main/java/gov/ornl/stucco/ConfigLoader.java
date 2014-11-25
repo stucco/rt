@@ -1,5 +1,7 @@
 package gov.ornl.stucco;
 
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.util.Map;
 
 import org.yaml.snakeyaml.Yaml;
@@ -15,12 +17,13 @@ public class ConfigLoader {
 		configFile = config;
 	}
 	
-	public Map<String, Object> getConfig(String configHeading) {
+	@SuppressWarnings("unchecked")
+	public Map<String, Object> getConfig(String configHeading) throws FileNotFoundException {
 		Yaml yamlReader = new Yaml();
-		@SuppressWarnings("unchecked")
-		Map<String, Map<String, Object>> configMap = (Map<String, Map<String, Object>>) yamlReader.load(ConfigLoader.class.getClassLoader().getResourceAsStream(configFile));
-
-		Map<String, Object> subMap = configMap.get(configHeading);
+		Map<String, Map<String, Object>> configMap = null;
+		Map<String, Object> subMap = null;
+		configMap = (Map<String, Map<String, Object>>) yamlReader.load(new FileInputStream(configFile));
+		subMap = configMap.get(configHeading);
 		return subMap;
 	}
 

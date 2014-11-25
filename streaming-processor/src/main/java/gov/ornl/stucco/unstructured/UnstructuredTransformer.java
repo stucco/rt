@@ -9,6 +9,7 @@ import gov.ornl.stucco.structured.StructuredTransformer;
 import gov.pnnl.stucco.doc_service_client.DocServiceClient;
 import gov.pnnl.stucco.doc_service_client.DocServiceException;
 
+import java.io.FileNotFoundException;
 import java.util.List;
 import java.util.Map;
 
@@ -34,47 +35,59 @@ public class UnstructuredTransformer {
 	private int sleepTime;
 	
 	public UnstructuredTransformer() {
+		logger.info("loading config file from default location");
 		ConfigLoader configLoader = new ConfigLoader();
 		init(configLoader);
 	}
 	
 	public UnstructuredTransformer(String configFile) {
+		logger.info("loading config file at: " + configFile);
 		ConfigLoader configLoader = new ConfigLoader(configFile);
 		init(configLoader);
 	}
 	
 	private void init(ConfigLoader configLoader){
-		Map<String, Object> configMap = configLoader.getConfig("unstructured_data");
-		String exchange = String.valueOf(configMap.get("exchange"));
-		String queue = String.valueOf(configMap.get("queue"));
-		String host = String.valueOf(configMap.get("host"));
-		int port = Integer.parseInt(String.valueOf(configMap.get("port")));
-		String user = String.valueOf(configMap.get("username"));
-		String password = String.valueOf(configMap.get("password"));
-		persistent = Boolean.parseBoolean(String.valueOf(configMap.get("persistent")));
-		sleepTime = Integer.parseInt(String.valueOf(configMap.get("emptyQueueSleepTime")));
-		@SuppressWarnings("unchecked")
-		List<String> bindings = (List<String>) configMap.get("bindings");
-		String[] bindingKeys = new String[bindings.size()];
-		bindingKeys = bindings.toArray(bindingKeys);
-		
-		consumer = new RabbitMQConsumer(exchange, queue, host, port, user, password, bindingKeys);
-		consumer.openQueue();
-		
+		Map<String, Object> configMap;
 		try {
-			entityExtractor = new EntityExtractor();
-		} catch (Exception e) {
-			logger.error("Error loading EntityExtractor models.", e);
+			configMap = configLoader.getConfig("unstructured_data");
+			String exchange = String.valueOf(configMap.get("exchange"));
+			String queue = String.valueOf(configMap.get("queue"));
+			String host = String.valueOf(configMap.get("host"));
+			int port = Integer.parseInt(String.valueOf(configMap.get("port")));
+			String user = String.valueOf(configMap.get("username"));
+			String password = String.valueOf(configMap.get("password"));
+			persistent = Boolean.parseBoolean(String.valueOf(configMap.get("persistent")));
+			sleepTime = Integer.parseInt(String.valueOf(configMap.get("emptyQueueSleepTime")));
+			@SuppressWarnings("unchecked")
+			List<String> bindings = (List<String>) configMap.get("bindings");
+			String[] bindingKeys = new String[bindings.size()];
+			bindingKeys = bindings.toArray(bindingKeys);
+			
+			logger.info("Connecting to rabbitMQ with this info: \nhost: " + host + "\nport: " + port + 
+					"\nexchange: " + exchange + "\nqueue: " + queue + 
+					"\nuser: " + user + "\npass: " + password);
+			consumer = new RabbitMQConsumer(exchange, queue, host, port, user, password, bindingKeys);
+			consumer.openQueue();
+			
+			try {
+				entityExtractor = new EntityExtractor();
+			} catch (Exception e) {
+				logger.error("Error loading EntityExtractor models.", e);
+			}
+			
+			relationExtractor = new RelationExtractor();
+			
+			alignment = new Align();
+			
+			configMap = configLoader.getConfig("document_service");
+			
+			host = String.valueOf(configMap.get("host"));
+			port = Integer.parseInt(String.valueOf(configMap.get("port")));
+			docClient = new DocServiceClient(host, port);
+			
+		} catch (FileNotFoundException e1) {
+			logger.error("Error loading configuration.", e1);
 		}
-		
-		relationExtractor = new RelationExtractor();
-		
-		alignment = new Align();
-		
-		configMap = configLoader.getConfig("document_service");
-		host = String.valueOf(configMap.get("host"));
-		port = Integer.parseInt(String.valueOf(configMap.get("port")));
-		docClient = new DocServiceClient(host, port);
 	}
 
 	
