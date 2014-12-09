@@ -2,8 +2,8 @@ structured_data:
   exchange: stucco
   host: localhost
   port: 5672
-  username: guest
-  password: guest
+  username: stucco
+  password: stucco
   queue: stucco-in-structured
   emptyQueueSleepTime: 90000
   persistent: true
@@ -14,8 +14,8 @@ unstructured_data:
   exchange: stucco
   host: localhost
   port: 5672
-  username: guest
-  password: guest
+  username: stucco
+  password: stucco
   queue: stucco-in-unstructured
   emptyQueueSleepTime: 90000
   persistent: true
