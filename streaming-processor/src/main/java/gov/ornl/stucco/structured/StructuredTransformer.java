@@ -24,6 +24,8 @@ import gov.pnnl.stucco.doc_service_client.DocServiceClient;
 import gov.pnnl.stucco.doc_service_client.DocServiceException;
 import gov.pnnl.stucco.doc_service_client.DocumentObject;
 
+import org.json.JSONObject;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -130,9 +132,14 @@ public class StructuredTransformer {
 	
 						try {
 							DocumentObject document = docClient.fetch(docId);
-							content = document.getDataAsString();
+							String rawContent = document.getDataAsString();
+							JSONObject jsonContent = new JSONObject(rawContent);
+							content = (String) jsonContent.get("document"); 
 						} catch (DocServiceException e) {
 							logger.error("Could not fetch document '" + docId + "' from Document-Service.", e);
+							logger.error("Message content was:\n"+message);
+						} catch (Exception e) {
+							logger.error("Other error in handling document '" + docId + "' from Document-Service.", e);
 							logger.error("Message content was:\n"+message);
 						}
 					}
@@ -299,10 +306,10 @@ public class StructuredTransformer {
 						if(parsedData != null){
 							graph = String.valueOf(parsedData);
 						}
-					}else if (routingKey.contains(".sophos")) {//TODO: testing
+					}else if (routingKey.contains(".sophos")) {
+						String summary = null;
+						String details = null;
 						try{
-							String summary = null;
-							String details = null;
 							String[] items = content.split("\\r?\\n");
 							for(String item : items){
 								String docId = item.split("\\s+")[0];
@@ -338,9 +345,12 @@ public class StructuredTransformer {
 							logger.error("Other Error in parsing sophos!", e);
 							if (!contentIncluded) logger.error("Problem docid was one of:\n"+message);
 							else logger.error("Problem content was:\n"+content);
+							//TODO remove, debugging
+							logger.error("summary field was: " + summary);
+							logger.error("details field was: " + details);
 							graph = null;
 						}
-					}else if (routingKey.replaceAll("\\-", "").contains(".fsecure")) {//TODO: testing
+					}else if (routingKey.replaceAll("\\-", "").contains(".fsecure")) {
 						try {
 								FSecureExtractor fSecureExt = new FSecureExtractor(content);
 								graph = fSecureExt.getGraph().toString();
@@ -355,7 +365,7 @@ public class StructuredTransformer {
 							else logger.error("Problem content was:\n"+content);
 							graph = null;
 						}
-					}else if (routingKey.contains(".malwaredomainlist")) {//TODO: testing
+					}else if (routingKey.contains(".malwaredomainlist")) {
 						try {
 								MalwareDomainListExtractor mdlExt = new MalwareDomainListExtractor(content);
 								graph = mdlExt.getGraph().toString();
@@ -370,13 +380,13 @@ public class StructuredTransformer {
 							else logger.error("Problem content was:\n"+content);
 							graph = null;
 						}
-					}else if (routingKey.contains(".bugtraq")) {//TODO: testing
+					}else if (routingKey.contains(".bugtraq")) {
+						String info = null;
+						String discussion = null;
+						String exploit = null;
+						String solution = null;
+						String references = null;
 						try{
-							String info = null;
-							String discussion = null;
-							String exploit = null;
-							String solution = null;
-							String references = null;
 							String[] items = content.split("\\r?\\n");
 							for(String item : items){
 								String docId = item.split("\\s+")[0];
