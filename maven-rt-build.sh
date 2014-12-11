@@ -11,7 +11,7 @@ mvn -q --non-recursive scm:checkout -Dmodule.name=graph-alignment
 mvn -q --non-recursive scm:checkout -Dmodule.name=document-service-client-java
 
 echo "Building rt..."
-mvn -q clean install
+mvn -q clean install -Dmaven.test.skip=true
 cd streaming-processor
 mvn -q clean package -Dmaven.test.skip=true
 cd ..
