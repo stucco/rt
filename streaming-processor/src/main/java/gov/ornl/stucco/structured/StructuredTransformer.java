@@ -84,13 +84,17 @@ public class StructuredTransformer {
 			consumer = new RabbitMQConsumer(exchange, queue, host, port, user, password, bindingKeys);
 			consumer.openQueue();
 			
+			logger.info("RabbitMQ connected.  Creating DB connection...");
 			alignment = new Align();
 			
+			logger.info("DB connection created.  Connecting to document service...");
 			configMap = configLoader.getConfig("document_service");
 
 			host = String.valueOf(configMap.get("host"));
 			port = Integer.parseInt(String.valueOf(configMap.get("port")));
 			docClient = new DocServiceClient(host, port);
+			
+			logger.info("Document service client created.  Initialization complete!");
 			
 		} catch (FileNotFoundException e1) {
 			logger.error("Error loading configuration.", e1);
