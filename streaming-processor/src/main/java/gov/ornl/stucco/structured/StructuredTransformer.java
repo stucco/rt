@@ -318,10 +318,13 @@ public class StructuredTransformer {
 							for(String item : items){
 								String docId = item.split("\\s+")[0];
 								String sourceURL = item.split("\\s+")[1];
+								String rawItemContent = null;
 								String itemContent = null;
 								try {
 									DocumentObject document = docClient.fetch(docId);
-									itemContent = document.getDataAsString();
+									rawItemContent = document.getDataAsString();
+									JSONObject jsonContent = new JSONObject(rawItemContent);
+									itemContent = (String) jsonContent.get("document"); 
 								} catch (DocServiceException e) {
 									logger.error("Could not fetch document '" + docId + "' from Document-Service. URL was: " + sourceURL, e);
 									logger.error("Complete message content was:\n"+content);
@@ -395,10 +398,13 @@ public class StructuredTransformer {
 							for(String item : items){
 								String docId = item.split("\\s+")[0];
 								String sourceURL = item.split("\\s+")[1];
+								String rawItemContent = null;
 								String itemContent = null;
 								try {
 									DocumentObject document = docClient.fetch(docId);
-									itemContent = document.getDataAsString();
+									rawItemContent = document.getDataAsString();
+									JSONObject jsonContent = new JSONObject(rawItemContent);
+									itemContent = (String) jsonContent.get("document"); 
 								} catch (DocServiceException e) {
 									logger.error("Could not fetch document '" + docId + "' from Document-Service. URL was: " + sourceURL, e);
 									logger.error("Complete message content was:\n"+content);
