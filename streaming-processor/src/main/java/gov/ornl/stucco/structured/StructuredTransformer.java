@@ -352,9 +352,6 @@ public class StructuredTransformer {
 							logger.error("Other Error in parsing sophos!", e);
 							if (!contentIncluded) logger.error("Problem docid was one of:\n"+message);
 							else logger.error("Problem content was:\n"+content);
-							//TODO remove, debugging
-							logger.error("summary field was: " + summary);
-							logger.error("details field was: " + details);
 							graph = null;
 						}
 					}else if (routingKey.replaceAll("\\-", "").contains(".fsecure")) {
