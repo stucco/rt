@@ -254,8 +254,21 @@ public class StructuredTransformer {
 					else if (routingKey.contains(".hone")) {
 						ValueNode parsedData = null;
 						try{
+							final String HOSTNAME_KEY = "hostName";
 							ValueNode nodeData = CsvParser.apply(content);
-							parsedData = (ValueNode) HoneExtractor.extract(nodeData);
+							
+							if ((headerMap != null) && (headerMap.containsKey(HOSTNAME_KEY))) {
+								// It would be nice to just pass the headerMap directly to
+								// the extract call, but extract expects Map<String,String>
+								// yet the headerMap is Map<String,Object>.
+								Map<String, String> metaDataMap = new HashMap<String, String>;
+								String hostname = String.valueOf(headerMap.get(HOSTNAME_KEY));
+								metaDataMap.put(HOSTNAME_KEY, hostname);
+								parsedData = (ValueNode) HoneExtractor.extract(nodeData, metaDataMap);
+							} else {
+								parsedData = (ValueNode) HoneExtractor.extract(nodeData);
+							}
+
 						} catch (ParsingException e) {
 							logger.error("ParsingException in parsing hone!", e);
 							if (!contentIncluded) logger.error("Problem docid was:\n"+message);
