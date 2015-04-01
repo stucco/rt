@@ -1,13 +1,6 @@
 #!/bin/sh
 
 echo "Checking out modules..."
-#graph alignment handling
-mvn --non-recursive scm:checkout -Dmodule.name=graph-alignment -DscmVersion=development -DscmVersionType=branch
-cd graph-alignment
-mvn --non-recursive scm:checkout -Dmodule.name=rexster-client-java
-mvn -q clean install -Dmaven.test.skip=true
-cd ..
-#the rest of the dependencies
 mvn --non-recursive scm:checkout -Dmodule.name=JSON-java
 mvn --non-recursive scm:checkout -Dmodule.name=morph
 mvn --non-recursive scm:checkout -Dmodule.name=html-extractor
@@ -15,6 +8,8 @@ mvn --non-recursive scm:checkout -Dmodule.name=extractors
 mvn --non-recursive scm:checkout -Dmodule.name=entity-extractor
 mvn --non-recursive scm:checkout -Dmodule.name=relation-extractor
 mvn --non-recursive scm:checkout -Dmodule.name=document-service-client-java
+mvn --non-recursive scm:checkout -Dmodule.name=rexster-client-java
+mvn --non-recursive scm:checkout -Dmodule.name=graph-alignment -DscmVersion=development -DscmVersionType=branch
 
 echo "Building rt..."
 mvn -e clean install -Dmaven.test.skip=true
