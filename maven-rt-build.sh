@@ -9,7 +9,7 @@ mvn --non-recursive scm:checkout -Dmodule.name=entity-extractor
 mvn --non-recursive scm:checkout -Dmodule.name=relation-extractor
 mvn --non-recursive scm:checkout -Dmodule.name=document-service-client-java
 mvn --non-recursive scm:checkout -Dmodule.name=rexster-client-java
-mvn --non-recursive scm:checkout -Dmodule.name=graph-alignment -DscmVersion=development -DscmVersionType=branch
+mvn --non-recursive scm:checkout -Dmodule.name=graph-alignment
 
 echo "Building rt..."
 mvn -e clean install -Dmaven.test.skip=true
