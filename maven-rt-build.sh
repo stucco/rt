@@ -1,6 +1,10 @@
 #!/bin/sh
 
 echo "Checking out modules..."
+mvn -q --non-recursive scm:checkout -Dmodule.name=rexster-client-java
+cd rexster-client-java
+sudo mvn -e clean install -Dmaven.test.skip=true
+cd ..
 mvn --non-recursive scm:checkout -Dmodule.name=JSON-java
 mvn --non-recursive scm:checkout -Dmodule.name=morph
 mvn --non-recursive scm:checkout -Dmodule.name=html-extractor
@@ -8,7 +12,6 @@ mvn --non-recursive scm:checkout -Dmodule.name=extractors
 mvn --non-recursive scm:checkout -Dmodule.name=entity-extractor
 mvn --non-recursive scm:checkout -Dmodule.name=relation-extractor
 mvn --non-recursive scm:checkout -Dmodule.name=document-service-client-java
-mvn --non-recursive scm:checkout -Dmodule.name=rexster-client-java
 mvn --non-recursive scm:checkout -Dmodule.name=graph-alignment
 
 echo "Building rt..."
