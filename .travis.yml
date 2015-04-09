@@ -3,6 +3,10 @@ jdk:
   - oraclejdk7
   - openjdk7
 before_install:
+  - mvn -q --non-recursive scm:checkout -Dmodule.name=rexster-client-java
+  - cd rexster-client-java
+  - sudo mvn -e clean install -Dmaven.test.skip=true
+  - cd ..
   - mvn --non-recursive scm:checkout -Dmodule.name=JSON-java
   - mvn --non-recursive scm:checkout -Dmodule.name=morph
   - mvn --non-recursive scm:checkout -Dmodule.name=html-extractor
@@ -10,7 +14,6 @@ before_install:
   - mvn --non-recursive scm:checkout -Dmodule.name=entity-extractor
   - mvn --non-recursive scm:checkout -Dmodule.name=relation-extractor
   - mvn --non-recursive scm:checkout -Dmodule.name=document-service-client-java
-  - mvn --non-recursive scm:checkout -Dmodule.name=rexster-client-java
   - mvn --non-recursive scm:checkout -Dmodule.name=graph-alignment
   - mvn clean install -Dmaven.test.skip=true
   - cd streaming-processor
