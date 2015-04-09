@@ -5,7 +5,7 @@ jdk:
 before_install:
   - mvn -q --non-recursive scm:checkout -Dmodule.name=rexster-client-java
   - cd rexster-client-java
-  - sudo mvn -e clean install -Dmaven.test.skip=true
+  - mvn -e clean install -Dmaven.test.skip=true
   - cd ..
   - mvn --non-recursive scm:checkout -Dmodule.name=JSON-java
   - mvn --non-recursive scm:checkout -Dmodule.name=morph
