@@ -1,6 +1,7 @@
 package gov.ornl.stucco.structured;
 
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -98,12 +99,17 @@ public class StructuredTransformer {
 			
 		} catch (FileNotFoundException e1) {
 			logger.error("Error loading configuration.", e1);
+			System.exit(-1);
+		} catch (IOException e) {
+			logger.error("Error initializing Alignment and/or DB connection.", e);
+			System.exit(-1);
 		}
 	}
 	
 	
 	public void run() {
 		GetResponse response;
+		boolean fatalError = false; //TODO 
 		
 		do{
 			//Get message from the queue
@@ -516,7 +522,7 @@ public class StructuredTransformer {
 			} catch (InterruptedException consumed) {
 				//don't care in this case, exiting anyway.
 			}
-		}while(persistent);
+		}while(persistent && !fatalError);
 		consumer.close();
 	}
 	
