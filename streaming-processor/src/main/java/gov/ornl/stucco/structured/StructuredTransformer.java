@@ -18,6 +18,7 @@ import gov.ornl.stucco.extractors.LoginEventExtractor;
 import gov.ornl.stucco.extractors.MetasploitExtractor;
 import gov.ornl.stucco.extractors.NvdExtractor;
 import gov.ornl.stucco.extractors.PackageListExtractor;
+import gov.ornl.stucco.extractors.SituCyboxExtractor;
 import gov.ornl.stucco.morph.ast.ValueNode;
 import gov.ornl.stucco.morph.parser.CsvParser;
 import gov.ornl.stucco.morph.parser.ParsingException;
@@ -489,6 +490,25 @@ public class StructuredTransformer {
 							graph = null;
 						} catch (Exception e) {
 							logger.error("Other Error in parsing package list!", e);
+							if (!contentIncluded) logger.error("Problem docid was:\n"+message);
+							else logger.error("Problem content was:\n"+content);
+							graph = null;
+						}
+						if(parsedData != null){
+							graph = String.valueOf(parsedData);
+						}
+					}else if (routingKey.contains("situ")) {
+						ValueNode parsedData = null;
+						try{
+							ValueNode nodeData = XmlParser.apply(content);
+							parsedData = (ValueNode) SituCyboxExtractor.extract(nodeData);
+						} catch (ParsingException e) {
+							logger.error("ParsingException in parsing situ!", e);
+							if (!contentIncluded) logger.error("Problem docid was:\n"+message);
+							else logger.error("Problem content was:\n"+content);
+							graph = null;
+						} catch (Exception e) {
+							logger.error("Other Error in parsing situ!", e);
 							if (!contentIncluded) logger.error("Problem docid was:\n"+message);
 							else logger.error("Problem content was:\n"+content);
 							graph = null;
