@@ -7,6 +7,7 @@
   <properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<maven.test.skip>true</maven.test.skip>
+        <branchName>master</branchName>
   </properties>
   <modules>
     <module>JSON-java</module>
@@ -27,6 +28,8 @@
         <configuration>
           <connectionUrl>scm:git:https://github.com/stucco/${module.name}.git</connectionUrl>
           <checkoutDirectory>${module.name}</checkoutDirectory>
+          <scmVersion>${branchName}</scmVersion>
+          <scmVersionType>branch</scmVersionType>
         </configuration>
       </plugin>
       <plugin>
