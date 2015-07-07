@@ -116,16 +116,18 @@ public class StructuredTransformer {
 			//Get message from the queue
 			response = consumer.getMessage();
 			while (response != null) {
+				long itemStartTime = System.currentTimeMillis();
 				String routingKey = response.getEnvelope().getRoutingKey().toLowerCase();
 				long deliveryTag = response.getEnvelope().getDeliveryTag();
 				
+				String message = "";
 				if (response.getBody() != null) {
-					String message = new String(response.getBody());
+					message = new String(response.getBody());
 					
-					long timestamp = 0;
+					/*long timestamp = 0;
 					if (response.getProps().getTimestamp() != null) {
 						timestamp = response.getProps().getTimestamp().getTime();
-					}
+					}*/
 	
 					boolean contentIncluded = false;
 					Map<String, Object> headerMap = response.getProps().getHeaders();
@@ -533,6 +535,10 @@ public class StructuredTransformer {
 					consumer.retryMessage(deliveryTag);
 					logger.debug("Retrying: " + routingKey + " deliveryTag=[" + deliveryTag + "]");
 				}
+				
+				long itemEndTime = System.currentTimeMillis();
+				logger.debug( "Finished processing item in " + (itemEndTime - itemStartTime) + " ms. " +
+						" routingKey: " + routingKey + " deliveryTag: " + deliveryTag + " message: " + message);
 				
 				//Get next message from queue
 				response = consumer.getMessage();
