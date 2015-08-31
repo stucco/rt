@@ -19,6 +19,9 @@ import gov.ornl.stucco.extractors.MetasploitExtractor;
 import gov.ornl.stucco.extractors.NvdExtractor;
 import gov.ornl.stucco.extractors.PackageListExtractor;
 import gov.ornl.stucco.extractors.SituCyboxExtractor;
+import gov.ornl.stucco.extractors.CIF1d4Extractor;
+import gov.ornl.stucco.extractors.CIFZeusTrackerExtractor;
+import gov.ornl.stucco.extractors.CIFEmergingThreatsExtractor;
 import gov.ornl.stucco.morph.ast.ValueNode;
 import gov.ornl.stucco.morph.parser.CsvParser;
 import gov.ornl.stucco.morph.parser.ParsingException;
@@ -36,6 +39,7 @@ import HTMLExtractor.FSecureExtractor;
 import HTMLExtractor.MalwareDomainListExtractor;
 import HTMLExtractor.SophosExtractor;
 import HTMLExtractor.BugtraqExtractor;
+import HTMLExtractor.DNSRecordExtractor;
 
 import com.rabbitmq.client.GetResponse;
 
@@ -423,7 +427,7 @@ public class StructuredTransformer {
 									DocumentObject document = docClient.fetch(docId);
 									rawItemContent = document.getDataAsString();
 									JSONObject jsonContent = new JSONObject(rawItemContent);
-									itemContent = (String) jsonContent.get("document"); 
+									itemContent = (String) jsonContent.get("document");
 								} catch (DocServiceException e) {
 									logger.error("Could not fetch document '" + docId + "' from Document-Service. URL was: " + sourceURL, e);
 									logger.error("Complete message content was:\n"+content);
@@ -518,11 +522,88 @@ public class StructuredTransformer {
 						if(parsedData != null){
 							graph = String.valueOf(parsedData);
 						}
-					}
-					else {
+					}else if (routingKey.contains("1d4")) {
+						ValueNode parsedData = null;
+						try{
+							ValueNode nodeData = CsvParser.apply(content);
+							parsedData = (ValueNode) CIF1d4Extractor.extract(nodeData);
+						} catch (ParsingException e) {
+							logger.error("ParsingException in parsing 1d4!", e);
+							if (!contentIncluded) logger.error("Problem docid was:\n"+message);
+							else logger.error("Problem content was:\n"+content);
+							graph = null;
+						} catch (Exception e) {
+							logger.error("Other Error in parsing 1d4!", e);
+							if (!contentIncluded) logger.error("Problem docid was:\n"+message);
+							else logger.error("Problem content was:\n"+content);
+							graph = null;
+						}
+						if(parsedData != null){
+							graph = String.valueOf(parsedData);
+						}
+					}else if (routingKey.contains("zeustracker")) {
+						ValueNode parsedData = null;
+						try{
+							ValueNode nodeData = CsvParser.apply(content);
+							parsedData = (ValueNode) CIFZeusTrackerExtractor.extract(nodeData);
+						} catch (ParsingException e) {
+							logger.error("ParsingException in parsing zeustracker!", e);
+							if (!contentIncluded) logger.error("Problem docid was:\n"+message);
+							else logger.error("Problem content was:\n"+content);
+							graph = null;
+						} catch (Exception e) {
+							logger.error("Other Error in parsing zeustracker!", e);
+							if (!contentIncluded) logger.error("Problem docid was:\n"+message);
+							else logger.error("Problem content was:\n"+content);
+							graph = null;
+						}
+						if(parsedData != null){
+							graph = String.valueOf(parsedData);
+						}
+					}else if (routingKey.contains("emergingthreats")) {
+						ValueNode parsedData = null;
+						try{
+							ValueNode nodeData = CsvParser.apply(content);
+							parsedData = (ValueNode) CIFEmergingThreatsExtractor.extract(nodeData);
+						} catch (ParsingException e) {
+							logger.error("ParsingException in parsing emergingthreats!", e);
+							if (!contentIncluded) logger.error("Problem docid was:\n"+message);
+							else logger.error("Problem content was:\n"+content);
+							graph = null;
+						} catch (Exception e) {
+							logger.error("Other Error in parsing emergingthreats!", e);
+							if (!contentIncluded) logger.error("Problem docid was:\n"+message);
+							else logger.error("Problem content was:\n"+content);
+							graph = null;
+						}
+						if(parsedData != null){
+							graph = String.valueOf(parsedData);
+						}
+					}else if (routingKey.contains(".dnsrecord")) {
+						try {
+							DNSRecordExtractor dnsExt = new DNSRecordExtractor(content);
+							graph = dnsExt.getGraph().toString();
+						} catch (ParsingException e) {
+							logger.error("ParsingException in parsing dnsrecord!", e);
+							if (!contentIncluded) logger.error("Problem message was:\n"+message);
+							else logger.error("Problem content was:\n"+content);
+							graph = null;
+						} catch (NullPointerException e) {
+							//TODO: revisit this.
+							logger.debug("null pointer in parsing dnsrecord.  (This can happen when the record has no useful info.)", e);
+							if (!contentIncluded) logger.debug("Problem message was:\n"+message);
+							else logger.debug("Problem content was:\n"+content);
+							graph = null;
+						} catch (Exception e) {
+							logger.error("Other Error in parsing dnsrecord!", e);
+							if (!contentIncluded) logger.error("Problem message was:\n"+message);
+							else logger.error("Problem content was:\n"+content);
+							graph = null;
+						}
+					}else {
 						logger.warn("Unexpected routing key encountered '" + routingKey + "'.");
 					}
-	
+
 					//TODO: Add timestamp into subgraph
 					//Merge subgraph into full knowledge graph
 					if(graph != null) alignment.load(graph);
@@ -539,7 +620,7 @@ public class StructuredTransformer {
 				long itemEndTime = System.currentTimeMillis();
 				logger.debug( "Finished processing item in " + (itemEndTime - itemStartTime) + " ms. " +
 						" routingKey: " + routingKey + " deliveryTag: " + deliveryTag + " message: " + message);
-				
+
 				//Get next message from queue
 				response = consumer.getMessage();
 			}
