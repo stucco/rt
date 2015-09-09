@@ -22,6 +22,9 @@ import gov.ornl.stucco.extractors.SituCyboxExtractor;
 import gov.ornl.stucco.extractors.CIF1d4Extractor;
 import gov.ornl.stucco.extractors.CIFZeusTrackerExtractor;
 import gov.ornl.stucco.extractors.CIFEmergingThreatsExtractor;
+import gov.ornl.stucco.extractors.ServiceListExtractor;
+import gov.ornl.stucco.extractors.ServerBannerExtractor;
+import gov.ornl.stucco.extractors.ClientBannerExtractor;
 import gov.ornl.stucco.morph.ast.ValueNode;
 import gov.ornl.stucco.morph.parser.CsvParser;
 import gov.ornl.stucco.morph.parser.ParsingException;
@@ -599,6 +602,78 @@ public class StructuredTransformer {
 							if (!contentIncluded) logger.error("Problem message was:\n"+message);
 							else logger.error("Problem content was:\n"+content);
 							graph = null;
+						}
+					}else if (routingKey.contains(".servicelist")) {
+						ValueNode parsedData = null;
+						try {
+							ValueNode nodeData = CsvParser.apply(content);
+							parsedData = (ValueNode) ServiceListExtractor.extract(nodeData);
+						} catch (ParsingException e) {
+							logger.error("ParsingException in parsing servicelist item!", e);
+							if (!contentIncluded) logger.error("Problem message was:\n"+message);
+							else logger.error("Problem content was:\n"+content);
+							graph = null;
+						} catch (NullPointerException e) {
+							logger.debug("null pointer in parsing servicelist item.", e);
+							if (!contentIncluded) logger.debug("Problem message was:\n"+message);
+							else logger.debug("Problem content was:\n"+content);
+							graph = null;
+						} catch (Exception e) {
+							logger.error("Other Error in parsing servicelist item!", e);
+							if (!contentIncluded) logger.error("Problem message was:\n"+message);
+							else logger.error("Problem content was:\n"+content);
+							graph = null;
+						}
+						if(parsedData != null){
+							graph = String.valueOf(parsedData);
+						}
+					}else if (routingKey.contains(".serverbanner")) {
+						ValueNode parsedData = null;
+						try {
+							ValueNode nodeData = CsvParser.apply(content);
+							parsedData = (ValueNode) ServerBannerExtractor.extract(nodeData);
+						} catch (ParsingException e) {
+							logger.error("ParsingException in parsing serverbanner item!", e);
+							if (!contentIncluded) logger.error("Problem message was:\n"+message);
+							else logger.error("Problem content was:\n"+content);
+							graph = null;
+						} catch (NullPointerException e) {
+							logger.debug("null pointer in parsing serverbanner item.", e);
+							if (!contentIncluded) logger.debug("Problem message was:\n"+message);
+							else logger.debug("Problem content was:\n"+content);
+							graph = null;
+						} catch (Exception e) {
+							logger.error("Other Error in parsing serverbanner item!", e);
+							if (!contentIncluded) logger.error("Problem message was:\n"+message);
+							else logger.error("Problem content was:\n"+content);
+							graph = null;
+						}
+						if(parsedData != null){
+							graph = String.valueOf(parsedData);
+						}
+					}else if (routingKey.contains(".clientbanner")) {
+						ValueNode parsedData = null;
+						try {
+							ValueNode nodeData = CsvParser.apply(content);
+							parsedData = (ValueNode) ClientBannerExtractor.extract(nodeData);
+						} catch (ParsingException e) {
+							logger.error("ParsingException in parsing clientbanner item!", e);
+							if (!contentIncluded) logger.error("Problem message was:\n"+message);
+							else logger.error("Problem content was:\n"+content);
+							graph = null;
+						} catch (NullPointerException e) {
+							logger.debug("null pointer in parsing clientbanner item.", e);
+							if (!contentIncluded) logger.debug("Problem message was:\n"+message);
+							else logger.debug("Problem content was:\n"+content);
+							graph = null;
+						} catch (Exception e) {
+							logger.error("Other Error in parsing clientbanner item!", e);
+							if (!contentIncluded) logger.error("Problem message was:\n"+message);
+							else logger.error("Problem content was:\n"+content);
+							graph = null;
+						}
+						if(parsedData != null){
+							graph = String.valueOf(parsedData);
 						}
 					}else {
 						logger.warn("Unexpected routing key encountered '" + routingKey + "'.");
