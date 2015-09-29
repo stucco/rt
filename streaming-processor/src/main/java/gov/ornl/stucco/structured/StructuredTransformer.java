@@ -72,28 +72,49 @@ public class StructuredTransformer {
 	
 	private void init(ConfigLoader configLoader) {
 		Map<String, Object> configMap;
+		String exchange = null;
+		String queue = null;
+		String host = null;
+		int port = -1;
+		String user = null;
+		String password = null;
+		String[] bindingKeys = null;
 		try {
 			configMap = configLoader.getConfig("structured_data");
-			String exchange = String.valueOf(configMap.get("exchange"));
-			String queue = String.valueOf(configMap.get("queue"));
-			String host = String.valueOf(configMap.get("host"));
-			int port = Integer.parseInt(String.valueOf(configMap.get("port")));
-			String user = String.valueOf(configMap.get("username"));
-			String password = String.valueOf(configMap.get("password"));
+			exchange = String.valueOf(configMap.get("exchange"));
+			queue = String.valueOf(configMap.get("queue"));
+			host = String.valueOf(configMap.get("host"));
+			port = Integer.parseInt(String.valueOf(configMap.get("port")));
+			user = String.valueOf(configMap.get("username"));
+			password = String.valueOf(configMap.get("password"));
 			persistent = Boolean.parseBoolean(String.valueOf(configMap.get("persistent")));
 			sleepTime = Integer.parseInt(String.valueOf(configMap.get("emptyQueueSleepTime")));
 			@SuppressWarnings("unchecked")
-			List<String> bindings = (List<String>) configMap.get("bindings");
-			String[] bindingKeys = new String[bindings.size()];
+			List<String> bindings = (List<String>)(configMap.get("bindings"));
+			bindingKeys = new String[bindings.size()];
 			bindingKeys = bindings.toArray(bindingKeys);
-			
+		} catch (FileNotFoundException e1) {
+			logger.error("Error loading configuration.", e1);
+			System.exit(-1);
+		} catch (Exception e) {
+			logger.error("Error parsing configuration.", e);
+			System.exit(-1);
+		}
+		logger.info("Config file loaded and parsed");
+		
+		try {
 			logger.info("Connecting to rabbitMQ with this info: \nhost: " + host + "\nport: " + port + 
 					"\nexchange: " + exchange + "\nqueue: " + queue + 
 					"\nuser: " + user + "\npass: " + password);
 			consumer = new RabbitMQConsumer(exchange, queue, host, port, user, password, bindingKeys);
 			consumer.openQueue();
-			
-			logger.info("RabbitMQ connected.  Creating DB connection...");
+		} catch (IOException e) {
+			logger.error("Error initializing RabbitMQ connection.", e);
+			System.exit(-1);
+		}
+		logger.info("RabbitMQ connected.");
+		
+		try {
 			alignment = new Align();
 			
 			logger.info("DB connection created.  Connecting to document service...");
@@ -102,27 +123,27 @@ public class StructuredTransformer {
 			host = String.valueOf(configMap.get("host"));
 			port = Integer.parseInt(String.valueOf(configMap.get("port")));
 			docClient = new DocServiceClient(host, port);
-			
-			logger.info("Document service client created.  Initialization complete!");
-			
-		} catch (FileNotFoundException e1) {
-			logger.error("Error loading configuration.", e1);
-			System.exit(-1);
 		} catch (IOException e) {
 			logger.error("Error initializing Alignment and/or DB connection.", e);
 			System.exit(-1);
 		}
+		logger.info("Alignment obj, DB connection, and Document service client created.  Initialization complete!");
 	}
 	
 	
 	public void run() {
-		GetResponse response;
-		boolean fatalError = false; //TODO 
+		GetResponse response = null;
+		boolean fatalError = false; //TODO only RMQ errors handled this way currently
 		
 		do{
 			//Get message from the queue
-			response = consumer.getMessage();
-			while (response != null) {
+			try{
+				response = consumer.getMessage();
+			} catch (IOException e) {
+				logger.error("Encountered RabbitMQ IO error:", e);
+				fatalError = true;
+			}
+			while (response != null && !fatalError) {
 				long itemStartTime = System.currentTimeMillis();
 				String routingKey = response.getEnvelope().getRoutingKey().toLowerCase();
 				long deliveryTag = response.getEnvelope().getDeliveryTag();
@@ -684,12 +705,22 @@ public class StructuredTransformer {
 					if(graph != null) alignment.load(graph);
 					
 					//Ack the message was processed and can be discarded from the queue
-					logger.debug("Acking: " + routingKey + " deliveryTag=[" + deliveryTag + "]");
-					consumer.messageProcessed(deliveryTag);
+					try{
+						logger.debug("Acking: " + routingKey + " deliveryTag=[" + deliveryTag + "]");
+						consumer.messageProcessed(deliveryTag);
+					} catch (IOException e) {
+						logger.error("Encountered RabbitMQ IO error:", e);
+						fatalError = true;
+					}
 				}
 				else {
-					consumer.retryMessage(deliveryTag);
-					logger.debug("Retrying: " + routingKey + " deliveryTag=[" + deliveryTag + "]");
+					try{
+						consumer.retryMessage(deliveryTag);
+						logger.debug("Retrying: " + routingKey + " deliveryTag=[" + deliveryTag + "]");
+					} catch (IOException e) {
+						logger.error("Encountered RabbitMQ IO error:", e);
+						fatalError = true;
+					}
 				}
 				
 				long itemEndTime = System.currentTimeMillis();
@@ -697,15 +728,28 @@ public class StructuredTransformer {
 						" routingKey: " + routingKey + " deliveryTag: " + deliveryTag + " message: " + message);
 
 				//Get next message from queue
-				response = consumer.getMessage();
+				try{
+					response = consumer.getMessage();
+				} catch (IOException e) {
+					logger.error("Encountered RabbitMQ IO error:", e);
+					fatalError = true;
+				}
 			}
+			
+			//Either the queue is empty, or an error occurred.
+			//Either way, sleep for a bit to prevent rapid loop of re-starting.
 			try{
 				Thread.sleep(sleepTime);
 			} catch (InterruptedException consumed) {
 				//don't care in this case, exiting anyway.
 			}
 		}while(persistent && !fatalError);
-		consumer.close();
+		try{
+			consumer.close();
+		} catch (IOException e) {
+			logger.error("Encountered RabbitMQ IO error when closing connection:", e);
+			//don't care in this case, exiting anyway.
+		}
 	}
 	
 	/**
