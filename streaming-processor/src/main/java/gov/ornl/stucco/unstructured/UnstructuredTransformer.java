@@ -1,10 +1,10 @@
 package gov.ornl.stucco.unstructured;
 
+import edu.stanford.nlp.pipeline.Annotation;
 import gov.ornl.stucco.ConfigLoader;
 import gov.ornl.stucco.RabbitMQConsumer;
 import gov.ornl.stucco.RelationExtractor;
-import gov.ornl.stucco.entity.EntityExtractor;
-import gov.ornl.stucco.entity.models.Sentences;
+import gov.ornl.stucco.entity.EntityLabeler;
 import gov.ornl.stucco.structured.StructuredTransformer;
 import gov.pnnl.stucco.doc_service_client.DocServiceClient;
 import gov.pnnl.stucco.doc_service_client.DocServiceException;
@@ -28,7 +28,7 @@ public class UnstructuredTransformer {
 	
 	private RabbitMQConsumer consumer;
 	private DocServiceClient docClient;
-	private EntityExtractor entityExtractor;
+	private EntityLabeler entityLabeler;
 	private RelationExtractor relationExtractor;
 	private Align alignment;
 	
@@ -70,11 +70,7 @@ public class UnstructuredTransformer {
 			consumer = new RabbitMQConsumer(exchange, queue, host, port, user, password, bindingKeys);
 			consumer.openQueue();
 			
-			try {
-				entityExtractor = new EntityExtractor();
-			} catch (Exception e) {
-				logger.error("Error loading EntityExtractor models.", e);
-			}
+			entityLabeler = new EntityLabeler();
 			
 			relationExtractor = new RelationExtractor();
 			
@@ -119,22 +115,24 @@ public class UnstructuredTransformer {
 					
 					logger.debug("Recieved: " + routingKey + " deliveryTag=[" + deliveryTag + "] message- "+ message);
 				
-					//Get the document from the document server, if necessary
+					//Get the document and title from the document server, if necessary
 					String content = message;
+					String title = "";
 					if (!contentIncluded) {
 						String docId = content.trim();
 						logger.debug("Retrieving document content from Document-Service for id '" + docId + "'.");
 	
 						try {
 							JSONObject jsonObject = docClient.fetchExtractedText(docId);
-							content = jsonObject.getString("text");
+							content = jsonObject.getString("document");
+							title = jsonObject.getString("title");
 						} catch (DocServiceException e) {
 							logger.error("Could not fetch document '" + docId + "' from Document-Service.", e);
 						}
 					}
 					
 					//Label the entities/concepts in the document
-					Sentences sentences = entityExtractor.getAnnotatedText(content);
+					Annotation annotatedDoc = entityLabeler.getAnnotatedDoc(title, content);
 					
 					//Extract the data source name from the routing key
 					String dataSource = routingKey;
@@ -146,7 +144,7 @@ public class UnstructuredTransformer {
 						}
 					}
 					//Construct the subgraph from the concepts and relationships
-					String graph = relationExtractor.getGraph(dataSource, sentences);
+					String graph = relationExtractor.createSubgraph(annotatedDoc, dataSource);
 					
 					//TODO: Add timestamp into subgraph
 					//Merge subgraph into full knowledge graph
