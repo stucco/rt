@@ -34,7 +34,7 @@ public class RabbitMQConsumer {
 		this.bindingKeys = bindingKeys;
 	}
 	
-	public void openQueue() {
+	public void openQueue() throws IOException {
 		//setup a connection
 		ConnectionFactory factory = new ConnectionFactory();
 		factory.setHost(host);
@@ -57,44 +57,48 @@ public class RabbitMQConsumer {
 				channel.queueBind(queueName, exchangeName, key);
 			}
 		} catch (IOException e) {
-			logger.error("Error creating spout connection.", e);
-			System.exit(1);
+			logger.error("Error creating spout connection.");
+			throw e;
 		}
 	}
 	
-	public GetResponse getMessage() {
+	public GetResponse getMessage() throws IOException {
 		GetResponse response = null;
 		try {
 			response = channel.basicGet(queueName, false);
 		} catch (IOException e) {
-			logger.error("Error getting message from queue '" + queueName + "'.", e);
+			logger.error("Error getting message from queue '" + queueName + "'.");
+			throw e;
 		}
 		
 		return response;
 	}
 	
-	public void messageProcessed(long deliveryTag) {
+	public void messageProcessed(long deliveryTag) throws IOException {
 		try {
 			channel.basicAck(deliveryTag, false);
 		} catch (IOException e) {
-			logger.error("Error sending ack to data publisher.", e);
+			logger.error("Error sending ack to data publisher.");
+			throw e;
 		}
 	}
 
-	public void retryMessage(long deliveryTag) {
+	public void retryMessage(long deliveryTag) throws IOException {
 		try {
 			channel.basicNack(deliveryTag, false, true);
-		} catch (IOException ex) {
-			logger.error("Error sending nack to data publisher.", ex);
+		} catch (IOException e) {
+			logger.error("Error sending nack to data publisher.");
+			throw e;
 		}
 	}
 	
-	public void close() {
+	public void close() throws IOException {
 		if ((channel != null) && (channel.getConnection() != null) && (channel.getConnection().isOpen())) {
 			try {
 				channel.getConnection().close();
 			} catch (IOException e) {
-				logger.error("Error closing connection.", e);
+				logger.error("Error closing connection.");
+				throw e;
 			}
 		}
 	}
