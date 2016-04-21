@@ -9,13 +9,9 @@
 		<maven.test.skip>true</maven.test.skip>
   </properties>
   <modules>
-    <module>JSON-java</module>
-    <module>morph</module>
-    <module>extractors</module>
-    <module>html-extractor</module>
+    <module>STIXExtractors</module>
     <module>entity-extractor</module>
     <module>relation-extractor</module>
-    <module>graph-alignment</module>
     <module>document-service-client-java</module>
   </modules>
   <build>
@@ -27,6 +23,17 @@
         <configuration>
           <connectionUrl>scm:git:https://github.com/stucco/${module.name}.git</connectionUrl>
           <checkoutDirectory>${module.name}</checkoutDirectory>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-scm-plugin</artifactId>
+        <version>1.9</version>
+        <configuration>
+          <connectionUrl>scm:git:https://github.com/stucco/graph-alignment.git</connectionUrl>
+          <checkoutDirectory>graph-alignment</checkoutDirectory>
+          <scmVersionType>branch</scmVersionType>
+          <scmVersion>loadSTIX</scmVersion>
         </configuration>
       </plugin>
       <plugin>
