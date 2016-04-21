@@ -9,10 +9,11 @@
 		<maven.test.skip>true</maven.test.skip>
   </properties>
   <modules>
-    <module>STIXExtractors</module>
+    <module>document-service-client-java</module>
     <module>entity-extractor</module>
     <module>relation-extractor</module>
-    <module>document-service-client-java</module>
+    <module>STIXExtractors</module>
+    <module>graph-db-connection</module>
   </modules>
   <build>
     <plugins>
@@ -23,17 +24,6 @@
         <configuration>
           <connectionUrl>scm:git:https://github.com/stucco/${module.name}.git</connectionUrl>
           <checkoutDirectory>${module.name}</checkoutDirectory>
-        </configuration>
-      </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-scm-plugin</artifactId>
-        <version>1.9</version>
-        <configuration>
-          <connectionUrl>scm:git:https://github.com/stucco/graph-alignment.git</connectionUrl>
-          <checkoutDirectory>graph-alignment</checkoutDirectory>
-          <scmVersionType>branch</scmVersionType>
-          <scmVersion>loadSTIX</scmVersion>
         </configuration>
       </plugin>
       <plugin>
