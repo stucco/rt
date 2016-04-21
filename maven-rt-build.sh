@@ -2,9 +2,17 @@
 
 echo "Checking out modules..."
 mvn --non-recursive scm:checkout -Dmodule.name=document-service-client-java
-mvn --non-recursive scm:checkout -Dmodule.name=entity-extractor
-mvn --non-recursive scm:checkout -Dmodule.name=relation-extractor
 mvn --non-recursive scm:checkout -Dmodule.name=STIXExtractors
+
+mvn --non-recursive scm:checkout -Dmodule.name=entity-extractor -DscmVersion=STIX -DscmVersionType=branch
+cd entity-extractor
+mvn -e clean install -Dmaven.test.skip=true
+cd ..
+
+mvn --non-recursive scm:checkout -Dmodule.name=relation-extractor -DscmVersion=STIX -DscmVersionType=branch
+cd relation-extractor
+mvn -e clean install -Dmaven.test.skip=true
+cd ..
 
 mvn -q --non-recursive scm:checkout -Dmodule.name=graph-db-connection -DscmVersion=ornl-integration -DscmVersionType=branch
 cd graph-db-connection
