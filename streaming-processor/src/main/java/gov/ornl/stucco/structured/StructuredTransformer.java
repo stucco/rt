@@ -62,7 +62,7 @@ public class StructuredTransformer {
 
 	private DocServiceClient docClient;
 
-	private PreprocessSTIX preprocessSTIX;
+	private PreprocessSTIX preprocessSTIX; 
 	private GraphConstructor constructGraph;
 	private Align alignment;
 	
@@ -126,7 +126,6 @@ public class StructuredTransformer {
 			System.exit(-1);
 		}
 		logger.info("RabbitMQ connected.");
-		
 		try {
 			preprocessSTIX = new PreprocessSTIX();
 			constructGraph = new GraphConstructor();
@@ -279,198 +278,209 @@ public class StructuredTransformer {
 	 * @return
 	 */
 	private JSONObject generateGraph(String routingKey, String content, Map<String, String> metaDataMap, String docIDs) {
+		boolean stixDocument = false;
 		STIXPackage stixPackage = null;
 		JSONObject graph = null;
 
-		if (routingKey.contains(".cve")) {
-			CveExtractor cveExtractor = new CveExtractor(content);
-			stixPackage = cveExtractor.getStixPackage();
-			System.out.println(stixPackage.toXMLString(true));
-		} else if (routingKey.contains(".nvd")) {
-			NvdToStixExtractor nvdExt = new NvdToStixExtractor(content);
-			stixPackage = nvdExt.getStixPackage();
-		} else if (routingKey.contains(".cpe")) {
-			CpeExtractor cpeExtractor = new CpeExtractor(content);
-			stixPackage = cpeExtractor.getStixPackage(); 
-		} else if (routingKey.contains(".maxmind")) {
-			GeoIPExtractor geoIPExtractor = new GeoIPExtractor(content);
-			stixPackage = geoIPExtractor.getStixPackage();
-		} else if (routingKey.contains(".argus")) {
-			ArgusExtractor extractor = new ArgusExtractor(argusHeaders, content);
-			stixPackage = extractor.getStixPackage();
-			System.out.println(stixPackage.toXMLString(true));
-		} else if (routingKey.contains(".metasploit")) {
-			MetasploitExtractor metasploitExtractor = new MetasploitExtractor(content);
-			stixPackage = metasploitExtractor.getStixPackage();
-		} else if (routingKey.replaceAll("\\-", "").contains(".cleanmx")) {
-			CleanMxVirusExtractor virusExtractor = new CleanMxVirusExtractor(content);
-			stixPackage = virusExtractor.getStixPackage();
-		} else if (routingKey.contains(".login_events")) {
-			LoginEventExtractor loginEventExtractor = new LoginEventExtractor(content);
-			stixPackage = loginEventExtractor.getStixPackage();
-		} else if (routingKey.contains(".installed_package")) {
-			PackageListExtractor packageListExtractor = new PackageListExtractor(content);
-			stixPackage = packageListExtractor.getStixPackage();
-		} else if (routingKey.contains("situ")) {
-		//TODO: fix situ content
-		//	stixPackage = new STIXPackage()
-		//		.withObservables(Observables.fromXMLString(content));
-		} else if (routingKey.contains(".http")){
-		//TODO: find name of http file ... for now (for testing) it just has .http extencion
-			HTTPDataExtractor httpExtractor = new HTTPDataExtractor(content);
-			stixPackage = httpExtractor.getStixPackage();
-		} else if (routingKey.contains("1d4")){
-			CIF1d4Extractor cifExtractor = new CIF1d4Extractor(content);
-			stixPackage = cifExtractor.getStixPackage();
-		} else if (routingKey.contains("zeustracker")) {
-			CIFZeusTrackerExtractor cifExtractor = new CIFZeusTrackerExtractor(content);
-			stixPackage = cifExtractor.getStixPackage();
-		} else if (routingKey.contains("emergingthreats")) {
-			CIFEmergingThreatsExtractor cifExtractor = new CIFEmergingThreatsExtractor(content);
-			stixPackage = cifExtractor.getStixPackage();
-		} else if (routingKey.contains(".servicelist")) {
-			ServiceListExtractor serviceListExtractor = new ServiceListExtractor(content);
-			stixPackage = serviceListExtractor.getStixPackage();
-		} else if (routingKey.contains(".serverbanner")) {
-			ServerBannerExtractor serverBannerExtractor = new ServerBannerExtractor(content);
-			stixPackage = serverBannerExtractor.getStixPackage();
-		} else if (routingKey.contains(".clientbanner")) {
-			ClientBannerExtractor clientBannerExtractor = new ClientBannerExtractor(content);
-			stixPackage = clientBannerExtractor.getStixPackage();
-		} else if (routingKey.replaceAll("\\-", "").contains(".fsecure")) {
-			FSecureExtractor fSecureExt = new FSecureExtractor(content);
-			stixPackage = fSecureExt.getStixPackage();
-		} else if (routingKey.contains(".malwaredomainlist")) {
-			MalwareDomainListExtractor mdlExt = new MalwareDomainListExtractor(content);
-			stixPackage = mdlExt.getStixPackage();
-		} else if (routingKey.contains(".dnsrecord")) {
-			DNSRecordExtractor dnsExt = new DNSRecordExtractor(content);
-			stixPackage = dnsExt.getStixPackage();
-		} else if (routingKey.contains(".hone")) {
-			HoneExtractor honeExtractor = null;
-			if ((metaDataMap != null) && (metaDataMap.containsKey(HOSTNAME_KEY))) {
-				honeExtractor = new HoneExtractor(content, metaDataMap.get(HOSTNAME_KEY));
-			} else {
-				honeExtractor = new HoneExtractor(content);
-			}
-			stixPackage = honeExtractor.getStixPackage();
-		} else if (routingKey.contains("caida")) {
-			//TODO: ensure file names match 
-			String as2org = null;
-			String pfx2as = null;
-			String[] items = content.split("\\r?\\n");
-			for (String item : items) {
-				String docId = item.split("\\s+")[0];
-				String sourceURL = item.split("\\s+")[1];
-				String rawItemContent = null;
-				String itemContent = null;
-				try {
-					DocumentObject document = docClient.fetch(docId);
-					rawItemContent = document.getDataAsString();
-					JSONObject jsonContent = new JSONObject(rawItemContent);
-					itemContent = (String) jsonContent.get("document"); 
-				} catch (DocServiceException e) {
-					logger.error("Could not fetch document '" + docId + "' from Document-Service. URL was: " + sourceURL, e);
-					logger.error("Complete message content was:\n" + content);
-					return null;
-				}
-				if (sourceURL.contains("as2org")) {
-					as2org = itemContent;
-				} else if (sourceURL.contains("pfx2as")) {
-					pfx2as = itemContent;
+		try {
+			if (routingKey.contains(".cve")) {
+				CveExtractor cveExtractor = new CveExtractor(content);
+				stixPackage = cveExtractor.getStixPackage();
+			} else if (routingKey.contains(".nvd")) {
+				NvdToStixExtractor nvdExt = new NvdToStixExtractor(content);
+				stixPackage = nvdExt.getStixPackage();
+			} else if (routingKey.contains(".cpe")) {
+				CpeExtractor cpeExtractor = new CpeExtractor(content);
+				stixPackage = cpeExtractor.getStixPackage(); 
+			} else if (routingKey.contains(".maxmind")) {
+				GeoIPExtractor geoIPExtractor = new GeoIPExtractor(content);
+				stixPackage = geoIPExtractor.getStixPackage();
+			} else if (routingKey.contains(".argus")) {
+				ArgusExtractor extractor = new ArgusExtractor(argusHeaders, content);
+				stixPackage = extractor.getStixPackage();
+			} else if (routingKey.contains(".metasploit")) {
+				MetasploitExtractor metasploitExtractor = new MetasploitExtractor(content);
+				stixPackage = metasploitExtractor.getStixPackage();
+			} else if (routingKey.replaceAll("\\-", "").contains(".cleanmx")) {
+				CleanMxVirusExtractor virusExtractor = new CleanMxVirusExtractor(content);
+				stixPackage = virusExtractor.getStixPackage();
+			} else if (routingKey.contains(".login_events")) {
+				LoginEventExtractor loginEventExtractor = new LoginEventExtractor(content);
+				stixPackage = loginEventExtractor.getStixPackage();
+			} else if (routingKey.contains(".installed_package")) {
+				PackageListExtractor packageListExtractor = new PackageListExtractor(content);
+				stixPackage = packageListExtractor.getStixPackage();
+			} else if (routingKey.contains(".situ")) {
+				stixPackage = new STIXPackage()
+					.withObservables(Observables.fromXMLString(content));
+			} else if (routingKey.contains(".http")){
+				//TODO: find name of http file ... for now (for testing) it just has .http extencion
+				HTTPDataExtractor httpExtractor = new HTTPDataExtractor(content);
+				stixPackage = httpExtractor.getStixPackage();
+			} else if (routingKey.contains("1d4")){
+				CIF1d4Extractor cifExtractor = new CIF1d4Extractor(content);
+				stixPackage = cifExtractor.getStixPackage();
+			} else if (routingKey.contains("zeustracker")) {
+				CIFZeusTrackerExtractor cifExtractor = new CIFZeusTrackerExtractor(content);
+				stixPackage = cifExtractor.getStixPackage();
+			} else if (routingKey.contains("emergingthreats")) {
+				CIFEmergingThreatsExtractor cifExtractor = new CIFEmergingThreatsExtractor(content);
+				stixPackage = cifExtractor.getStixPackage();
+			} else if (routingKey.contains(".servicelist")) {
+				ServiceListExtractor serviceListExtractor = new ServiceListExtractor(content);
+				stixPackage = serviceListExtractor.getStixPackage();
+			} else if (routingKey.contains(".serverbanner")) {
+				ServerBannerExtractor serverBannerExtractor = new ServerBannerExtractor(content);
+				stixPackage = serverBannerExtractor.getStixPackage();
+			} else if (routingKey.contains(".clientbanner")) {
+				ClientBannerExtractor clientBannerExtractor = new ClientBannerExtractor(content);
+				stixPackage = clientBannerExtractor.getStixPackage();
+			} else if (routingKey.replaceAll("\\-", "").contains(".fsecure")) {
+				FSecureExtractor fSecureExt = new FSecureExtractor(content);
+				stixPackage = fSecureExt.getStixPackage();
+			} else if (routingKey.contains(".malwaredomainlist")) {
+				MalwareDomainListExtractor mdlExt = new MalwareDomainListExtractor(content);
+				stixPackage = mdlExt.getStixPackage();
+			} else if (routingKey.contains(".dnsrecord")) {
+				DNSRecordExtractor dnsExt = new DNSRecordExtractor(content);
+				stixPackage = dnsExt.getStixPackage();
+			} else if (routingKey.contains(".hone")) {
+				HoneExtractor honeExtractor = null;
+				if ((metaDataMap != null) && (metaDataMap.containsKey(HOSTNAME_KEY))) {
+					honeExtractor = new HoneExtractor(content, metaDataMap.get(HOSTNAME_KEY));
 				} else {
-					logger.warn("unexpected URL (sophos) " + sourceURL);
+					honeExtractor = new HoneExtractor(content);
 				}
-			}
-			if (as2org != null && pfx2as != null) {
-				CaidaExtractor caidaExtractor = new CaidaExtractor(as2org, pfx2as);
-				stixPackage = caidaExtractor.getStixPackage();
-			}
-		} else if (routingKey.contains(".sophos")) {
-			String summary = null;
-			String details = null;
-			String[] items = content.split("\\r?\\n");
-			for (String item : items) {
-				String docId = item.split("\\s+")[0];
-				String sourceURL = item.split("\\s+")[1];
-				String rawItemContent = null;
-				String itemContent = null;
-				try {
-					DocumentObject document = docClient.fetch(docId);
-					rawItemContent = document.getDataAsString();
-					JSONObject jsonContent = new JSONObject(rawItemContent);
-					itemContent = (String) jsonContent.get("document"); 
-				} catch (DocServiceException e) {
-					logger.error("Could not fetch document '" + docId + "' from Document-Service. URL was: " + sourceURL, e);
-					logger.error("Complete message content was:\n" + content);
-					return null;
+				stixPackage = honeExtractor.getStixPackage();
+			} else if (routingKey.contains("caida")) {
+				//TODO: ensure file names match 
+				String as2org = null;
+				String pfx2as = null;
+				String[] items = content.split("\\r?\\n");
+				for (String item : items) {
+					String docId = item.split("\\s+")[0];
+					String sourceURL = item.split("\\s+")[1];
+					String rawItemContent = null;
+					String itemContent = null;
+					try {
+						DocumentObject document = docClient.fetch(docId);
+						rawItemContent = document.getDataAsString();
+						JSONObject jsonContent = new JSONObject(rawItemContent);
+						itemContent = (String) jsonContent.get("document"); 
+					} catch (DocServiceException e) {
+						logger.error("Could not fetch document '" + docId + "' from Document-Service. URL was: " + sourceURL, e);
+						logger.error("Complete message content was:\n" + content);
+						return null;
+					}
+					if (sourceURL.contains("as2org")) {
+						as2org = itemContent;
+					} else if (sourceURL.contains("pfx2as")) {
+						pfx2as = itemContent;
+					} else {
+						logger.warn("unexpected URL (sophos) " + sourceURL);
+					}
 				}
-				if (sourceURL.contains("/detailed-analysis.aspx")) {
-					details = itemContent;
-				} else if(sourceURL.contains(".aspx")) {
-					summary = itemContent;
+				if (as2org != null && pfx2as != null) {
+					CaidaExtractor caidaExtractor = new CaidaExtractor(as2org, pfx2as);
+					stixPackage = caidaExtractor.getStixPackage();
+				}
+			} else if (routingKey.contains(".sophos")) {
+				String summary = null;
+				String details = null;
+				String[] items = content.split("\\r?\\n");
+				for (String item : items) {
+					String docId = item.split("\\s+")[0];
+					String sourceURL = item.split("\\s+")[1];
+					String rawItemContent = null;
+					String itemContent = null;
+					try {
+						DocumentObject document = docClient.fetch(docId);
+						rawItemContent = document.getDataAsString();
+						JSONObject jsonContent = new JSONObject(rawItemContent);
+						itemContent = (String) jsonContent.get("document"); 
+					} catch (DocServiceException e) {
+						logger.error("Could not fetch document '" + docId + "' from Document-Service. URL was: " + sourceURL, e);
+						logger.error("Complete message content was:\n" + content);
+						return null;
+					}
+					if (sourceURL.contains("/detailed-analysis.aspx")) {
+						details = itemContent;
+					} else if(sourceURL.contains(".aspx")) {
+						summary = itemContent;
+					} else {
+						logger.warn("unexpected URL (sophos) " + sourceURL);
+					}
+				}
+				if (summary != null && details != null) {
+					SophosExtractor sophosExt = new SophosExtractor(summary, details);
+					stixPackage = sophosExt.getStixPackage();
 				} else {
-					logger.warn("unexpected URL (sophos) " + sourceURL);
+					logger.warn("Sophos: some required fields were null, skipping group.\nMessage was:" + content);
 				}
-			}
-			if (summary != null && details != null) {
-				SophosExtractor sophosExt = new SophosExtractor(summary, details);
-				stixPackage = sophosExt.getStixPackage();
-			} else {
-				logger.warn("Sophos: some required fields were null, skipping group.\nMessage was:" + content);
-			}
-		} else if (routingKey.contains(".bugtraq")) {
-			String info = null;
-			String discussion = null;
-			String exploit = null;
-			String solution = null;
-			String references = null;
-			String[] items = content.split("\\r?\\n");
-			for (String item : items) {
-				String docId = item.split("\\s+")[0];
-				String sourceURL = item.split("\\s+")[1];
-				String rawItemContent = null;
-				String itemContent = null;
-				try {
-					DocumentObject document = docClient.fetch(docId);
-					rawItemContent = document.getDataAsString();
-					JSONObject jsonContent = new JSONObject(rawItemContent);
-					itemContent = (String) jsonContent.get("document");
-				} catch (DocServiceException e) {
-					logger.error("Could not fetch document '" + docId + "' from Document-Service. URL was: " + sourceURL, e);
-					logger.error("Complete message content was:\n" + content);
-					return null;
+			} else if (routingKey.contains(".bugtraq")) {
+				String info = null;
+				String discussion = null;
+				String exploit = null;
+				String solution = null;
+				String references = null;
+				String[] items = content.split("\\r?\\n");
+				for (String item : items) {
+					String docId = item.split("\\s+")[0];
+					String sourceURL = item.split("\\s+")[1];
+					String rawItemContent = null;
+					String itemContent = null;
+					try {
+						DocumentObject document = docClient.fetch(docId);
+						rawItemContent = document.getDataAsString();
+						JSONObject jsonContent = new JSONObject(rawItemContent);
+						itemContent = (String) jsonContent.get("document");
+					} catch (DocServiceException e) {
+						logger.error("Could not fetch document '" + docId + "' from Document-Service. URL was: " + sourceURL, e);
+						logger.error("Complete message content was:\n" + content);
+						return null;
+					}
+					if (sourceURL.contains("/info")) {
+						info = itemContent;
+					} else if (sourceURL.contains("/discuss")) { //interestingly, "/discuss" and "/discussion" are both valid urls for this item
+						discussion = itemContent;
+					} else if (sourceURL.contains("/exploit")) {
+						exploit = itemContent;
+					} else if (sourceURL.contains("/solution")) {
+						solution = itemContent;
+					} else if (sourceURL.contains("/references")) {
+						references = itemContent;
+					} else {
+						logger.warn("unexpected URL (bugtraq) " + sourceURL); 
+					}
 				}
-				if (sourceURL.contains("/info")) {
-					info = itemContent;
-				} else if (sourceURL.contains("/discuss")) { //interestingly, "/discuss" and "/discussion" are both valid urls for this item
-					discussion = itemContent;
-				} else if (sourceURL.contains("/exploit")) {
-					exploit = itemContent;
-				} else if (sourceURL.contains("/solution")) {
-					solution = itemContent;
-				} else if (sourceURL.contains("/references")) {
-					references = itemContent;
+				if (info != null && discussion != null && exploit != null && solution != null && references != null) {
+					BugtraqExtractor bugtraqExt = new BugtraqExtractor(info, discussion, exploit, solution, references);
+					stixPackage = bugtraqExt.getStixPackage();
 				} else {
-					logger.warn("unexpected URL (bugtraq) " + sourceURL); 
+					logger.warn("Bugtraq: some required fields were null, skipping group.\nMessage was:" + content);
+					if (docIDs != null) {
+						logger.error("Problem docid(s):\n" + docIDs);
+					}
 				}
+			} else if (routingKey.contains(".stix")) {
+				stixDocument = true;
 			}
-			if (info != null && discussion != null && exploit != null && solution != null && references != null) {
-				BugtraqExtractor bugtraqExt = new BugtraqExtractor(info, discussion, exploit, solution, references);
-				stixPackage = bugtraqExt.getStixPackage();
-			} else {
-				logger.warn("Bugtraq: some required fields were null, skipping group.\nMessage was:" + content);
-				if (docIDs != null) {
-					logger.error("Problem docid(s):\n" + docIDs);
-				}
-			}
-		}
 
-		if (stixPackage != null) {
-			Map<String, Element> stixElements = preprocessSTIX.normalizeSTIX(stixPackage.toXMLString());
-			graph = constructGraph.constructGraph(stixElements);
-		} else {
-			logger.warn("Unexpected routing key encountered '" + routingKey + "'.");
+			if (stixPackage != null) {
+				Map<String, Element> stixElements = preprocessSTIX.normalizeSTIX(stixPackage.toXMLString());
+				graph = constructGraph.constructGraph(stixElements);
+			} else if (stixDocument) {
+				Map<String, Element> stixElements = preprocessSTIX.normalizeSTIX(content);
+				graph = constructGraph.constructGraph(stixElements);
+			} else {
+				logger.warn("Unexpected routing key encountered '" + routingKey + "'.");
+			}
+		} catch (RuntimeException e) {
+			logger.error("Error occurred with routingKey = " + routingKey);
+			logger.error("										docIDs = " + docIDs);
+			logger.error("										content = " + content);
+			e.printStackTrace();
+			return null;
 		}
 
 		return graph;
