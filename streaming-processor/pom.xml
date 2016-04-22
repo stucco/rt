@@ -10,6 +10,7 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <maven.test.skip>true</maven.test.skip>
     <main.class>gov.ornl.stucco.structured.StructuredTransformer</main.class>
+    <main.class>gov.ornl.stucco.unstructured.UnstructuredTransformer</main.class>
   </properties>
 
   <dependencies>
