@@ -1,24 +1,32 @@
 package gov.ornl.stucco.unstructured;
 
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.util.List;
+import java.util.Map;
+
 import edu.stanford.nlp.pipeline.Annotation;
 import gov.ornl.stucco.ConfigLoader;
-import gov.ornl.stucco.RabbitMQConsumer;
+import gov.ornl.stucco.RabbitMQConsumer; 
 import gov.ornl.stucco.RelationExtractor;
 import gov.ornl.stucco.entity.EntityLabeler;
 import gov.ornl.stucco.structured.StructuredTransformer;
 import gov.pnnl.stucco.doc_service_client.DocServiceClient;
 import gov.pnnl.stucco.doc_service_client.DocServiceException;
 
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.util.List;
-import java.util.Map;
+import alignment.alignment_v2.PreprocessSTIX;
+import alignment.alignment_v2.GraphConstructor;
+import alignment.alignment_v2.Align;
+
+import STIXExtractor.StuccoExtractor;
+
+import org.mitre.stix.stix_1.STIXPackage;
 
 import org.json.JSONObject;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.slf4j.LoggerFactory; 
 
-import alignment.alignment_v2.Align;
+import org.jdom2.Element;
 
 import com.rabbitmq.client.GetResponse;
 
@@ -30,6 +38,8 @@ public class UnstructuredTransformer {
 	private DocServiceClient docClient;
 	private EntityLabeler entityLabeler;
 	private RelationExtractor relationExtractor;
+	private PreprocessSTIX preprocessSTIX;
+	private GraphConstructor constructGraph;
 	private Align alignment;
 	
 	private boolean persistent;
@@ -85,21 +95,13 @@ public class UnstructuredTransformer {
 					"\nuser: " + user + "\npass: " + password);
 			consumer = new RabbitMQConsumer(exchange, queue, host, port, user, password, bindingKeys);
 			consumer.openQueue();
-		} catch (IOException e) {
-			logger.error("Error initializing RabbitMQ connection.", e);
-			System.exit(-3);
-		}
-		logger.info("RabbitMQ connected.");
-		
-		try {
-			entityExtractor = new EntityExtractor();
-		} catch (Exception e) {
-			logger.error("Error loading EntityExtractor models.", e);
-		}
-		relationExtractor = new RelationExtractor();
-		logger.info("EntityExtractor and RelationExtractor created.");
-		
-		try {
+			
+			entityLabeler = new EntityLabeler();
+			
+			relationExtractor = new RelationExtractor();
+			
+			preprocessSTIX = new PreprocessSTIX();
+			constructGraph = new GraphConstructor();
 			alignment = new Align();
 			
 			configMap = configLoader.getConfig("document_service");
@@ -172,11 +174,25 @@ public class UnstructuredTransformer {
 						}
 					}
 					//Construct the subgraph from the concepts and relationships
-					String graph = relationExtractor.createSubgraph(annotatedDoc, dataSource);
-					
+					String graphString = relationExtractor.createSubgraph(annotatedDoc, dataSource);
+					if (graphString != null) {
+						try {
+							JSONObject graph = new JSONObject(graphString);
+							StuccoExtractor stuccoExt = new StuccoExtractor(graph);
+							STIXPackage stixPackage = stuccoExt.getStixPackage();
+							Map<String, Element> stixElements = preprocessSTIX.normalizeSTIX(stixPackage.toXMLString());
+							graph = constructGraph.constructGraph(stixElements);
+							alignment.load(graph);
+						} catch (RuntimeException e) {
+							logger.error("Error occurred with routingKey = " + routingKey);
+							logger.error("										content = " + message);
+							logger.error("										source = " + dataSource);
+							e.printStackTrace();
+						}
+					}
 					//TODO: Add timestamp into subgraph
 					//Merge subgraph into full knowledge graph
-					alignment.load(graph);
+				//	alignment.load(graph);
 					
 					//Ack the message was processed and can be discarded from the queue
 					try{
@@ -208,13 +224,13 @@ public class UnstructuredTransformer {
 			
 			//Either the queue is empty, or an error occurred.
 			//Either way, sleep for a bit to prevent rapid loop of re-starting.
-			try{
+			try {
 				Thread.sleep(sleepTime);
 			} catch (InterruptedException consumed) {
 				//don't care in this case, exiting anyway.
 			}
-		}while(persistent && !fatalError);
-		try{
+		} while (persistent && !fatalError);
+		try {
 			consumer.close();
 		} catch (IOException e) {
 			logger.error("Encountered RabbitMQ IO error when closing connection:", e);
@@ -228,10 +244,10 @@ public class UnstructuredTransformer {
 	 */
 	public static void main(String[] args) {
 		UnstructuredTransformer unstructProcess;
-		if(args.length == 0){
+		if (args.length == 0) {
 			unstructProcess = new UnstructuredTransformer();
 		}
-		else{
+		else {
 			unstructProcess = new UnstructuredTransformer(args[0]);
 		}
 		unstructProcess.run();

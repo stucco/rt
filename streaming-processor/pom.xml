@@ -10,6 +10,7 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <maven.test.skip>true</maven.test.skip>
     <main.class>gov.ornl.stucco.structured.StructuredTransformer</main.class>
+    <main.class>gov.ornl.stucco.unstructured.UnstructuredTransformer</main.class>
   </properties>
 
   <dependencies>
@@ -44,6 +45,16 @@
       <version>2.4</version>
     </dependency>
     <dependency>
+        <groupId>org.mitre</groupId>
+        <artifactId>stix</artifactId>
+        <version>1.2.0.2</version>
+    </dependency>
+    <dependency>
+      <groupId>org.jdom</groupId>
+      <artifactId>jdom2</artifactId>
+      <version>2.0.6</version>
+    </dependency>
+    <dependency>
       <groupId>gov.ornl.stucco</groupId>
       <artifactId>entity-extractor</artifactId>
       <version>1.0.0</version>
@@ -54,21 +65,6 @@
       <version>1.0.0</version>
     </dependency>
     <dependency>
-      <groupId>gov.ornl.stucco</groupId>
-      <artifactId>morph</artifactId>
-      <version>1.0.0</version>
-    </dependency>
-    <dependency>
-      <groupId>gov.ornl.stucco</groupId>
-      <artifactId>extractors</artifactId>
-      <version>1.0.0</version>
-    </dependency>
-    <dependency>
-      <groupId>HTMLExtractor</groupId>
-      <artifactId>HTMLExtractor</artifactId>
-      <version>0.0.1-SNAPSHOT</version>
-    </dependency>
-    <dependency>
       <groupId>alignment</groupId>
       <artifactId>alignment_v2</artifactId>
       <version>2.0.1</version>
@@ -77,6 +73,11 @@
       <groupId>gov.pnnl.stucco</groupId>
       <artifactId>doc-server-client-java</artifactId>
       <version>1.0.0</version>
+    </dependency>
+    <dependency>
+      <groupId>STIXExtractor</groupId>
+      <artifactId>STIXExtractor</artifactId>
+      <version>0.0.1-SNAPSHOT</version>
     </dependency>
   </dependencies>
 

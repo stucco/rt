@@ -9,14 +9,11 @@
 		<maven.test.skip>true</maven.test.skip>
   </properties>
   <modules>
-    <module>JSON-java</module>
-    <module>morph</module>
-    <module>extractors</module>
-    <module>html-extractor</module>
+    <module>document-service-client-java</module>
     <module>entity-extractor</module>
     <module>relation-extractor</module>
-    <module>graph-alignment</module>
-    <module>document-service-client-java</module>
+    <module>STIXExtractors</module>
+    <module>graph-db-connection</module>
   </modules>
   <build>
     <plugins>
