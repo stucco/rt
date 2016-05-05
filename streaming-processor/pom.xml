@@ -65,9 +65,9 @@
       <version>1.0.0</version>
     </dependency>
     <dependency>
-      <groupId>alignment</groupId>
-      <artifactId>alignment_v2</artifactId>
-      <version>2.0.1</version>
+      <groupId>gov.ornl.stucco</groupId>
+      <artifactId>alignment</artifactId>
+      <version>1.0.0</version>
     </dependency>
     <dependency>
       <groupId>gov.pnnl.stucco</groupId>
@@ -75,9 +75,9 @@
       <version>1.0.0</version>
     </dependency>
     <dependency>
-      <groupId>STIXExtractor</groupId>
+      <groupId>gov.ornl.stucco</groupId>
       <artifactId>STIXExtractor</artifactId>
-      <version>0.0.1-SNAPSHOT</version>
+      <version>1.0.0</version>
     </dependency>
   </dependencies>
 
