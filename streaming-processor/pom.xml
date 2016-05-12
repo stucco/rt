@@ -4,7 +4,7 @@
 
   <groupId>gov.ornl.stucco</groupId>
   <artifactId>streaming-processor</artifactId>
-  <version>1.0.0</version>
+  <version>1.0.1</version>
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
