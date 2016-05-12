@@ -1,7 +1,7 @@
 #!/bin/sh
 
 echo "Checking out modules..."
-mvn --non-recursive scm:checkout -Dmodule.name=document-service-client-java -DscmVersion=1.0.0 -DscmVersionType=tag
+mvn --non-recursive scm:checkout -Dmodule.name=document-service-client-java -DscmVersion=1.0.1 -DscmVersionType=tag
 mvn --non-recursive scm:checkout -Dmodule.name=STIXExtractors -DscmVersion=1.0.0 -DscmVersionType=tag
 
 mvn --non-recursive scm:checkout -Dmodule.name=entity-extractor -DscmVersion=1.0.0 -DscmVersionType=tag
