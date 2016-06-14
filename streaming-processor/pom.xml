@@ -9,7 +9,7 @@
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <maven.test.skip>true</maven.test.skip>
-    <main.class>gov.ornl.stucco.structured.StructuredTransformer</main.class>
+<!--    <main.class>gov.ornl.stucco.structured.StructuredTransformer</main.class>-->
     <main.class>gov.ornl.stucco.unstructured.UnstructuredTransformer</main.class>
   </properties>
 
@@ -44,7 +44,7 @@
       <artifactId>logstash-logback-encoder</artifactId>
       <version>2.4</version>
     </dependency>
-    <dependency>
+<!--     <dependency>
         <groupId>org.mitre</groupId>
         <artifactId>stix</artifactId>
         <version>1.2.0.2</version>
@@ -53,13 +53,13 @@
       <groupId>org.jdom</groupId>
       <artifactId>jdom2</artifactId>
       <version>2.0.6</version>
-    </dependency>
+    </dependency> -->
     <dependency>
       <groupId>gov.ornl.stucco</groupId>
       <artifactId>entity-extractor</artifactId>
       <version>1.0.0</version>
     </dependency>
-    <dependency>
+<!--     <dependency>
       <groupId>gov.ornl.stucco</groupId>
       <artifactId>relation-extractor</artifactId>
       <version>1.0.0</version>
@@ -68,17 +68,17 @@
       <groupId>gov.ornl.stucco</groupId>
       <artifactId>alignment</artifactId>
       <version>1.0.2</version>
-    </dependency>
+    </dependency> -->
     <dependency>
       <groupId>gov.pnnl.stucco</groupId>
       <artifactId>doc-server-client-java</artifactId>
       <version>1.0.1</version>
     </dependency>
-    <dependency>
+<!--     <dependency>
       <groupId>gov.ornl.stucco</groupId>
       <artifactId>STIXExtractor</artifactId>
       <version>1.0.0</version>
-    </dependency>
+    </dependency> -->
   </dependencies>
 
   <build>
@@ -125,18 +125,18 @@
         <artifactId>onejar-maven-plugin</artifactId>
         <version>1.4.4</version>
         <executions>
-          <execution>
-            <id>structured</id>
-            <configuration>
-              <mainClass>gov.ornl.stucco.structured.StructuredTransformer</mainClass>
-              <attachToBuild>true</attachToBuild>
-              <classifier>onejar</classifier>
-              <filename>rt-structured.jar</filename>
-            </configuration>
-            <goals>
-              <goal>one-jar</goal>
-            </goals>
-          </execution>
+<!--          <execution>-->
+<!--            <id>structured</id>-->
+<!--            <configuration>-->
+<!--              <mainClass>gov.ornl.stucco.structured.StructuredTransformer</mainClass>-->
+<!--              <attachToBuild>true</attachToBuild>-->
+<!--              <classifier>onejar</classifier>-->
+<!--              <filename>rt-structured.jar</filename>-->
+<!--            </configuration>-->
+<!--            <goals>-->
+<!--              <goal>one-jar</goal>-->
+<!--            </goals>-->
+<!--          </execution>-->
           <execution>
             <id>unstructured</id>
             <configuration>

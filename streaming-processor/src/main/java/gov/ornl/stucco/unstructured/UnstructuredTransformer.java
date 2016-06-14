@@ -1,32 +1,20 @@
 package gov.ornl.stucco.unstructured;
 
+import edu.stanford.nlp.pipeline.Annotation;
+import gov.ornl.stucco.ConfigLoader;
+import gov.ornl.stucco.RabbitMQConsumer;
+import gov.ornl.stucco.entity.EntityLabeler;
+import gov.pnnl.stucco.doc_service_client.DocServiceClient;
+
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
-import edu.stanford.nlp.pipeline.Annotation;
-import gov.ornl.stucco.ConfigLoader;
-import gov.ornl.stucco.RabbitMQConsumer; 
-import gov.ornl.stucco.RelationExtractor;
-import gov.ornl.stucco.entity.EntityLabeler;
-import gov.ornl.stucco.structured.StructuredTransformer;
-import gov.pnnl.stucco.doc_service_client.DocServiceClient;
-import gov.pnnl.stucco.doc_service_client.DocServiceException;
-
-import gov.ornl.stucco.alignment.PreprocessSTIX;
-import gov.ornl.stucco.alignment.GraphConstructor;
-import gov.ornl.stucco.alignment.Align;
-
-import STIXExtractor.StuccoExtractor;
-
-import org.mitre.stix.stix_1.STIXPackage;
-
 import org.json.JSONObject;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory; 
-
-import org.jdom2.Element;
+import org.slf4j.LoggerFactory;
 
 import com.rabbitmq.client.GetResponse;
 
@@ -37,10 +25,11 @@ public class UnstructuredTransformer {
 	private RabbitMQConsumer consumer;
 	private DocServiceClient docClient;
 	private EntityLabeler entityLabeler;
-	private RelationExtractor relationExtractor;
-	private PreprocessSTIX preprocessSTIX;
-	private GraphConstructor constructGraph;
-	private Align alignment;
+	private File documentDir;
+//	private RelationExtractor relationExtractor;
+//	private PreprocessSTIX preprocessSTIX;
+//	private GraphConstructor constructGraph;
+//	private Align alignment;
 	
 	private boolean persistent;
 	private int sleepTime;
@@ -66,6 +55,7 @@ public class UnstructuredTransformer {
 		String user = null;
 		String password = null;
 		String[] bindingKeys = null;
+		String docDir = "../documents";
 		try {
 			configMap = configLoader.getConfig("unstructured_data");
 			exchange = String.valueOf(configMap.get("exchange"));
@@ -80,6 +70,7 @@ public class UnstructuredTransformer {
 			List<String> bindings = (List<String>) configMap.get("bindings");
 			bindingKeys = new String[bindings.size()];
 			bindingKeys = bindings.toArray(bindingKeys);
+			documentDir = new File(String.valueOf(configMap.get("serialObjectDir")));
 		} catch (FileNotFoundException e1) {
 			logger.error("Error loading configuration.", e1);
 			System.exit(-1);
@@ -98,17 +89,21 @@ public class UnstructuredTransformer {
 			
 			entityLabeler = new EntityLabeler();
 			
-			relationExtractor = new RelationExtractor();
-			
-			preprocessSTIX = new PreprocessSTIX();
-			constructGraph = new GraphConstructor();
-			alignment = new Align();
+//			relationExtractor = new RelationExtractor();
+//			
+//			preprocessSTIX = new PreprocessSTIX();
+//			constructGraph = new GraphConstructor();
+//			alignment = new Align();
 			
 			configMap = configLoader.getConfig("document_service");
 			
 			host = String.valueOf(configMap.get("host"));
 			port = Integer.parseInt(String.valueOf(configMap.get("port")));
 			docClient = new DocServiceClient(host, port);
+			
+			if (!documentDir.exists()) {
+				documentDir.mkdir();
+			}
 		} catch (IOException e) {
 			logger.error("Error initializing Alignment and/or DB connection.", e);
 			System.exit(-4);
@@ -156,13 +151,10 @@ public class UnstructuredTransformer {
 							JSONObject jsonObject = docClient.fetchExtractedText(docId);
 							content = jsonObject.getString("document");
 							title = jsonObject.getString("title");
-						} catch (DocServiceException e) {
+						} catch (Exception e) {
 							logger.error("Could not fetch document '" + docId + "' from Document-Service.", e);
 						}
 					}
-					
-					//Label the entities/concepts in the document
-					Annotation annotatedDoc = entityLabeler.getAnnotatedDoc(title, content);
 					
 					//Extract the data source name from the routing key
 					String dataSource = routingKey;
@@ -173,23 +165,28 @@ public class UnstructuredTransformer {
 							dataSource = dataSource.substring(1);
 						}
 					}
-					//Construct the subgraph from the concepts and relationships
-					String graphString = relationExtractor.createSubgraph(annotatedDoc, dataSource);
-					if (graphString != null) {
-						try {
-							JSONObject graph = new JSONObject(graphString);
-							StuccoExtractor stuccoExt = new StuccoExtractor(graph);
-							STIXPackage stixPackage = stuccoExt.getStixPackage();
-							Map<String, Element> stixElements = preprocessSTIX.normalizeSTIX(stixPackage.toXMLString());
-							graph = constructGraph.constructGraph(stixElements);
-							alignment.load(graph);
-						} catch (RuntimeException e) {
-							logger.error("Error occurred with routingKey = " + routingKey);
-							logger.error("										content = " + message);
-							logger.error("										source = " + dataSource);
-							e.printStackTrace();
-						}
-					}
+					
+					//Label the entities/concepts in the document
+					Annotation annotatedDoc = entityLabeler.getAnnotatedDoc(title, content);
+					EntityLabeler.serializeAnnotatedDoc(annotatedDoc, title, dataSource, documentDir.getPath());
+					
+//					//Construct the subgraph from the concepts and relationships
+//					String graphString = relationExtractor.createSubgraph(annotatedDoc, dataSource);
+//					if (graphString != null) {
+//						try {
+//							JSONObject graph = new JSONObject(graphString);
+//							StuccoExtractor stuccoExt = new StuccoExtractor(graph);
+//							STIXPackage stixPackage = stuccoExt.getStixPackage();
+//							Map<String, Element> stixElements = preprocessSTIX.normalizeSTIX(stixPackage.toXMLString());
+//							graph = constructGraph.constructGraph(stixElements);
+//							alignment.load(graph);
+//						} catch (RuntimeException e) {
+//							logger.error("Error occurred with routingKey = " + routingKey);
+//							logger.error("										content = " + message);
+//							logger.error("										source = " + dataSource);
+//							e.printStackTrace();
+//						}
+//					}
 					//TODO: Add timestamp into subgraph
 					//Merge subgraph into full knowledge graph
 				//	alignment.load(graph);

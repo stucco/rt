@@ -11,9 +11,9 @@
   <modules>
     <module>document-service-client-java</module>
     <module>entity-extractor</module>
-    <module>relation-extractor</module>
-    <module>STIXExtractors</module>
-    <module>graph-db-connection</module>
+<!--    <module>relation-extractor</module>-->
+<!--    <module>STIXExtractors</module>-->
+<!--    <module>graph-db-connection</module>-->
   </modules>
   <build>
     <plugins>
