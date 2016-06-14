@@ -55,7 +55,7 @@ public class UnstructuredTransformer {
 		String user = null;
 		String password = null;
 		String[] bindingKeys = null;
-		String docDir = "../documents";
+		String documentDir = "../documents";
 		try {
 			configMap = configLoader.getConfig("unstructured_data");
 			exchange = String.valueOf(configMap.get("exchange"));
