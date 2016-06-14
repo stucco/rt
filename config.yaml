@@ -21,7 +21,7 @@ unstructured_data:
   persistent: true
   bindings:
       - stucco.in.unstructured.#
-  serialObjectDir: ../docs
+  serialObjectDir: /stucco/docs/
 
 document_service:
   host: localhost

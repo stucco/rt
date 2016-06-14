@@ -55,7 +55,7 @@ public class UnstructuredTransformer {
 		String user = null;
 		String password = null;
 		String[] bindingKeys = null;
-		String documentDir = "../documents";
+		String docDir = "../documents/";
 		try {
 			configMap = configLoader.getConfig("unstructured_data");
 			exchange = String.valueOf(configMap.get("exchange"));
@@ -70,7 +70,7 @@ public class UnstructuredTransformer {
 			List<String> bindings = (List<String>) configMap.get("bindings");
 			bindingKeys = new String[bindings.size()];
 			bindingKeys = bindings.toArray(bindingKeys);
-			documentDir = new File(String.valueOf(configMap.get("serialObjectDir")));
+			docDir = String.valueOf(configMap.get("serialObjectDir"));
 		} catch (FileNotFoundException e1) {
 			logger.error("Error loading configuration.", e1);
 			System.exit(-1);
@@ -101,6 +101,7 @@ public class UnstructuredTransformer {
 			port = Integer.parseInt(String.valueOf(configMap.get("port")));
 			docClient = new DocServiceClient(host, port);
 			
+			documentDir = new File(docDir);
 			if (!documentDir.exists()) {
 				documentDir.mkdir();
 			}
