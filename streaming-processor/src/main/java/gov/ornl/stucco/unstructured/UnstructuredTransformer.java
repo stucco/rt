@@ -5,6 +5,7 @@ import gov.ornl.stucco.ConfigLoader;
 import gov.ornl.stucco.RabbitMQConsumer;
 import gov.ornl.stucco.entity.EntityLabeler;
 import gov.pnnl.stucco.doc_service_client.DocServiceClient;
+import gov.pnnl.stucco.doc_service_client.DocServiceException;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -151,9 +152,18 @@ public class UnstructuredTransformer {
 						try {
 							JSONObject jsonObject = docClient.fetchExtractedText(docId);
 							content = jsonObject.getString("document");
-							title = jsonObject.getString("title");
-						} catch (Exception e) {
+							try {
+								title = jsonObject.getString("title");
+							} catch (Exception ex) {
+								title = docId;
+							}
+						} catch (DocServiceException e) {
 							logger.error("Could not fetch document '" + docId + "' from Document-Service.", e);
+							logger.error("Message content was:\n"+message);
+							logger.error("Skipping message: " + routingKey + " deliveryTag=[" + deliveryTag + "]");
+						} catch (Exception e) {
+							logger.error("Other error in handling document '" + docId + "' from Document-Service.", e);
+							logger.error("Message content was:\n"+message);
 						}
 					}
 					
@@ -168,8 +178,10 @@ public class UnstructuredTransformer {
 					}
 					
 					//Label the entities/concepts in the document
-					Annotation annotatedDoc = entityLabeler.getAnnotatedDoc(title, content);
-					EntityLabeler.serializeAnnotatedDoc(annotatedDoc, title, dataSource, documentDir.getPath());
+					if (content != null) {
+						Annotation annotatedDoc = entityLabeler.getAnnotatedDoc(title, content);
+						EntityLabeler.serializeAnnotatedDoc(annotatedDoc, title, dataSource, documentDir.getPath());
+					}
 					
 //					//Construct the subgraph from the concepts and relationships
 //					String graphString = relationExtractor.createSubgraph(annotatedDoc, dataSource);
@@ -190,7 +202,7 @@ public class UnstructuredTransformer {
 //					}
 					//TODO: Add timestamp into subgraph
 					//Merge subgraph into full knowledge graph
-				//	alignment.load(graph);
+					//	alignment.load(graph);
 					
 					//Ack the message was processed and can be discarded from the queue
 					try{
