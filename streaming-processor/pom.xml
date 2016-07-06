@@ -1,7 +1,6 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 
   <modelVersion>4.0.0</modelVersion>
-
   <groupId>gov.ornl.stucco</groupId>
   <artifactId>streaming-processor</artifactId>
   <version>1.0.0</version>
@@ -45,6 +44,11 @@
       <version>2.4</version>
     </dependency>
     <dependency>
+      <groupId>com.jolira</groupId>
+      <artifactId>onejar-maven-plugin</artifactId>
+      <version>1.4.4</version>
+    </dependency>
+    <dependency>
         <groupId>org.mitre</groupId>
         <artifactId>stix</artifactId>
         <version>1.2.0.2</version>
@@ -72,21 +76,14 @@
     <dependency>
       <groupId>gov.pnnl.stucco</groupId>
       <artifactId>doc-server-client-java</artifactId>
-      <version>1.0.0</version>
+      <version>1.0.1</version>
     </dependency>
     <dependency>
-      <groupId>STIXExtractor</groupId>
+      <groupId>gov.ornl.stucco</groupId>
       <artifactId>STIXExtractor</artifactId>
-      <version>0.0.1-SNAPSHOT</version>
+      <version>1.0.0</version>
     </dependency>
   </dependencies>
-
-  <pluginRepositories>
-    <pluginRepository>
-      <id>onejar-maven-plugin.googlecode.com</id>
-      <url>http://onejar-maven-plugin.googlecode.com/svn/mavenrepo</url>
-    </pluginRepository>
-  </pluginRepositories>
 
   <build>
     <resources>
@@ -128,7 +125,7 @@
         </executions>
       </plugin>
       <plugin>
-        <groupId>org.dstovall</groupId>
+        <groupId>com.jolira</groupId>
         <artifactId>onejar-maven-plugin</artifactId>
         <version>1.4.4</version>
         <executions>
