@@ -155,44 +155,58 @@ public class UnstructuredTransformer {
 						try {
 							JSONObject jsonObject = docClient.fetchExtractedText(docId);
 							content = jsonObject.getString("document");
-							title = jsonObject.getString("title");
+							try {
+								title = jsonObject.getString("title");
+							} catch (Exception ex) {
+								title = docId;
+							}
 						} catch (DocServiceException e) {
 							logger.error("Could not fetch document '" + docId + "' from Document-Service.", e);
+							logger.error("Message content was:\n"+message);
+							logger.error("Skipping message: " + routingKey + " deliveryTag=[" + deliveryTag + "]");
+						} catch (Exception e) {
+							logger.error("Other error in handling document '" + docId + "' from Document-Service.", e);
+							logger.error("Message content was:\n"+message);
 						}
 					}
 					
-					//Label the entities/concepts in the document
-					Annotation annotatedDoc = entityLabeler.getAnnotatedDoc(title, content);
-					
-					//Extract the data source name from the routing key
-					String dataSource = routingKey;
-					int index = routingKey.indexOf(PROCESS_NAME.toLowerCase());
-					if (index > -1) {
-						dataSource = routingKey.substring(index + PROCESS_NAME.length());
-						if (dataSource.startsWith(".")) {
-							dataSource = dataSource.substring(1);
-						}
-					}
-					//Construct the subgraph from the concepts and relationships
-					String graphString = relationExtractor.createSubgraph(annotatedDoc, dataSource);
-					if (graphString != null) {
+					if (content != null) {
 						try {
-							JSONObject graph = new JSONObject(graphString);
-							StuccoExtractor stuccoExt = new StuccoExtractor(graph);
-							STIXPackage stixPackage = stuccoExt.getStixPackage();
-							Map<String, Element> stixElements = preprocessSTIX.normalizeSTIX(stixPackage.toXMLString());
-							graph = constructGraph.constructGraph(stixElements);
-							alignment.load(graph);
-						} catch (RuntimeException e) {
-							logger.error("Error occurred with routingKey = " + routingKey);
-							logger.error("										content = " + message);
-							logger.error("										source = " + dataSource);
-							e.printStackTrace();
+							//Label the entities/concepts in the document
+							Annotation annotatedDoc = entityLabeler.getAnnotatedDoc(title, content);
+						
+							//Extract the data source name from the routing key
+							String dataSource = routingKey;
+							int index = routingKey.indexOf(PROCESS_NAME.toLowerCase());
+							if (index > -1) {
+								dataSource = routingKey.substring(index + PROCESS_NAME.length());
+								if (dataSource.startsWith(".")) {
+									dataSource = dataSource.substring(1);
+								}
+							}
+							
+							//Construct the subgraph from the concepts and relationships
+							String graphString = relationExtractor.createSubgraph(annotatedDoc, dataSource);
+							if (graphString != null) {
+								try {
+									JSONObject graph = new JSONObject(graphString);
+									StuccoExtractor stuccoExt = new StuccoExtractor(graph);
+									STIXPackage stixPackage = stuccoExt.getStixPackage();
+									Map<String, Element> stixElements = preprocessSTIX.normalizeSTIX(stixPackage.toXMLString());
+									graph = constructGraph.constructGraph(stixElements);
+									alignment.load(graph);
+								} catch (RuntimeException e) {
+									logger.error("Error occurred with routingKey = " + routingKey);
+									logger.error("										content = " + message);
+									logger.error("										source = " + dataSource);
+									e.printStackTrace();
+								}
+							}
+						} catch (Exception ex) {
+							logger.error("Error occurred while extracting entities & relationships from the document '" + title + "'.");
+							ex.printStackTrace();
 						}
 					}
-					//TODO: Add timestamp into subgraph
-					//Merge subgraph into full knowledge graph
-				//	alignment.load(graph);
 					
 					//Ack the message was processed and can be discarded from the queue
 					try{
