@@ -13,13 +13,13 @@ mvn --non-recursive scm:checkout -Dmodule.name=relation-extractor -DscmVersion=1
 cd relation-extractor
 mvn -e clean install -Dmaven.test.skip=true
 cd ..
-
-mvn -q --non-recursive scm:checkout -Dmodule.name=graph-db-connection -DscmVersion=1.0.0 -DscmVersionType=tag
+										
+mvn -q --non-recursive scm:checkout -Dmodule.name=graph-db-connection -DscmVersion=PostgreSQL -DscmVersionType=branch
 cd graph-db-connection
 mvn -e clean install -Dmaven.test.skip=true
 cd ..
 
-mvn -q --non-recursive scm:checkout -Dmodule.name=graph-alignment -DscmVersion=1.0.2 -DscmVersionType=tag
+mvn -q --non-recursive scm:checkout -Dmodule.name=graph-alignment -DscmVersion=feature -DscmVersionType=branch
 cd graph-alignment
 mvn -e clean install -Dmaven.test.skip=true
 cd ..
