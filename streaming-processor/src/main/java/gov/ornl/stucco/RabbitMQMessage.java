@@ -39,7 +39,7 @@ public class RabbitMQMessage {
 			return null;
 		}
 		else{
-			return new String(response.getBody());
+			return new String(body);
 		}
 	}
 }

@@ -22,7 +22,18 @@ unstructured_data:
   bindings:
       - stucco.in.unstructured.#
 
+alignment_data:
+  exchange: stucco
+  host: localhost
+  port: 5672
+  username: stucco
+  password: stucco
+  queue: stucco-align
+  emptyQueueSleepTime: 90000
+  persistent: true
+  bindings:
+      - stucco.align.#
+
 document_service:
   host: localhost
   port: 8118
-  

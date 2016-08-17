@@ -2,4 +2,6 @@ target/
 bin/
 *.swp
 *.log
+*.log.*
 *.DS_Store
+*~

@@ -9,6 +9,7 @@ import java.util.Map;
 import gov.ornl.stucco.ConfigLoader;
 import gov.ornl.stucco.RabbitMQConsumer;
 import gov.ornl.stucco.RabbitMQMessage;
+import gov.ornl.stucco.RabbitMQProducer;
 
 import gov.pnnl.stucco.doc_service_client.DocServiceClient;
 import gov.pnnl.stucco.doc_service_client.DocServiceException;
@@ -58,12 +59,12 @@ public class StructuredTransformer {
 	private static final String[] argusHeaders = {"StartTime", "Flgs", "Proto", "SrcAddr", "Sport", "Dir", "DstAddr", "Dport", "TotPkts", "TotBytes", "State"};
 
 	private RabbitMQConsumer consumer;
+	private RabbitMQProducer producer;
 
 	private DocServiceClient docClient;
 
 	private PreprocessSTIX preprocessSTIX; 
 	private GraphConstructor constructGraph;
-	private Align alignment;
 	
 	private boolean persistent;
 	private int sleepTime;
@@ -83,15 +84,16 @@ public class StructuredTransformer {
 	}
 	
 	private void init(ConfigLoader configLoader) {
-		Map<String, Object> configMap;
-		String exchange = null;
-		String queue = null;
-		String host = null;
-		int port = -1;
-		String user = null;
-		String password = null;
-		String[] bindingKeys = null;
 		try {
+			Map<String, Object> configMap;
+			String exchange = null;
+			String queue = null;
+			String host = null;
+			int port = -1;
+			String user = null;
+			String password = null;
+			String[] bindingKeys = null;
+
 			configMap = configLoader.getConfig("structured_data");
 			exchange = String.valueOf(configMap.get("exchange"));
 			queue = String.valueOf(configMap.get("queue"));
@@ -105,42 +107,91 @@ public class StructuredTransformer {
 			List<String> bindings = (List<String>)(configMap.get("bindings"));
 			bindingKeys = new String[bindings.size()];
 			bindingKeys = bindings.toArray(bindingKeys);
-		} catch (FileNotFoundException e1) {
-			logger.error("Error loading configuration.", e1);
-			System.exit(-1);
-		} catch (Exception e) {
-			logger.error("Error parsing configuration.", e);
-			System.exit(-1);
-		}
-		logger.info("Config file loaded and parsed");
-		
-		try {
+
 			logger.info("Connecting to rabbitMQ with this info: \nhost: " + host + "\nport: " + port + 
 					"\nexchange: " + exchange + "\nqueue: " + queue + 
 					"\nuser: " + user + "\npass: " + password);
 			consumer = new RabbitMQConsumer(exchange, queue, host, port, user, password, bindingKeys);
 			consumer.openQueue();
-		} catch (IOException e) {
+
+		} catch (FileNotFoundException e1) {
+			logger.error("Error loading configuration.", e1);
+			System.exit(-1);
+		}
+		catch (IOException e) {
 			logger.error("Error initializing RabbitMQ connection.", e);
 			System.exit(-1);
 		}
-		logger.info("RabbitMQ connected.");
+		catch (Exception e) {
+			logger.error("Error parsing configuration.", e);
+			System.exit(-1);
+		}
+		logger.info("RabbitMQ (structured_data) connected.");
+
+		try {
+			Map<String, Object> configMap;
+			String exchange = null;
+			String queue = null;
+			String host = null;
+			int port = -1;
+			String user = null;
+			String password = null;
+			String[] bindingKeys = null;
+
+			configMap = configLoader.getConfig("alignment_data");
+			exchange = String.valueOf(configMap.get("exchange"));
+			queue = String.valueOf(configMap.get("queue"));
+			host = String.valueOf(configMap.get("host"));
+			port = Integer.parseInt(String.valueOf(configMap.get("port")));
+			user = String.valueOf(configMap.get("username"));
+			password = String.valueOf(configMap.get("password"));
+			persistent = Boolean.parseBoolean(String.valueOf(configMap.get("persistent")));
+			sleepTime = Integer.parseInt(String.valueOf(configMap.get("emptyQueueSleepTime")));
+			@SuppressWarnings("unchecked")
+			List<String> bindings = (List<String>)(configMap.get("bindings"));
+			bindingKeys = new String[bindings.size()];
+			bindingKeys = bindings.toArray(bindingKeys);
+
+			logger.info("Connecting to rabbitMQ with this info: \nhost: " + host + "\nport: " + port + 
+					"\nexchange: " + exchange + "\nqueue: " + queue + 
+					"\nuser: " + user + "\npass: " + password);
+			producer = new RabbitMQProducer(exchange, queue, host, port, user, password, bindingKeys);
+			producer.openQueue();
+
+		} catch (FileNotFoundException e1) {
+			logger.error("Error loading configuration.", e1);
+			System.exit(-1);
+		}
+		catch (IOException e) {
+			logger.error("Error initializing RabbitMQ connection.", e);
+			System.exit(-1);
+		}
+		catch (Exception e) {
+			logger.error("Error parsing configuration.", e);
+			System.exit(-1);
+		}
+		logger.info("RabbitMQ (alignment_data) connected.");
+
 		try {
 			preprocessSTIX = new PreprocessSTIX();
 			constructGraph = new GraphConstructor();
-			alignment = new Align();
-			
-			logger.info("DB connection created.  Connecting to document service...");
+
+			logger.info("preprocessSTIX and constructGraph created.  Connecting to document service...");
+
+			Map<String, Object> configMap;
+			String host = null;
+			int port = -1;
+
 			configMap = configLoader.getConfig("document_service");
 
 			host = String.valueOf(configMap.get("host"));
 			port = Integer.parseInt(String.valueOf(configMap.get("port")));
 			docClient = new DocServiceClient(host, port);
 		} catch (IOException e) {
-			logger.error("Error initializing Alignment and/or DB connection.", e);
+			logger.error("Error initializing Document Service, Alignment and/or DB connection.", e);
 			System.exit(-1);
 		}
-		logger.info("Alignment obj, DB connection, and Document service client created.  Initialization complete!");
+		logger.info("Alignment objects and Document service client created.  Initialization complete!");
 	}
 
 	public void run() {
@@ -216,7 +267,7 @@ public class StructuredTransformer {
 					//TODO: Add timestamp into subgraph
 					//Merge subgraph into full knowledge graph
 					if (graph != null) {
-						alignment.load(graph);
+						sendToAlignment(graph);
 					}
 					
 					//Ack the message was processed and can be discarded from the queue
@@ -261,13 +312,21 @@ public class StructuredTransformer {
 		} while (persistent && !fatalError);
 		try {
 			consumer.close();
+			producer.close();
 		} catch (IOException e) {
 			logger.error("Encountered RabbitMQ IO error when closing connection:", e);
 			//don't care in this case, exiting anyway.
 		}
 	}
 	
-	
+	private void sendToAlignment(JSONObject graph) {
+		Map<String, String> metadata = new HashMap<String,String>();
+		metadata.put("contentType", "application/json");
+		metadata.put("dataType", "graph");
+		byte[] messageBytes = graph.toString().getBytes();
+		producer.sendContentMessage(metadata, messageBytes);
+	}
+
 	/**
 	 * @param routingKey determines which extractor to use
 	 * @param content the text to parse
