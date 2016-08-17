@@ -62,7 +62,7 @@ public class RabbitMQConsumer {
 		}
 	}
 	
-	public GetResponse getMessage() throws IOException {
+	public RabbitMQMessage getMessage() throws IOException {
 		GetResponse response = null;
 		try {
 			response = channel.basicGet(queueName, false);
@@ -71,7 +71,7 @@ public class RabbitMQConsumer {
 			throw e;
 		}
 		
-		return response;
+		return new RabbitMQMessage(response);
 	}
 	
 	public void messageProcessed(long deliveryTag) throws IOException {

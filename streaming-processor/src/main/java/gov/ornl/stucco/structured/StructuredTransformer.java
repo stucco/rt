@@ -8,6 +8,7 @@ import java.util.Map;
 
 import gov.ornl.stucco.ConfigLoader;
 import gov.ornl.stucco.RabbitMQConsumer;
+import gov.ornl.stucco.RabbitMQMessage;
 
 import gov.pnnl.stucco.doc_service_client.DocServiceClient;
 import gov.pnnl.stucco.doc_service_client.DocServiceException;
@@ -49,8 +50,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.jdom2.Element;
-
-import com.rabbitmq.client.GetResponse;
 
 public class StructuredTransformer {
 	private static final Logger logger = LoggerFactory.getLogger(StructuredTransformer.class);
@@ -145,25 +144,24 @@ public class StructuredTransformer {
 	}
 
 	public void run() {
-		GetResponse response = null;
+		RabbitMQMessage message = null;
 		boolean fatalError = false; //TODO only RMQ errors handled this way currently
 		
 		do {
 			//Get message from the queue
 			try {
-				response = consumer.getMessage();
+				message = consumer.getMessage();
 			} catch (IOException e) {
 				logger.error("Encountered RabbitMQ IO error:", e);
 				fatalError = true;
 			}
-			while (response != null && !fatalError) {
+			while (message != null && !fatalError) {
 				long itemStartTime = System.currentTimeMillis();
-				String routingKey = response.getEnvelope().getRoutingKey().toLowerCase();
-				long deliveryTag = response.getEnvelope().getDeliveryTag();
+				String routingKey = message.getRoutingKey().toLowerCase();
+				long messageID = message.getId();
 				
-				String message = "";
-				if (response.getBody() != null) {
-					message = new String(response.getBody());
+				String messageBody = message.getBody();
+				if (messageBody != null) {
 					
 					/*long timestamp = 0;
 					if (response.getProps().getTimestamp() != null) {
@@ -171,15 +169,15 @@ public class StructuredTransformer {
 					}*/
 	
 					boolean contentIncluded = false;
-					Map<String, Object> headerMap = response.getProps().getHeaders();
+					Map<String, Object> headerMap = message.getHeaders();
 					if ((headerMap != null) && (headerMap.containsKey("HasContent"))) {
 						contentIncluded = Boolean.valueOf(String.valueOf(headerMap.get("HasContent")));
 					}
 					
-					logger.debug("Recieved: " + routingKey + " deliveryTag=[" + deliveryTag + "] message- "+ message);
+					logger.debug("Recieved: " + routingKey + " deliveryTag=[" + messageID + "] message- "+ messageBody);
 				
 					//Get the document from the document server, if necessary
-					String content = message;
+					String content = messageBody;
 					if (!contentIncluded && !routingKey.contains(".sophos") && !routingKey.contains(".bugtraq")) {
 						String docId = content.trim();
 						logger.debug("Retrieving document content from Document-Service for id '" + docId + "'.");
@@ -191,16 +189,16 @@ public class StructuredTransformer {
 							content = (String) jsonContent.get("document"); 
 						} catch (DocServiceException e) {
 							logger.error("Could not fetch document '" + docId + "' from Document-Service.", e);
-							logger.error("Message content was:\n"+message);
+							logger.error("Message content was:\n"+messageBody);
 						} catch (Exception e) {
 							logger.error("Other error in handling document '" + docId + "' from Document-Service.", e);
-							logger.error("Message content was:\n"+message);
+							logger.error("Message content was:\n"+messageBody);
 						}
 					}
 					
 					//get a few other things from the message before passing to extractors.
 					String docIDs = null;
-					if (!contentIncluded) docIDs = message;
+					if (!contentIncluded) docIDs = messageBody;
 					Map<String, String> metaDataMap = null;
 					if (routingKey.contains(".hone")) {
 						if ((headerMap != null) && (headerMap.containsKey(HOSTNAME_KEY))) {
@@ -223,8 +221,8 @@ public class StructuredTransformer {
 					
 					//Ack the message was processed and can be discarded from the queue
 					try {
-						logger.debug("Acking: " + routingKey + " deliveryTag=[" + deliveryTag + "]");
-						consumer.messageProcessed(deliveryTag);
+						logger.debug("Acking: " + routingKey + " deliveryTag=[" + messageID + "]");
+						consumer.messageProcessed(messageID);
 					} catch (IOException e) {
 						logger.error("Encountered RabbitMQ IO error:", e);
 						fatalError = true;
@@ -232,8 +230,8 @@ public class StructuredTransformer {
 				}
 				else {
 					try {
-						consumer.retryMessage(deliveryTag);
-						logger.debug("Retrying: " + routingKey + " deliveryTag=[" + deliveryTag + "]");
+						consumer.retryMessage(messageID);
+						logger.debug("Retrying: " + routingKey + " deliveryTag=[" + messageID + "]");
 					} catch (IOException e) {
 						logger.error("Encountered RabbitMQ IO error:", e);
 						fatalError = true;
@@ -242,11 +240,11 @@ public class StructuredTransformer {
 				
 				long itemEndTime = System.currentTimeMillis();
 				logger.debug( "Finished processing item in " + (itemEndTime - itemStartTime) + " ms. " +
-						" routingKey: " + routingKey + " deliveryTag: " + deliveryTag + " message: " + message);
+						" routingKey: " + routingKey + " deliveryTag: " + messageID + " message: " + messageBody);
 
 				//Get next message from queue
 				try {
-					response = consumer.getMessage();
+					message = consumer.getMessage();
 				} catch (IOException e) {
 					logger.error("Encountered RabbitMQ IO error:", e);
 					fatalError = true;
