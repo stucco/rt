@@ -14,11 +14,11 @@ import gov.ornl.stucco.structured.StructuredTransformer;
 import gov.pnnl.stucco.doc_service_client.DocServiceClient;
 import gov.pnnl.stucco.doc_service_client.DocServiceException;
 
-import alignment.alignment_v2.PreprocessSTIX;
-import alignment.alignment_v2.GraphConstructor;
-import alignment.alignment_v2.Align;
+import gov.ornl.stucco.preprocessors.PreprocessSTIX;
+import gov.ornl.stucco.GraphConstructor;
+import gov.ornl.stucco.Align;
 
-import STIXExtractor.StuccoExtractor;
+import gov.ornl.stucco.stix_extractors.StuccoExtractor;
 
 import org.mitre.stix.stix_1.STIXPackage;
 

@@ -20,7 +20,7 @@
     </dependency>
     <dependency>
       <groupId>org.yaml</groupId>
-      <artifactId>snakeyaml</artifactId>
+      <artifactId>snakeyaml</artifactId> 
       <version>1.14</version>
     </dependency>
     <dependency>
@@ -54,7 +54,7 @@
         <version>1.2.0.2</version>
     </dependency>
     <dependency>
-      <groupId>org.jdom</groupId>
+      <groupId>org.jdom</groupId> 
       <artifactId>jdom2</artifactId>
       <version>2.0.6</version>
     </dependency>
@@ -69,8 +69,8 @@
       <version>1.0.0</version>
     </dependency>
     <dependency>
-      <groupId>alignment</groupId>
-      <artifactId>alignment_v2</artifactId>
+      <groupId>gov.ornl.stucco</groupId>
+      <artifactId>alignment</artifactId>
       <version>2.0.1</version>
     </dependency>
     <dependency>
@@ -80,7 +80,7 @@
     </dependency>
     <dependency>
       <groupId>gov.ornl.stucco</groupId>
-      <artifactId>STIXExtractor</artifactId>
+      <artifactId>Extractors</artifactId>
       <version>1.0.0</version>
     </dependency>
   </dependencies>

@@ -8,38 +8,42 @@ import java.util.Map;
 
 import gov.ornl.stucco.ConfigLoader;
 import gov.ornl.stucco.RabbitMQConsumer;
+import gov.ornl.stucco.GraphConstructor;
+import gov.ornl.stucco.Align;
+
+import gov.ornl.stucco.preprocessors.PreprocessSTIX;
+
+import gov.ornl.stucco.stix_extractors.ArgusExtractor;
+import gov.ornl.stucco.stix_extractors.BugtraqExtractor;
+import gov.ornl.stucco.stix_extractors.CaidaExtractor;
+import gov.ornl.stucco.stix_extractors.CIF1d4Extractor;
+import gov.ornl.stucco.stix_extractors.CIFZeusTrackerExtractor;
+import gov.ornl.stucco.stix_extractors.CIFEmergingThreatsExtractor;
+import gov.ornl.stucco.stix_extractors.CleanMxVirusExtractor;
+import gov.ornl.stucco.stix_extractors.ClientBannerExtractor;
+import gov.ornl.stucco.stix_extractors.CpeExtractor;
+import gov.ornl.stucco.stix_extractors.CveExtractor;
+import gov.ornl.stucco.stix_extractors.DNSRecordExtractor;
+import gov.ornl.stucco.stix_extractors.FSecureExtractor;
+import gov.ornl.stucco.stix_extractors.GeoIPExtractor;
+import gov.ornl.stucco.stix_extractors.HoneExtractor;
+import gov.ornl.stucco.stix_extractors.HTTPDataExtractor;
+import gov.ornl.stucco.stix_extractors.LoginEventExtractor;
+import gov.ornl.stucco.stix_extractors.MalwareDomainListExtractor;
+import gov.ornl.stucco.stix_extractors.MetasploitExtractor;
+import gov.ornl.stucco.stix_extractors.NvdToStixExtractor;
+import gov.ornl.stucco.stix_extractors.PackageListExtractor;
+import gov.ornl.stucco.stix_extractors.ServerBannerExtractor;
+import gov.ornl.stucco.stix_extractors.ServiceListExtractor;
+import gov.ornl.stucco.stix_extractors.SophosExtractor;
+
+import gov.ornl.stucco.graph_extractors.ArgusGraphExtractor;
+import gov.ornl.stucco.graph_extractors.HTTPDataGraphExtractor;
+import gov.ornl.stucco.graph_extractors.SituGraphExtractor;
 
 import gov.pnnl.stucco.doc_service_client.DocServiceClient;
 import gov.pnnl.stucco.doc_service_client.DocServiceException;
 import gov.pnnl.stucco.doc_service_client.DocumentObject;
-
-import alignment.alignment_v2.PreprocessSTIX;
-import alignment.alignment_v2.GraphConstructor;
-import alignment.alignment_v2.Align;
-
-import STIXExtractor.ArgusExtractor;
-import STIXExtractor.BugtraqExtractor;
-import STIXExtractor.CaidaExtractor;
-import STIXExtractor.CIF1d4Extractor;
-import STIXExtractor.CIFZeusTrackerExtractor;
-import STIXExtractor.CIFEmergingThreatsExtractor;
-import STIXExtractor.CleanMxVirusExtractor;
-import STIXExtractor.ClientBannerExtractor;
-import STIXExtractor.CpeExtractor;
-import STIXExtractor.CveExtractor;
-import STIXExtractor.DNSRecordExtractor;
-import STIXExtractor.FSecureExtractor;
-import STIXExtractor.GeoIPExtractor;
-import STIXExtractor.HoneExtractor;
-import STIXExtractor.HTTPDataExtractor;
-import STIXExtractor.LoginEventExtractor;
-import STIXExtractor.MalwareDomainListExtractor;
-import STIXExtractor.MetasploitExtractor;
-import STIXExtractor.NvdToStixExtractor;
-import STIXExtractor.PackageListExtractor;
-import STIXExtractor.ServerBannerExtractor;
-import STIXExtractor.ServiceListExtractor;
-import STIXExtractor.SophosExtractor;
 
 import org.mitre.stix.stix_1.STIXPackage;
 import org.mitre.cybox.cybox_2.Observables;
@@ -283,7 +287,17 @@ public class StructuredTransformer {
 		JSONObject graph = null;
 
 		try {
-			if (routingKey.contains(".cve")) {
+			if (routingKey.contains(".argus")) {
+				ArgusGraphExtractor extractor = new ArgusGraphExtractor(argusHeaders, content);
+				return extractor.getGraph();
+			} else if (routingKey.contains(".http")) {
+				//TODO: find name of http file ... for now (for testing) it just has .http extencion
+				HTTPDataGraphExtractor httpExtractor = new HTTPDataGraphExtractor(content);
+				return httpExtractor.getGraph();
+			} else if (routingKey.contains(".situ")) {
+				SituGraphExtractor situExtractor = new SituGraphExtractor(content);
+				return situExtractor.getGraph();
+			} else if (routingKey.contains(".cve")) {
 				CveExtractor cveExtractor = new CveExtractor(content);
 				stixPackage = cveExtractor.getStixPackage();
 			} else if (routingKey.contains(".nvd")) {
@@ -295,9 +309,6 @@ public class StructuredTransformer {
 			} else if (routingKey.contains(".maxmind")) {
 				GeoIPExtractor geoIPExtractor = new GeoIPExtractor(content);
 				stixPackage = geoIPExtractor.getStixPackage();
-			} else if (routingKey.contains(".argus")) {
-				ArgusExtractor extractor = new ArgusExtractor(argusHeaders, content);
-				stixPackage = extractor.getStixPackage();
 			} else if (routingKey.contains(".metasploit")) {
 				MetasploitExtractor metasploitExtractor = new MetasploitExtractor(content);
 				stixPackage = metasploitExtractor.getStixPackage();
@@ -310,13 +321,6 @@ public class StructuredTransformer {
 			} else if (routingKey.contains(".installed_package")) {
 				PackageListExtractor packageListExtractor = new PackageListExtractor(content);
 				stixPackage = packageListExtractor.getStixPackage();
-			} else if (routingKey.contains(".situ")) {
-				stixPackage = new STIXPackage()
-					.withObservables(Observables.fromXMLString(content));
-			} else if (routingKey.contains(".http")){
-				//TODO: find name of http file ... for now (for testing) it just has .http extencion
-				HTTPDataExtractor httpExtractor = new HTTPDataExtractor(content);
-				stixPackage = httpExtractor.getStixPackage();
 			} else if (routingKey.contains("1d4")){
 				CIF1d4Extractor cifExtractor = new CIF1d4Extractor(content);
 				stixPackage = cifExtractor.getStixPackage();
