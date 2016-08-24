@@ -8,9 +8,9 @@
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <maven.test.skip>true</maven.test.skip>
-    <main.class>gov.ornl.stucco.structured.StructuredTransformer</main.class>
-    <main.class>gov.ornl.stucco.unstructured.UnstructuredTransformer</main.class>
-    <main.class>gov.ornl.stucco.AlignmentWorker</main.class>
+    <main.class>gov.ornl.stucco.workers.StructuredWorker</main.class>
+    <main.class>gov.ornl.stucco.workers.UnstructuredWorker</main.class>
+    <main.class>gov.ornl.stucco.workers.AlignmentWorker</main.class>
   </properties>
 
   <dependencies>
@@ -133,7 +133,7 @@
           <execution>
             <id>structured</id>
             <configuration>
-              <mainClass>gov.ornl.stucco.structured.StructuredTransformer</mainClass>
+              <mainClass>gov.ornl.stucco.workers.StructuredWorker</mainClass>
               <attachToBuild>true</attachToBuild>
               <classifier>onejar</classifier>
               <filename>rt-structured.jar</filename>
@@ -145,7 +145,7 @@
           <execution>
             <id>unstructured</id>
             <configuration>
-              <mainClass>gov.ornl.stucco.unstructured.UnstructuredTransformer</mainClass>
+              <mainClass>gov.ornl.stucco.workers.UnstructuredWorker</mainClass>
               <attachToBuild>true</attachToBuild>
               <classifier>onejar</classifier>
               <filename>rt-unstructured.jar</filename>
@@ -157,7 +157,7 @@
           <execution>
             <id>alignment</id>
             <configuration>
-              <mainClass>gov.ornl.stucco.AlignmentWorker</mainClass>
+              <mainClass>gov.ornl.stucco.workers.AlignmentWorker</mainClass>
               <attachToBuild>true</attachToBuild>
               <classifier>onejar</classifier>
               <filename>rt-alignment.jar</filename>

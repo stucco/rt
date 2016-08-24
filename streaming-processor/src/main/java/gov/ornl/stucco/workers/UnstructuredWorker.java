@@ -1,4 +1,4 @@
-package gov.ornl.stucco.unstructured;
+package gov.ornl.stucco.workers;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -25,8 +25,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory; 
 import org.jdom2.Element;
 
-public class UnstructuredTransformer {
-	private static final Logger logger = LoggerFactory.getLogger(UnstructuredTransformer.class);
+public class UnstructuredWorker {
+	private static final Logger logger = LoggerFactory.getLogger(UnstructuredWorker.class);
 	private static final String PROCESS_NAME = "UNSTRUCTURED";
 	
 	private RabbitMQConsumer consumer;
@@ -41,13 +41,13 @@ public class UnstructuredTransformer {
 	private boolean persistent;
 	private int sleepTime;
 	
-	public UnstructuredTransformer() {
+	public UnstructuredWorker() {
 		logger.info("loading config file from default location");
 		ConfigLoader configLoader = new ConfigLoader();
 		init(configLoader);
 	}
 	
-	public UnstructuredTransformer(String configFile) {
+	public UnstructuredWorker(String configFile) {
 		logger.info("loading config file at: " + configFile);
 		ConfigLoader configLoader = new ConfigLoader(configFile);
 		init(configLoader);
@@ -317,12 +317,12 @@ public class UnstructuredTransformer {
 	 * @param args
 	 */
 	public static void main(String[] args) {
-		UnstructuredTransformer unstructProcess;
+		UnstructuredWorker unstructProcess;
 		if (args.length == 0) {
-			unstructProcess = new UnstructuredTransformer();
+			unstructProcess = new UnstructuredWorker();
 		}
 		else {
-			unstructProcess = new UnstructuredTransformer(args[0]);
+			unstructProcess = new UnstructuredWorker(args[0]);
 		}
 		unstructProcess.run();
 	}

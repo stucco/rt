@@ -1,4 +1,4 @@
-package gov.ornl.stucco.structured;
+package gov.ornl.stucco.workers;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -51,8 +51,8 @@ import org.slf4j.LoggerFactory;
 
 import org.jdom2.Element;
 
-public class StructuredTransformer {
-	private static final Logger logger = LoggerFactory.getLogger(StructuredTransformer.class);
+public class StructuredWorker {
+	private static final Logger logger = LoggerFactory.getLogger(StructuredWorker.class);
 	private static final String PROCESS_NAME = "STRUCTURED";
 
 	private static final String[] argusHeaders = {"StartTime", "Flgs", "Proto", "SrcAddr", "Sport", "Dir", "DstAddr", "Dport", "TotPkts", "TotBytes", "State"};
@@ -70,13 +70,13 @@ public class StructuredTransformer {
 	
 	private final String HOSTNAME_KEY = "hostName";
 	
-	public StructuredTransformer() {
+	public StructuredWorker() {
 		logger.info("loading config file from default location");
 		ConfigLoader configLoader = new ConfigLoader();
 		init(configLoader);
 	}
 	
-	public StructuredTransformer(String configFile) {
+	public StructuredWorker(String configFile) {
 		logger.info("loading config file at: " + configFile);
 		ConfigLoader configLoader = new ConfigLoader(configFile);
 		init(configLoader);
@@ -546,12 +546,12 @@ public class StructuredTransformer {
 	 * @param args
 	 */
 	public static void main(String[] args) {
-		StructuredTransformer structProcess;
+		StructuredWorker structProcess;
 		if (args.length == 0) {
-			structProcess = new StructuredTransformer();
+			structProcess = new StructuredWorker();
 		}
 		else {
-			structProcess = new StructuredTransformer(args[0]);
+			structProcess = new StructuredWorker(args[0]);
 		}
 		structProcess.run();
 	}
