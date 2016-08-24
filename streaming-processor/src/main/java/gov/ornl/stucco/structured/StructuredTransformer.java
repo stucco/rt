@@ -17,7 +17,6 @@ import gov.pnnl.stucco.doc_service_client.DocumentObject;
 
 import gov.ornl.stucco.alignment.PreprocessSTIX;
 import gov.ornl.stucco.alignment.GraphConstructor;
-import gov.ornl.stucco.alignment.Align;
 
 import STIXExtractor.ArgusExtractor;
 import STIXExtractor.BugtraqExtractor;

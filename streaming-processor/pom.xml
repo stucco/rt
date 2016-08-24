@@ -10,6 +10,7 @@
     <maven.test.skip>true</maven.test.skip>
     <main.class>gov.ornl.stucco.structured.StructuredTransformer</main.class>
     <main.class>gov.ornl.stucco.unstructured.UnstructuredTransformer</main.class>
+    <main.class>gov.ornl.stucco.AlignmentWorker</main.class>
   </properties>
 
   <dependencies>
@@ -148,6 +149,18 @@
               <attachToBuild>true</attachToBuild>
               <classifier>onejar</classifier>
               <filename>rt-unstructured.jar</filename>
+            </configuration>
+            <goals>
+              <goal>one-jar</goal>
+            </goals>
+          </execution>
+          <execution>
+            <id>alignment</id>
+            <configuration>
+              <mainClass>gov.ornl.stucco.AlignmentWorker</mainClass>
+              <attachToBuild>true</attachToBuild>
+              <classifier>onejar</classifier>
+              <filename>rt-alignment.jar</filename>
             </configuration>
             <goals>
               <goal>one-jar</goal>
