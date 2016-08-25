@@ -2,9 +2,13 @@ package gov.ornl.stucco;
 
 import java.util.Map;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.rabbitmq.client.GetResponse;
 
 public class RabbitMQMessage {
+	private static final Logger logger = LoggerFactory.getLogger(RabbitMQMessage.class);
 
 	GetResponse response;
 
@@ -13,7 +17,12 @@ public class RabbitMQMessage {
 	}
 
 	public String getRoutingKey(){
-		return response.getEnvelope().getRoutingKey();
+		String key = response.getEnvelope().getRoutingKey();
+		if(key == null){
+			logger.warn("Unexpected null routing key");
+			key = "NULL";
+		}
+		return key;
 	}
 
 	public long getId(){
