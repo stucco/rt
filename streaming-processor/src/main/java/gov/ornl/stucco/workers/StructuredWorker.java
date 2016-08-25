@@ -64,24 +64,24 @@ public class StructuredWorker {
 
 	private PreprocessSTIX preprocessSTIX; 
 	private GraphConstructor constructGraph;
-	
+
 	private boolean persistent;
 	private int sleepTime;
-	
+
 	private final String HOSTNAME_KEY = "hostName";
-	
+
 	public StructuredWorker() {
 		logger.info("loading config file from default location");
 		ConfigLoader configLoader = new ConfigLoader();
 		init(configLoader);
 	}
-	
+
 	public StructuredWorker(String configFile) {
 		logger.info("loading config file at: " + configFile);
 		ConfigLoader configLoader = new ConfigLoader(configFile);
 		init(configLoader);
 	}
-	
+
 	private void init(ConfigLoader configLoader) {
 		try {
 			Map<String, Object> configMap;
@@ -196,7 +196,7 @@ public class StructuredWorker {
 	public void run() {
 		RabbitMQMessage message = null;
 		boolean fatalError = false; //TODO only RMQ errors handled this way currently
-		
+
 		do {
 			//Get message from the queue
 			try {
@@ -209,29 +209,29 @@ public class StructuredWorker {
 				long itemStartTime = System.currentTimeMillis();
 				String routingKey = message.getRoutingKey().toLowerCase();
 				long messageID = message.getId();
-				
+
 				String messageBody = message.getBody();
 				if (messageBody != null) {
-					
+
 					/*long timestamp = 0;
 					if (response.getProps().getTimestamp() != null) {
 						timestamp = response.getProps().getTimestamp().getTime();
 					}*/
-	
+
 					boolean contentIncluded = false;
 					Map<String, Object> headerMap = message.getHeaders();
 					if ((headerMap != null) && (headerMap.containsKey("HasContent"))) {
 						contentIncluded = Boolean.valueOf(String.valueOf(headerMap.get("HasContent")));
 					}
-					
+
 					logger.debug("Recieved: " + routingKey + " deliveryTag=[" + messageID + "] message- "+ messageBody);
-				
+
 					//Get the document from the document server, if necessary
 					String content = messageBody;
 					if (!contentIncluded && !routingKey.contains(".sophos") && !routingKey.contains(".bugtraq")) {
 						String docId = content.trim();
 						logger.debug("Retrieving document content from Document-Service for id '" + docId + "'.");
-	
+
 						try {
 							DocumentObject document = docClient.fetch(docId);
 							String rawContent = document.getDataAsString();
@@ -245,7 +245,7 @@ public class StructuredWorker {
 							logger.error("Message content was:\n"+messageBody);
 						}
 					}
-					
+
 					//get a few other things from the message before passing to extractors.
 					String docIDs = null;
 					if (!contentIncluded) docIDs = messageBody;
@@ -259,7 +259,7 @@ public class StructuredWorker {
 							metaDataMap.put(HOSTNAME_KEY, hostname);
 						}
 					}
-					
+
 					//Construct the subgraph by parsing the structured data	
 					JSONObject graph = generateGraph(routingKey, content, metaDataMap, docIDs);
 
@@ -268,7 +268,7 @@ public class StructuredWorker {
 					if (graph != null) {
 						sendToAlignment(graph);
 					}
-					
+
 					//Ack the message was processed and can be discarded from the queue
 					try {
 						logger.debug("Acking: " + routingKey + " deliveryTag=[" + messageID + "]");
@@ -287,7 +287,7 @@ public class StructuredWorker {
 						fatalError = true;
 					}
 				}
-				
+
 				long itemEndTime = System.currentTimeMillis();
 				logger.debug( "Finished processing item in " + (itemEndTime - itemStartTime) + " ms. " +
 						" routingKey: " + routingKey + " deliveryTag: " + messageID + " message: " + messageBody);
@@ -300,7 +300,7 @@ public class StructuredWorker {
 					fatalError = true;
 				}
 			}
-			
+
 			//Either the queue is empty, or an error occurred.
 			//Either way, sleep for a bit to prevent rapid loop of re-starting.
 			try {
@@ -317,7 +317,7 @@ public class StructuredWorker {
 			//don't care in this case, exiting anyway.
 		}
 	}
-	
+
 	private void sendToAlignment(JSONObject graph) {
 		Map<String, String> metadata = new HashMap<String,String>();
 		metadata.put("contentType", "application/json");

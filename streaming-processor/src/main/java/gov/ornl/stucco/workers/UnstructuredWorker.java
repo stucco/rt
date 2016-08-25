@@ -28,31 +28,31 @@ import org.jdom2.Element;
 public class UnstructuredWorker {
 	private static final Logger logger = LoggerFactory.getLogger(UnstructuredWorker.class);
 	private static final String PROCESS_NAME = "UNSTRUCTURED";
-	
+
 	private RabbitMQConsumer consumer;
 	private RabbitMQProducer producer;
-	
+
 	private DocServiceClient docClient;
 	private EntityLabeler entityLabeler;
 	private RelationExtractor relationExtractor;
 	private PreprocessSTIX preprocessSTIX;
 	private GraphConstructor constructGraph;
-	
+
 	private boolean persistent;
 	private int sleepTime;
-	
+
 	public UnstructuredWorker() {
 		logger.info("loading config file from default location");
 		ConfigLoader configLoader = new ConfigLoader();
 		init(configLoader);
 	}
-	
+
 	public UnstructuredWorker(String configFile) {
 		logger.info("loading config file at: " + configFile);
 		ConfigLoader configLoader = new ConfigLoader(configFile);
 		init(configLoader);
 	}
-	
+
 	private void init(ConfigLoader configLoader) {
 		try {
 			Map<String, Object> configMap;
@@ -163,11 +163,11 @@ public class UnstructuredWorker {
 		}
 		logger.info("Alignment objects and Document service client created.  Initialization complete!");
 	}
-	
+
 	public void run() {
 		RabbitMQMessage message = null;
 		boolean fatalError = false; //TODO only RMQ errors handled this way currently
-		
+
 		do{
 			//Get message from the queue
 			try{
@@ -180,30 +180,30 @@ public class UnstructuredWorker {
 				long itemStartTime = System.currentTimeMillis();
 				String routingKey = message.getRoutingKey().toLowerCase();
 				long messageID = message.getId();
-				
+
 				if (message.getBody() != null) {
 					String messageBody = new String(message.getBody());
-					
+
 					/*long timestamp = 0;
 					if (response.getProps().getTimestamp() != null) {
 						timestamp = response.getProps().getTimestamp().getTime();
 					}*/
-					
+
 					boolean contentIncluded = false;
 					Map<String, Object> headerMap = message.getHeaders();
 					if ((headerMap != null) && (headerMap.containsKey("HasContent"))) {
 						contentIncluded = Boolean.valueOf(String.valueOf(headerMap.get("HasContent")));
 					}
-					
+
 					logger.debug("Recieved: " + routingKey + " deliveryTag=[" + messageID + "] message- "+ messageBody);
-				
+
 					//Get the document and title from the document server, if necessary
 					String content = messageBody;
 					String title = "";
 					if (!contentIncluded) {
 						String docId = content.trim();
 						logger.debug("Retrieving document content from Document-Service for id '" + docId + "'.");
-	
+
 						try {
 							JSONObject jsonObject = docClient.fetchExtractedText(docId);
 							content = jsonObject.getString("document");
@@ -221,12 +221,12 @@ public class UnstructuredWorker {
 							logger.error("Message content was:\n"+messageBody);
 						}
 					}
-					
+
 					if (content != null) {
 						try {
 							//Label the entities/concepts in the document
 							Annotation annotatedDoc = entityLabeler.getAnnotatedDoc(title, content);
-						
+
 							//Extract the data source name from the routing key
 							String dataSource = routingKey;
 							int index = routingKey.indexOf(PROCESS_NAME.toLowerCase());
@@ -236,7 +236,7 @@ public class UnstructuredWorker {
 									dataSource = dataSource.substring(1);
 								}
 							}
-							
+
 							//Construct the subgraph from the concepts and relationships
 							String graphString = relationExtractor.createSubgraph(annotatedDoc, dataSource);
 							if (graphString != null) {
@@ -259,7 +259,7 @@ public class UnstructuredWorker {
 							ex.printStackTrace();
 						}
 					}
-					
+
 					//Ack the message was processed and can be discarded from the queue
 					try{
 						logger.debug("Acking: " + routingKey + " deliveryTag=[" + messageID + "]");
@@ -278,7 +278,7 @@ public class UnstructuredWorker {
 						fatalError = true;
 					}
 				}
-				
+
 				//Get next message from queue
 				try{
 					message = consumer.getMessage();
@@ -287,7 +287,7 @@ public class UnstructuredWorker {
 					fatalError = true;
 				}
 			}
-			
+
 			//Either the queue is empty, or an error occurred.
 			//Either way, sleep for a bit to prevent rapid loop of re-starting.
 			try {
@@ -312,7 +312,7 @@ public class UnstructuredWorker {
 		byte[] messageBytes = graph.toString().getBytes();
 		producer.sendContentMessage(metadata, messageBytes);
 	}
-	
+
 	/**
 	 * @param args
 	 */

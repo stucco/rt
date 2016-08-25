@@ -23,7 +23,7 @@ public class RabbitMQConsumer {
 	private String password;
 	private String[] bindingKeys;
 	private Channel channel;
-	
+
 	public RabbitMQConsumer(String exchangeName, String queueName, String host, int port, String username, String password, String[] bindingKeys) {
 		this.exchangeName = exchangeName;
 		this.queueName = queueName;
@@ -33,7 +33,7 @@ public class RabbitMQConsumer {
 		this.password = password;
 		this.bindingKeys = bindingKeys;
 	}
-	
+
 	public void openQueue() throws IOException {
 		//setup a connection
 		ConnectionFactory factory = new ConnectionFactory();
@@ -45,7 +45,7 @@ public class RabbitMQConsumer {
 		if (password != null) {
 			factory.setPassword(password);
 		}
-		
+
 		try {
 			Connection connection = factory.newConnection();
 			//create a durable exchange on the channel
@@ -61,7 +61,7 @@ public class RabbitMQConsumer {
 			throw e;
 		}
 	}
-	
+
 	public RabbitMQMessage getMessage() throws IOException {
 		GetResponse response = null;
 		try {
@@ -70,10 +70,10 @@ public class RabbitMQConsumer {
 			logger.error("Error getting message from queue '" + queueName + "'.");
 			throw e;
 		}
-		
+
 		return new RabbitMQMessage(response);
 	}
-	
+
 	public void messageProcessed(long deliveryTag) throws IOException {
 		try {
 			channel.basicAck(deliveryTag, false);
@@ -91,7 +91,7 @@ public class RabbitMQConsumer {
 			throw e;
 		}
 	}
-	
+
 	public void close() throws IOException {
 		if ((channel != null) && (channel.getConnection() != null) && (channel.getConnection().isOpen())) {
 			try {

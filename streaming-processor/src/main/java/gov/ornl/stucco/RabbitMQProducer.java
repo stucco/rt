@@ -11,11 +11,9 @@ import com.rabbitmq.client.AMQP;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.ConnectionFactory;
-import com.rabbitmq.client.GetResponse;
 
 import gov.pnnl.stucco.doc_service_client.DocServiceClient;
 import gov.pnnl.stucco.doc_service_client.DocServiceException;
-import gov.pnnl.stucco.doc_service_client.DocumentObject;
 
 public class RabbitMQProducer {
 	private static final Logger logger = LoggerFactory.getLogger(RabbitMQProducer.class);
@@ -33,7 +31,7 @@ public class RabbitMQProducer {
 	private int maxMessageSize;
 
 	private DocServiceClient docServiceClient;
-	
+
 	public RabbitMQProducer(String exchangeName, String queueName, String host, int port, String username, String password, String[] bindingKeys) {
 		this.exchangeName = exchangeName;
 		this.queueName = queueName;
@@ -44,7 +42,7 @@ public class RabbitMQProducer {
 		this.bindingKeys = bindingKeys;
 		this.maxMessageSize = 10000000; //TODO: pass as arg?
 	}
-	
+
 	public void openQueue() throws IOException {
 		//setup a connection
 		ConnectionFactory factory = new ConnectionFactory();
@@ -56,7 +54,7 @@ public class RabbitMQProducer {
 		if (password != null) {
 			factory.setPassword(password);
 		}
-		
+
 		try {
 			Connection connection = factory.newConnection();
 			//create a durable exchange on the channel
@@ -72,7 +70,7 @@ public class RabbitMQProducer {
 			throw e;
 		}
 	}
-	
+
 	public void close() throws IOException {
 		if ((channel != null) && (channel.getConnection() != null) && (channel.getConnection().isOpen())) {
 			try {
@@ -83,7 +81,7 @@ public class RabbitMQProducer {
 			}
 		}
 	}
-	
+
 	/** 
      * Sends a content message. Depending on content size, this either sends
      * the content directly, or it first stores the document and sends the ID.
@@ -120,7 +118,7 @@ public class RabbitMQProducer {
         metadata.put("content", "false");
         sendMessage(metadata, messageBytes);
     }
-    
+
     /** Saves content to the document store, getting back the ID. */
     private String saveToDocumentStore(byte[] rawContent, String contentType) throws DocServiceException {
         if (docServiceClient == null) {
@@ -128,16 +126,16 @@ public class RabbitMQProducer {
             return "";
         }
         String docId = docServiceClient.store(rawContent, contentType);
-        
+
         return docId;
     }
-    
+
     /** Sends a raw-content message to the message queue. */
     public void sendContentMessage(Map<String, String> metadata, byte[] messageBytes) {
         metadata.put("content", "true");
         sendMessage(metadata, messageBytes);        
     }
-    
+
     /** Sets up message queue and sends a message. */
     private void sendMessage(Map<String, String> metadata, byte[] messageBytes) {
         try {
@@ -153,7 +151,7 @@ public class RabbitMQProducer {
 
             String dataType = metadata.get("dataType");
             String routingKey = "stucco.align." + dataType;
-            
+
             // Send the file as a message
             channel.basicPublish(exchangeName, routingKey, builder.build(), messageBytes);
 
@@ -164,7 +162,7 @@ public class RabbitMQProducer {
                 messageSubString += "...";
             }
             logger.info("Sent message for: {}, {}",dataType, messageSubString);
-            
+
             logger.debug("RABBITMQ -> exchangeName: "+exchangeName+
                     "  dataType: "+dataType+
                     "  routingKey: "+ routingKey);
