@@ -20,6 +20,7 @@ import gov.ornl.stucco.alignment.GraphConstructor;
 import STIXExtractor.StuccoExtractor;
 
 import org.mitre.stix.stix_1.STIXPackage;
+import org.json.JSONArray;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory; 
@@ -306,11 +307,30 @@ public class UnstructuredWorker {
 	}
 
 	private void sendToAlignment(JSONObject graph) {
-		Map<String, String> metadata = new HashMap<String,String>();
-		metadata.put("contentType", "application/json");
-		metadata.put("dataType", "graph");
-		byte[] messageBytes = graph.toString().getBytes();
-		producer.sendContentMessage(metadata, messageBytes);
+		Map<String, JSONArray> components = splitGraph(graph);
+		for(String type: components.keySet()){
+			Map<String, String> metadata = new HashMap<String,String>();
+			metadata.put("contentType", "application/json");
+			metadata.put("dataType", type);
+			byte[] messageBytes = components.get(type).toString().getBytes();
+			producer.sendContentMessage(metadata, messageBytes);
+		}
+	}
+
+	private Map<String, JSONArray> splitGraph(JSONObject graph) {
+		Map<String, JSONArray> components = new HashMap<String, JSONArray>();
+		JSONArray edges = (JSONArray)graph.remove("edges");
+		JSONArray vertices = (JSONArray)graph.remove("vertices");
+		if(graph.keySet().size() > 0){
+			logger.warn("Graphson item contained unexpected content.  Remaining content is:\n" + graph.toString(2));
+		}
+		//handle edges
+		components.put("edges", edges);
+		//handle vertices
+		components.put("vertices", vertices);
+		//TODO: split into smaller groups
+		//TODO: check for duplicates here
+		return components;
 	}
 
 	/**

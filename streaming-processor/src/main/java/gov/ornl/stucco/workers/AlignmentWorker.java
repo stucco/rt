@@ -9,13 +9,12 @@ import java.util.Map;
 import gov.ornl.stucco.ConfigLoader;
 import gov.ornl.stucco.RabbitMQConsumer;
 import gov.ornl.stucco.RabbitMQMessage;
-
 import gov.pnnl.stucco.doc_service_client.DocServiceClient;
 import gov.pnnl.stucco.doc_service_client.DocServiceException;
 import gov.pnnl.stucco.doc_service_client.DocumentObject;
-
 import gov.ornl.stucco.alignment.Align;
 
+import org.json.JSONArray;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -134,8 +133,27 @@ public class AlignmentWorker {
 
 					logger.debug("Recieved: " + routingKey + " deliveryTag=[" + messageID + "] message- "+ messageBody);
 
+					//build the graph as needed.
+					JSONObject graph = null;
+					if(routingKey.endsWith(".graph")){
+						graph = new JSONObject(messageBody);
+					}
+					else if(routingKey.endsWith(".edges")){
+						graph = new JSONObject();
+						JSONArray edges = new JSONArray(messageBody);
+						JSONArray vertices = new JSONArray();
+						graph.put("edges", edges);
+						graph.put("vertices", vertices);
+					}
+					else if(routingKey.endsWith(".vertices")){
+						graph = new JSONObject();
+						JSONArray edges = new JSONArray();
+						JSONArray vertices = new JSONArray(messageBody);
+						graph.put("edges", edges);
+						graph.put("vertices", vertices);
+					}
+					
 					//pass the graph to alignment to laod
-					JSONObject graph = new JSONObject(messageBody);
 					if (graph != null) {
 						alignment.load(graph);
 					}

@@ -2,6 +2,7 @@ package gov.ornl.stucco.workers;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -10,14 +11,11 @@ import gov.ornl.stucco.ConfigLoader;
 import gov.ornl.stucco.RabbitMQConsumer;
 import gov.ornl.stucco.RabbitMQMessage;
 import gov.ornl.stucco.RabbitMQProducer;
-
 import gov.pnnl.stucco.doc_service_client.DocServiceClient;
 import gov.pnnl.stucco.doc_service_client.DocServiceException;
 import gov.pnnl.stucco.doc_service_client.DocumentObject;
-
 import gov.ornl.stucco.alignment.PreprocessSTIX;
 import gov.ornl.stucco.alignment.GraphConstructor;
-
 import STIXExtractor.ArgusExtractor;
 import STIXExtractor.BugtraqExtractor;
 import STIXExtractor.CaidaExtractor;
@@ -44,11 +42,10 @@ import STIXExtractor.SophosExtractor;
 
 import org.mitre.stix.stix_1.STIXPackage;
 import org.mitre.cybox.cybox_2.Observables;
-
+import org.json.JSONArray;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import org.jdom2.Element;
 
 public class StructuredWorker {
@@ -319,11 +316,30 @@ public class StructuredWorker {
 	}
 
 	private void sendToAlignment(JSONObject graph) {
-		Map<String, String> metadata = new HashMap<String,String>();
-		metadata.put("contentType", "application/json");
-		metadata.put("dataType", "graph");
-		byte[] messageBytes = graph.toString().getBytes();
-		producer.sendContentMessage(metadata, messageBytes);
+		Map<String, JSONArray> components = splitGraph(graph);
+		for(String type: components.keySet()){
+			Map<String, String> metadata = new HashMap<String,String>();
+			metadata.put("contentType", "application/json");
+			metadata.put("dataType", type);
+			byte[] messageBytes = components.get(type).toString().getBytes();
+			producer.sendContentMessage(metadata, messageBytes);
+		}
+	}
+
+	private Map<String, JSONArray> splitGraph(JSONObject graph) {
+		Map<String, JSONArray> components = new HashMap<String, JSONArray>();
+		JSONArray edges = (JSONArray)graph.remove("edges");
+		JSONArray vertices = (JSONArray)graph.remove("vertices");
+		if(graph.keySet().size() > 0){
+			logger.warn("Graphson item contained unexpected content.  Remaining content is:\n" + graph.toString(2));
+		}
+		//handle edges
+		components.put("edges", edges);
+		//handle vertices
+		components.put("vertices", vertices);
+		//TODO: split into smaller groups
+		//TODO: check for duplicates here
+		return components;
 	}
 
 	/**
