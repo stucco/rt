@@ -477,6 +477,8 @@ public class StructuredTransformer {
 				}
 			} else if (routingKey.endsWith(".stix")) {
 				stixDocument = true;
+			} else {
+				logger.warn("Unexpected routing key encountered '" + routingKey + "'.");
 			}
 
 			if (stixPackage != null) {
@@ -486,7 +488,7 @@ public class StructuredTransformer {
 				Map<String, Element> stixElements = preprocessSTIX.normalizeSTIX(content);
 				graph = constructGraph.constructGraph(stixElements);
 			} else {
-				logger.warn("Unexpected routing key encountered '" + routingKey + "'.");
+				logger.warn("Unexpected null stix package for routing key '" + routingKey + "'.");
 			}
 		} catch (RuntimeException e) {
 			logger.error("Error occurred with routingKey = " + routingKey);
