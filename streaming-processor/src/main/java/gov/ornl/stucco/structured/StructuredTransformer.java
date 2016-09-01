@@ -184,7 +184,7 @@ public class StructuredTransformer {
 				
 					//Get the document from the document server, if necessary
 					String content = message;
-					if (!contentIncluded && !routingKey.contains(".sophos") && !routingKey.contains(".bugtraq")) {
+					if (!contentIncluded && !routingKey.endsWith(".sophos") && !routingKey.endsWith(".bugtraq")) {
 						String docId = content.trim();
 						logger.debug("Retrieving document content from Document-Service for id '" + docId + "'.");
 	
@@ -206,7 +206,7 @@ public class StructuredTransformer {
 					String docIDs = null;
 					if (!contentIncluded) docIDs = message;
 					Map<String, String> metaDataMap = null;
-					if (routingKey.contains(".hone")) {
+					if (routingKey.endsWith(".hone")) {
 						if ((headerMap != null) && (headerMap.containsKey(HOSTNAME_KEY))) {
 							// The extractor needs Map<String,String>, and the headerMap is Map<String,Object>.
 							// Also, the original headerMap may contain things that extractors don't care about.
@@ -287,68 +287,68 @@ public class StructuredTransformer {
 		JSONObject graph = null;
 
 		try {
-			if (routingKey.contains(".argus")) {
+			if (routingKey.endsWith(".argus")) {
 				ArgusGraphExtractor extractor = new ArgusGraphExtractor(argusHeaders, content);
 				return extractor.getGraph();
-			} else if (routingKey.contains(".http")) {
+			} else if (routingKey.endsWith(".http")) {
 				//TODO: find name of http file ... for now (for testing) it just has .http extencion
 				HTTPDataGraphExtractor httpExtractor = new HTTPDataGraphExtractor(content);
 				return httpExtractor.getGraph();
-			} else if (routingKey.contains(".situ")) {
+			} else if (routingKey.endsWith(".situ")) {
 				SituGraphExtractor situExtractor = new SituGraphExtractor(content);
 				return situExtractor.getGraph();
-			} else if (routingKey.contains(".cve")) {
+			} else if (routingKey.endsWith(".cve")) {
 				CveExtractor cveExtractor = new CveExtractor(content);
 				stixPackage = cveExtractor.getStixPackage();
-			} else if (routingKey.contains(".nvd")) {
+			} else if (routingKey.endsWith(".nvd")) {
 				NvdToStixExtractor nvdExt = new NvdToStixExtractor(content);
 				stixPackage = nvdExt.getStixPackage();
-			} else if (routingKey.contains(".cpe")) {
+			} else if (routingKey.endsWith(".cpe")) {
 				CpeExtractor cpeExtractor = new CpeExtractor(content);
 				stixPackage = cpeExtractor.getStixPackage(); 
-			} else if (routingKey.contains(".maxmind")) {
+			} else if (routingKey.endsWith(".maxmind")) {
 				GeoIPExtractor geoIPExtractor = new GeoIPExtractor(content);
 				stixPackage = geoIPExtractor.getStixPackage();
-			} else if (routingKey.contains(".metasploit")) {
+			} else if (routingKey.endsWith(".metasploit")) {
 				MetasploitExtractor metasploitExtractor = new MetasploitExtractor(content);
 				stixPackage = metasploitExtractor.getStixPackage();
-			} else if (routingKey.replaceAll("\\-", "").contains(".cleanmx")) {
+			} else if (routingKey.replaceAll("\\-", "").endsWith(".cleanmx")) {
 				CleanMxVirusExtractor virusExtractor = new CleanMxVirusExtractor(content);
 				stixPackage = virusExtractor.getStixPackage();
-			} else if (routingKey.contains(".login_events")) {
+			} else if (routingKey.endsWith(".login_events")) {
 				LoginEventExtractor loginEventExtractor = new LoginEventExtractor(content);
 				stixPackage = loginEventExtractor.getStixPackage();
-			} else if (routingKey.contains(".installed_package")) {
+			} else if (routingKey.endsWith(".installed_package")) {
 				PackageListExtractor packageListExtractor = new PackageListExtractor(content);
 				stixPackage = packageListExtractor.getStixPackage();
-			} else if (routingKey.contains("1d4")){
+			} else if (routingKey.endsWith(".1d4")){
 				CIF1d4Extractor cifExtractor = new CIF1d4Extractor(content);
 				stixPackage = cifExtractor.getStixPackage();
-			} else if (routingKey.contains("zeustracker")) {
+			} else if (routingKey.endsWith(".zeustracker")) {
 				CIFZeusTrackerExtractor cifExtractor = new CIFZeusTrackerExtractor(content);
 				stixPackage = cifExtractor.getStixPackage();
-			} else if (routingKey.contains("emergingthreats")) {
+			} else if (routingKey.endsWith(".emergingthreats")) {
 				CIFEmergingThreatsExtractor cifExtractor = new CIFEmergingThreatsExtractor(content);
 				stixPackage = cifExtractor.getStixPackage();
-			} else if (routingKey.contains(".servicelist")) {
+			} else if (routingKey.endsWith(".servicelist")) {
 				ServiceListExtractor serviceListExtractor = new ServiceListExtractor(content);
 				stixPackage = serviceListExtractor.getStixPackage();
-			} else if (routingKey.contains(".serverbanner")) {
+			} else if (routingKey.endsWith(".serverbanner")) {
 				ServerBannerExtractor serverBannerExtractor = new ServerBannerExtractor(content);
 				stixPackage = serverBannerExtractor.getStixPackage();
-			} else if (routingKey.contains(".clientbanner")) {
+			} else if (routingKey.endsWith(".clientbanner")) {
 				ClientBannerExtractor clientBannerExtractor = new ClientBannerExtractor(content);
 				stixPackage = clientBannerExtractor.getStixPackage();
-			} else if (routingKey.replaceAll("\\-", "").contains(".fsecure")) {
+			} else if (routingKey.replaceAll("\\-", "").endsWith(".fsecure")) {
 				FSecureExtractor fSecureExt = new FSecureExtractor(content);
 				stixPackage = fSecureExt.getStixPackage();
-			} else if (routingKey.contains(".malwaredomainlist")) {
+			} else if (routingKey.endsWith(".malwaredomainlist")) {
 				MalwareDomainListExtractor mdlExt = new MalwareDomainListExtractor(content);
 				stixPackage = mdlExt.getStixPackage();
-			} else if (routingKey.contains(".dnsrecord")) {
+			} else if (routingKey.endsWith(".dnsrecord")) {
 				DNSRecordExtractor dnsExt = new DNSRecordExtractor(content);
 				stixPackage = dnsExt.getStixPackage();
-			} else if (routingKey.contains(".hone")) {
+			} else if (routingKey.endsWith(".hone")) {
 				HoneExtractor honeExtractor = null;
 				if ((metaDataMap != null) && (metaDataMap.containsKey(HOSTNAME_KEY))) {
 					honeExtractor = new HoneExtractor(content, metaDataMap.get(HOSTNAME_KEY));
@@ -356,7 +356,7 @@ public class StructuredTransformer {
 					honeExtractor = new HoneExtractor(content);
 				}
 				stixPackage = honeExtractor.getStixPackage();
-			} else if (routingKey.contains("caida")) {
+			} else if (routingKey.endsWith(".caida")) {
 				//TODO: ensure file names match 
 				String as2org = null;
 				String pfx2as = null;
@@ -388,7 +388,7 @@ public class StructuredTransformer {
 					CaidaExtractor caidaExtractor = new CaidaExtractor(as2org, pfx2as);
 					stixPackage = caidaExtractor.getStixPackage();
 				}
-			} else if (routingKey.contains(".sophos")) {
+			} else if (routingKey.endsWith(".sophos")) {
 				String summary = null;
 				String details = null;
 				String[] items = content.split("\\r?\\n");
@@ -421,7 +421,7 @@ public class StructuredTransformer {
 				} else {
 					logger.warn("Sophos: some required fields were null, skipping group.\nMessage was:" + content);
 				}
-			} else if (routingKey.contains(".bugtraq")) {
+			} else if (routingKey.endsWith(".bugtraq")) {
 				String info = null;
 				String discussion = null;
 				String exploit = null;
@@ -466,7 +466,7 @@ public class StructuredTransformer {
 						logger.error("Problem docid(s):\n" + docIDs);
 					}
 				}
-			} else if (routingKey.contains(".stix")) {
+			} else if (routingKey.endsWith(".stix")) {
 				stixDocument = true;
 			}
 
