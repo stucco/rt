@@ -39,7 +39,9 @@ import gov.ornl.stucco.stix_extractors.SophosExtractor;
 
 import gov.ornl.stucco.graph_extractors.ArgusGraphExtractor;
 import gov.ornl.stucco.graph_extractors.HTTPDataGraphExtractor;
+import gov.ornl.stucco.graph_extractors.HTTPRDataGraphExtractor;
 import gov.ornl.stucco.graph_extractors.SituGraphExtractor;
+import gov.ornl.stucco.graph_extractors.SnoGraphExtractor;
 
 import gov.pnnl.stucco.doc_service_client.DocServiceClient;
 import gov.pnnl.stucco.doc_service_client.DocServiceException;
@@ -294,9 +296,16 @@ public class StructuredTransformer {
 				//TODO: find name of http file ... for now (for testing) it just has .http extencion
 				HTTPDataGraphExtractor httpExtractor = new HTTPDataGraphExtractor(content);
 				return httpExtractor.getGraph();
+			} else if (routingKey.endsWith(".httpr")) {
+				//TODO: find name of http file ... for now (for testing) it just has .http extencion
+				HTTPRDataGraphExtractor httprExtractor = new HTTPRDataGraphExtractor(content);
+				return httprExtractor.getGraph();
 			} else if (routingKey.endsWith(".situ")) {
 				SituGraphExtractor situExtractor = new SituGraphExtractor(content);
 				return situExtractor.getGraph();
+			} else if (routingKey.endsWith(".sno")) {
+				SnoGraphExtractor snoExtractor = new SnoGraphExtractor(content);
+				return snoExtractor.getGraph();
 			} else if (routingKey.endsWith(".cve")) {
 				CveExtractor cveExtractor = new CveExtractor(content);
 				stixPackage = cveExtractor.getStixPackage();
