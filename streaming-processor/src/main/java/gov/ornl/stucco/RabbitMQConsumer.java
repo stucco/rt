@@ -93,8 +93,11 @@ public class RabbitMQConsumer {
 			logger.error("Error getting message from queue '" + queueName + "'.");
 			throw e;
 		}
-
-		return new RabbitMQMessage(response);
+		if(response == null){
+			return null;
+		}else{
+			return new RabbitMQMessage(response);
+		}
 	}
 
 	public void messageProcessed(long deliveryTag) throws IOException {
