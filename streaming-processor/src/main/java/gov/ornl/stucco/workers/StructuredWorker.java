@@ -316,7 +316,7 @@ public class StructuredWorker {
 	}
 
 	private void sendToAlignment(JSONObject graph) {
-		Map<String, JSONArray> components = splitGraph(graph);
+		Map<String, JSONObject> components = splitGraph(graph);
 		for(String type: components.keySet()){
 			Map<String, String> metadata = new HashMap<String,String>();
 			metadata.put("contentType", "application/json");
@@ -326,19 +326,31 @@ public class StructuredWorker {
 		}
 	}
 
-	private Map<String, JSONArray> splitGraph(JSONObject graph) {
-		Map<String, JSONArray> components = new HashMap<String, JSONArray>();
-		JSONArray edges = (JSONArray)graph.remove("edges");
-		JSONArray vertices = (JSONArray)graph.remove("vertices");
+	public static Map<String, JSONObject> splitGraph(JSONObject graph) {
+		Map<String, JSONObject> components = new HashMap<String, JSONObject>();
+		JSONArray edgesJsonArray = (JSONArray)graph.remove("edges");
+		JSONArray verticesJsonArray = (JSONArray)graph.remove("vertices");
 		if(graph.keySet().size() > 0){
 			logger.warn("Graphson item contained unexpected content.  Remaining content is:\n" + graph.toString(2));
 		}
 		//handle edges
+		JSONObject edges = new JSONObject();
+		for(int i=0; i<edgesJsonArray.length(); i++){
+			JSONObject edge = (JSONObject) edgesJsonArray.get(i);
+			String id = edge.getString("_outV") + "_" + edge.getString("_label") + "_" + edge.getString("_inV");
+			edges.put(id, edge);
+		}
 		components.put("edges", edges);
 		//handle vertices
+		JSONObject vertices = new JSONObject();
+		for(int i=0; i<verticesJsonArray.length(); i++){
+			JSONObject vert = (JSONObject) verticesJsonArray.get(i);
+			String id = vert.getString("_id");
+			vertices.put(id, vert);
+		}
 		components.put("vertices", vertices);
 		//TODO: split into smaller groups
-		//TODO: check for duplicates here
+		//Note that building maps in this way for verts/edges will prevent any duplicates, which the bulk-loader would not like.
 		return components;
 	}
 
