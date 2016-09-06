@@ -140,15 +140,25 @@ public class AlignmentWorker {
 					}
 					else if(routingKey.endsWith(".edges")){
 						graph = new JSONObject();
-						JSONArray edges = new JSONArray(messageBody);
+						JSONArray edges = new JSONArray();
 						JSONArray vertices = new JSONArray();
+						JSONObject edgesMap = new JSONObject(messageBody);
+						for(String key: edgesMap.keySet()){
+							JSONObject edge = edgesMap.getJSONObject(key);
+							edges.put(edge);
+						}
 						graph.put("edges", edges);
 						graph.put("vertices", vertices);
 					}
 					else if(routingKey.endsWith(".vertices")){
 						graph = new JSONObject();
 						JSONArray edges = new JSONArray();
-						JSONArray vertices = new JSONArray(messageBody);
+						JSONArray vertices = new JSONArray();
+						JSONObject verticesMap = new JSONObject(messageBody);
+						for(String key: verticesMap.keySet()){
+							JSONObject vert = verticesMap.getJSONObject(key);
+							vertices.put(vert);
+						}
 						graph.put("edges", edges);
 						graph.put("vertices", vertices);
 					}
