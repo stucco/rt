@@ -5,6 +5,7 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.rabbitmq.client.Envelope;
 import com.rabbitmq.client.GetResponse;
 
 public class RabbitMQMessage {
@@ -17,10 +18,15 @@ public class RabbitMQMessage {
 	}
 
 	public String getRoutingKey(){
-		String key = response.getEnvelope().getRoutingKey();
+		Envelope envelope = response.getEnvelope();
+		if(envelope == null){
+			logger.warn("Unexpected null envelope");
+			return "NULL ENVELOPE, NO ROUTING KEY";
+		}
+		String key = envelope.getRoutingKey();
 		if(key == null){
 			logger.warn("Unexpected null routing key");
-			key = "NULL";
+			return "NULL ROUTING KEY";
 		}
 		return key;
 	}
