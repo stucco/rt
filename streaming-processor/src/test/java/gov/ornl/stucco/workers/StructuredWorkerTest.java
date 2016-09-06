@@ -1,5 +1,6 @@
 package gov.ornl.stucco.workers;
 
+import gov.ornl.stucco.Util;
 import gov.ornl.stucco.workers.StructuredWorker;
 
 import java.util.Map;
@@ -84,7 +85,7 @@ public class StructuredWorkerTest extends TestCase{
 				"}]}";
 		//build and then split graph, check top-level structure
     	JSONObject graph = new JSONObject(testGraphsonString);
-    	Map<String, JSONObject> components = StructuredWorker.splitGraph(graph);
+    	Map<String, JSONObject> components = Util.splitGraph(graph);
     	JSONObject edges = components.get("edges");
     	assertTrue(edges != null);
     	JSONObject vertices = components.get("vertices");

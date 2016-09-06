@@ -12,6 +12,7 @@ import gov.ornl.stucco.RabbitMQConsumer;
 import gov.ornl.stucco.RabbitMQMessage;
 import gov.ornl.stucco.RabbitMQProducer;
 import gov.ornl.stucco.RelationExtractor;
+import gov.ornl.stucco.Util;
 import gov.ornl.stucco.entity.EntityLabeler;
 import gov.pnnl.stucco.doc_service_client.DocServiceClient;
 import gov.pnnl.stucco.doc_service_client.DocServiceException;
@@ -307,7 +308,7 @@ public class UnstructuredWorker {
 	}
 
 	private void sendToAlignment(JSONObject graph) {
-		Map<String, JSONArray> components = splitGraph(graph);
+		Map<String, JSONObject> components = Util.splitGraph(graph);
 		for(String type: components.keySet()){
 			Map<String, String> metadata = new HashMap<String,String>();
 			metadata.put("contentType", "application/json");
@@ -315,22 +316,6 @@ public class UnstructuredWorker {
 			byte[] messageBytes = components.get(type).toString().getBytes();
 			producer.sendContentMessage(metadata, messageBytes);
 		}
-	}
-
-	private Map<String, JSONArray> splitGraph(JSONObject graph) {
-		Map<String, JSONArray> components = new HashMap<String, JSONArray>();
-		JSONArray edges = (JSONArray)graph.remove("edges");
-		JSONArray vertices = (JSONArray)graph.remove("vertices");
-		if(graph.keySet().size() > 0){
-			logger.warn("Graphson item contained unexpected content.  Remaining content is:\n" + graph.toString(2));
-		}
-		//handle edges
-		components.put("edges", edges);
-		//handle vertices
-		components.put("vertices", vertices);
-		//TODO: split into smaller groups
-		//TODO: check for duplicates here
-		return components;
 	}
 
 	/**

@@ -11,6 +11,7 @@ import gov.ornl.stucco.ConfigLoader;
 import gov.ornl.stucco.RabbitMQConsumer;
 import gov.ornl.stucco.RabbitMQMessage;
 import gov.ornl.stucco.RabbitMQProducer;
+import gov.ornl.stucco.Util;
 import gov.pnnl.stucco.doc_service_client.DocServiceClient;
 import gov.pnnl.stucco.doc_service_client.DocServiceException;
 import gov.pnnl.stucco.doc_service_client.DocumentObject;
@@ -316,7 +317,7 @@ public class StructuredWorker {
 	}
 
 	private void sendToAlignment(JSONObject graph) {
-		Map<String, JSONObject> components = splitGraph(graph);
+		Map<String, JSONObject> components = Util.splitGraph(graph);
 		for(String type: components.keySet()){
 			Map<String, String> metadata = new HashMap<String,String>();
 			metadata.put("contentType", "application/json");
@@ -324,34 +325,6 @@ public class StructuredWorker {
 			byte[] messageBytes = components.get(type).toString().getBytes();
 			producer.sendContentMessage(metadata, messageBytes);
 		}
-	}
-
-	public static Map<String, JSONObject> splitGraph(JSONObject graph) {
-		Map<String, JSONObject> components = new HashMap<String, JSONObject>();
-		JSONArray edgesJsonArray = (JSONArray)graph.remove("edges");
-		JSONArray verticesJsonArray = (JSONArray)graph.remove("vertices");
-		if(graph.keySet().size() > 0){
-			logger.warn("Graphson item contained unexpected content.  Remaining content is:\n" + graph.toString(2));
-		}
-		//handle edges
-		JSONObject edges = new JSONObject();
-		for(int i=0; i<edgesJsonArray.length(); i++){
-			JSONObject edge = (JSONObject) edgesJsonArray.get(i);
-			String id = edge.getString("_outV") + "_" + edge.getString("_label") + "_" + edge.getString("_inV");
-			edges.put(id, edge);
-		}
-		components.put("edges", edges);
-		//handle vertices
-		JSONObject vertices = new JSONObject();
-		for(int i=0; i<verticesJsonArray.length(); i++){
-			JSONObject vert = (JSONObject) verticesJsonArray.get(i);
-			String id = vert.getString("_id");
-			vertices.put(id, vert);
-		}
-		components.put("vertices", vertices);
-		//TODO: split into smaller groups
-		//Note that building maps in this way for verts/edges will prevent any duplicates, which the bulk-loader would not like.
-		return components;
 	}
 
 	/**
