@@ -2,6 +2,7 @@ package gov.ornl.stucco;
 
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.slf4j.Logger;
@@ -41,6 +42,29 @@ public class RabbitMQProducer {
 		this.password = password;
 		this.bindingKeys = bindingKeys;
 		this.maxMessageSize = 10000000; //TODO: pass as arg?
+	}
+
+	public RabbitMQProducer(Map<String, Object> configMap) {
+		String[] bindingKeys = null;
+
+		this.exchangeName = String.valueOf(configMap.get("exchange"));
+		this.queueName = String.valueOf(configMap.get("queue"));
+		this.host = String.valueOf(configMap.get("host"));
+		this.port = Integer.parseInt(String.valueOf(configMap.get("port")));
+		this.username = String.valueOf(configMap.get("username"));
+		this.password = String.valueOf(configMap.get("password"));
+
+		@SuppressWarnings("unchecked")
+		List<String> bindings = (List<String>)(configMap.get("bindings"));
+		bindingKeys = new String[bindings.size()];
+		bindingKeys = bindings.toArray(bindingKeys);
+		this.bindingKeys = bindingKeys;
+
+		this.maxMessageSize = 10000000; //TODO: pass as arg?
+
+		logger.info("Created RabbitMQProducer with this info: \nhost: " + host + "\nport: " + port + 
+				"\nexchange: " + exchangeName + "\nqueue: " + queueName + 
+				"\nuser: " + username + "\npass: " + password);
 	}
 
 	public void openQueue() throws IOException {

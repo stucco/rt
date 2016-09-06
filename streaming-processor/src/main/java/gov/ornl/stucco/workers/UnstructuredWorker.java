@@ -58,32 +58,12 @@ public class UnstructuredWorker {
 	private void init(ConfigLoader configLoader) {
 		try {
 			Map<String, Object> configMap;
-			String exchange = null;
-			String queue = null;
-			String host = null;
-			int port = -1;
-			String user = null;
-			String password = null;
-			String[] bindingKeys = null;
-
 			configMap = configLoader.getConfig("unstructured_data");
-			exchange = String.valueOf(configMap.get("exchange"));
-			queue = String.valueOf(configMap.get("queue"));
-			host = String.valueOf(configMap.get("host"));
-			port = Integer.parseInt(String.valueOf(configMap.get("port")));
-			user = String.valueOf(configMap.get("username"));
-			password = String.valueOf(configMap.get("password"));
+
 			persistent = Boolean.parseBoolean(String.valueOf(configMap.get("persistent")));
 			sleepTime = Integer.parseInt(String.valueOf(configMap.get("emptyQueueSleepTime")));
-			@SuppressWarnings("unchecked")
-			List<String> bindings = (List<String>)(configMap.get("bindings"));
-			bindingKeys = new String[bindings.size()];
-			bindingKeys = bindings.toArray(bindingKeys);
 
-			logger.info("Connecting to rabbitMQ with this info: \nhost: " + host + "\nport: " + port + 
-					"\nexchange: " + exchange + "\nqueue: " + queue + 
-					"\nuser: " + user + "\npass: " + password);
-			consumer = new RabbitMQConsumer(exchange, queue, host, port, user, password, bindingKeys);
+			consumer = new RabbitMQConsumer(configMap);
 			consumer.openQueue();
 
 		} catch (FileNotFoundException e1) {
@@ -102,32 +82,9 @@ public class UnstructuredWorker {
 
 		try {
 			Map<String, Object> configMap;
-			String exchange = null;
-			String queue = null;
-			String host = null;
-			int port = -1;
-			String user = null;
-			String password = null;
-			String[] bindingKeys = null;
-
 			configMap = configLoader.getConfig("alignment_data");
-			exchange = String.valueOf(configMap.get("exchange"));
-			queue = String.valueOf(configMap.get("queue"));
-			host = String.valueOf(configMap.get("host"));
-			port = Integer.parseInt(String.valueOf(configMap.get("port")));
-			user = String.valueOf(configMap.get("username"));
-			password = String.valueOf(configMap.get("password"));
-			persistent = Boolean.parseBoolean(String.valueOf(configMap.get("persistent")));
-			sleepTime = Integer.parseInt(String.valueOf(configMap.get("emptyQueueSleepTime")));
-			@SuppressWarnings("unchecked")
-			List<String> bindings = (List<String>)(configMap.get("bindings"));
-			bindingKeys = new String[bindings.size()];
-			bindingKeys = bindings.toArray(bindingKeys);
 
-			logger.info("Connecting to rabbitMQ with this info: \nhost: " + host + "\nport: " + port + 
-					"\nexchange: " + exchange + "\nqueue: " + queue + 
-					"\nuser: " + user + "\npass: " + password);
-			producer = new RabbitMQProducer(exchange, queue, host, port, user, password, bindingKeys);
+			producer = new RabbitMQProducer(configMap);
 			producer.openQueue();
 
 		} catch (FileNotFoundException e1) {

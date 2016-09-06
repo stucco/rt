@@ -43,51 +43,32 @@ public class AlignmentWorker {
 	}
 
 	private void init(ConfigLoader configLoader) {
-		Map<String, Object> configMap;
-		String exchange = null;
-		String queue = null;
-		String host = null;
-		int port = -1;
-		String user = null;
-		String password = null;
-		String[] bindingKeys = null;
 		try {
+			Map<String, Object> configMap;
 			configMap = configLoader.getConfig("alignment_data");
-			exchange = String.valueOf(configMap.get("exchange"));
-			queue = String.valueOf(configMap.get("queue"));
-			host = String.valueOf(configMap.get("host"));
-			port = Integer.parseInt(String.valueOf(configMap.get("port")));
-			user = String.valueOf(configMap.get("username"));
-			password = String.valueOf(configMap.get("password"));
+
 			persistent = Boolean.parseBoolean(String.valueOf(configMap.get("persistent")));
 			sleepTime = Integer.parseInt(String.valueOf(configMap.get("emptyQueueSleepTime")));
-			@SuppressWarnings("unchecked")
-			List<String> bindings = (List<String>)(configMap.get("bindings"));
-			bindingKeys = new String[bindings.size()];
-			bindingKeys = bindings.toArray(bindingKeys);
+
+			consumer = new RabbitMQConsumer(configMap);
+			consumer.openQueue();
+
 		} catch (FileNotFoundException e1) {
 			logger.error("Error loading configuration.", e1);
 			System.exit(-1);
-		} catch (Exception e) {
-			logger.error("Error parsing configuration.", e);
-			System.exit(-1);
 		}
-		logger.info("Config file loaded and parsed");
-
-		try {
-			logger.info("Connecting to rabbitMQ with this info: \nhost: " + host + "\nport: " + port + 
-					"\nexchange: " + exchange + "\nqueue: " + queue + 
-					"\nuser: " + user + "\npass: " + password);
-			consumer = new RabbitMQConsumer(exchange, queue, host, port, user, password, bindingKeys);
-			consumer.openQueue();
-		} catch (IOException e) {
+		catch (IOException e) {
 			logger.error("Error initializing RabbitMQ connection.", e);
 			System.exit(-1);
 		}
-		logger.info("RabbitMQ connected.");
+		catch (Exception e) {
+			logger.error("Error parsing configuration.", e);
+			System.exit(-1);
+		}
+		logger.info("RabbitMQ (alignment_data) connected.");
+
 		try {
 			alignment = new Align();
-
 			logger.info("DB connection created.");
 		} catch (Exception e) {
 			logger.error("Error initializing Alignment and/or DB connection.", e);
