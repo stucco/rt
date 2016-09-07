@@ -22,7 +22,7 @@ public class StructuredWorkerTest extends TestCase{
     public void tearDown(){
     }
     
-    public void testSplitGraph()
+    public void testSplitGraphsonGraph()
     {
 		String testGraphsonString = "{\"vertices\":[" +
 				"{" +
@@ -100,4 +100,50 @@ public class StructuredWorkerTest extends TestCase{
     	assertTrue(vertices.getJSONObject("CVE-1999-nnnn") != null);
     	assertEquals(3, vertices.length());
     }
+
+	public void testSplitStuccoGraph()
+	{
+		String testGraphString = "{"+
+			"  \"edges\": [{"+
+			"    \"outVertID\": \"stucco:hostname-543344a3-c043-460a-8d53-69ef133341a0\","+
+			"    \"relation\": \"Sub-Observable\","+
+			"    \"inVertID\": \"stucco:software-204f2a43-f73f-4486-8ba5-92c249c3c9df\""+
+			"  }],"+
+			"  \"vertices\": {"+
+			"    \"stucco:hostname-543344a3-c043-460a-8d53-69ef133341a0\": {"+
+			"      \"vertexType\": \"Observable\","+
+			"      \"source\": [\"PackageList\"],"+
+			"      \"description\": ["+
+			"        \"mary runs accountsservice_0.6.35-0ubuntu7.1\","+
+			"        \"mary\""+
+			"      ],"+
+			"      \"name\": \"mary\","+
+			"      \"sourceDocument\": \"<Some XML>\","+
+			"      \"observableType\": \"Hostname\""+
+			"    },"+
+			"    \"stucco:software-204f2a43-f73f-4486-8ba5-92c249c3c9df\": {"+
+			"      \"vertexType\": \"Observable\","+
+			"      \"source\": [\"PackageList\"],"+
+			"      \"description\": [\"accountsservice version 0.6.35-0ubuntu7.1\"],"+
+			"      \"name\": \"cpe:::accountsservice:0.6.35-0ubuntu7.1:::\","+
+			"      \"sourceDocument\": \"<Some XML>\","+
+			"      \"observableType\": \"Product\""+
+			"    }"+
+			"  }"+
+			"}";
+		//build and then split graph, check top-level structure
+		JSONObject graph = new JSONObject(testGraphString);
+		Map<String, JSONObject> components = Util.splitGraph(graph);
+		JSONObject edges = components.get("edges");
+		assertTrue(edges != null);
+		JSONObject vertices = components.get("vertices");
+		assertTrue(vertices != null);
+		//check edges
+		assertTrue(edges.getJSONObject("stucco:hostname-543344a3-c043-460a-8d53-69ef133341a0_Sub-Observable_stucco:software-204f2a43-f73f-4486-8ba5-92c249c3c9df") != null);
+		assertEquals(1, edges.length());
+		//check vertices
+		assertTrue(vertices.getJSONObject("stucco:hostname-543344a3-c043-460a-8d53-69ef133341a0") != null);
+		assertTrue(vertices.getJSONObject("stucco:software-204f2a43-f73f-4486-8ba5-92c249c3c9df") != null);
+		assertEquals(2, vertices.length());
+	}
 }
