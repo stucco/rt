@@ -1,7 +1,6 @@
 package gov.ornl.stucco.workers;
 
 import gov.ornl.stucco.Util;
-import gov.ornl.stucco.workers.StructuredWorker;
 
 import java.util.Map;
 
@@ -10,8 +9,8 @@ import org.json.JSONObject;
 
 import junit.framework.TestCase;
 
-public class StructuredWorkerTest extends TestCase{
-    public StructuredWorkerTest( String testName )
+public class UtilTest extends TestCase{
+    public UtilTest( String testName )
     {
         super( testName );
     }
