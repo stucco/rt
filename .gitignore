@@ -8,3 +8,6 @@ bin/
 streaming-processor/.settings/*
 streaming-processor/.classpath
 streaming-processor/.project
+*.db
+*_lock
+lock
