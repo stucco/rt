@@ -5,3 +5,6 @@ bin/
 *.log.*
 *.DS_Store
 *~
+streaming-processor/.settings/*
+streaming-processor/.classpath
+streaming-processor/.project
