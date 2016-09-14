@@ -3,3 +3,4 @@ bin/
 *.swp
 *.log
 *.DS_Store
+streaming-processor/.settings/*
