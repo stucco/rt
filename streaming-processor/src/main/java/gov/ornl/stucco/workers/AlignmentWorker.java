@@ -12,7 +12,7 @@ import gov.ornl.stucco.RabbitMQMessage;
 import gov.pnnl.stucco.doc_service_client.DocServiceClient;
 import gov.pnnl.stucco.doc_service_client.DocServiceException;
 import gov.pnnl.stucco.doc_service_client.DocumentObject;
-import gov.ornl.stucco.alignment.Align;
+import gov.ornl.stucco.Align;
 
 import org.json.JSONArray;
 import org.json.JSONObject;

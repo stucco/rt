@@ -12,34 +12,41 @@ import gov.ornl.stucco.RabbitMQConsumer;
 import gov.ornl.stucco.RabbitMQMessage;
 import gov.ornl.stucco.RabbitMQProducer;
 import gov.ornl.stucco.Util;
+import gov.ornl.stucco.GraphConstructor;
+import gov.ornl.stucco.Align;
+import gov.ornl.stucco.preprocessors.PreprocessSTIX;
+import gov.ornl.stucco.preprocessors.PreprocessSTIX.Vertex;
+import gov.ornl.stucco.stix_extractors.ArgusExtractor;
+import gov.ornl.stucco.stix_extractors.BugtraqExtractor;
+import gov.ornl.stucco.stix_extractors.CaidaExtractor;
+import gov.ornl.stucco.stix_extractors.CIF1d4Extractor;
+import gov.ornl.stucco.stix_extractors.CIFZeusTrackerExtractor;
+import gov.ornl.stucco.stix_extractors.CIFEmergingThreatsExtractor;
+import gov.ornl.stucco.stix_extractors.CleanMxVirusExtractor;
+import gov.ornl.stucco.stix_extractors.ClientBannerExtractor;
+import gov.ornl.stucco.stix_extractors.CpeExtractor;
+import gov.ornl.stucco.stix_extractors.CveExtractor;
+import gov.ornl.stucco.stix_extractors.DNSRecordExtractor;
+import gov.ornl.stucco.stix_extractors.FSecureExtractor;
+import gov.ornl.stucco.stix_extractors.GeoIPExtractor;
+import gov.ornl.stucco.stix_extractors.HoneExtractor;
+import gov.ornl.stucco.stix_extractors.HTTPDataExtractor;
+import gov.ornl.stucco.stix_extractors.LoginEventExtractor;
+import gov.ornl.stucco.stix_extractors.MalwareDomainListExtractor;
+import gov.ornl.stucco.stix_extractors.MetasploitExtractor;
+import gov.ornl.stucco.stix_extractors.NvdToStixExtractor;
+import gov.ornl.stucco.stix_extractors.PackageListExtractor;
+import gov.ornl.stucco.stix_extractors.ServerBannerExtractor;
+import gov.ornl.stucco.stix_extractors.ServiceListExtractor;
+import gov.ornl.stucco.stix_extractors.SophosExtractor;
+import gov.ornl.stucco.graph_extractors.ArgusGraphExtractor;
+import gov.ornl.stucco.graph_extractors.HTTPDataGraphExtractor;
+import gov.ornl.stucco.graph_extractors.HTTPRDataGraphExtractor;
+import gov.ornl.stucco.graph_extractors.SituGraphExtractor;
+import gov.ornl.stucco.graph_extractors.SnoGraphExtractor;
 import gov.pnnl.stucco.doc_service_client.DocServiceClient;
 import gov.pnnl.stucco.doc_service_client.DocServiceException;
 import gov.pnnl.stucco.doc_service_client.DocumentObject;
-import gov.ornl.stucco.alignment.PreprocessSTIX;
-import gov.ornl.stucco.alignment.GraphConstructor;
-import STIXExtractor.ArgusExtractor;
-import STIXExtractor.BugtraqExtractor;
-import STIXExtractor.CaidaExtractor;
-import STIXExtractor.CIF1d4Extractor;
-import STIXExtractor.CIFZeusTrackerExtractor;
-import STIXExtractor.CIFEmergingThreatsExtractor;
-import STIXExtractor.CleanMxVirusExtractor;
-import STIXExtractor.ClientBannerExtractor;
-import STIXExtractor.CpeExtractor;
-import STIXExtractor.CveExtractor;
-import STIXExtractor.DNSRecordExtractor;
-import STIXExtractor.FSecureExtractor;
-import STIXExtractor.GeoIPExtractor;
-import STIXExtractor.HoneExtractor;
-import STIXExtractor.HTTPDataExtractor;
-import STIXExtractor.LoginEventExtractor;
-import STIXExtractor.MalwareDomainListExtractor;
-import STIXExtractor.MetasploitExtractor;
-import STIXExtractor.NvdToStixExtractor;
-import STIXExtractor.PackageListExtractor;
-import STIXExtractor.ServerBannerExtractor;
-import STIXExtractor.ServiceListExtractor;
-import STIXExtractor.SophosExtractor;
 
 import org.mitre.stix.stix_1.STIXPackage;
 import org.mitre.cybox.cybox_2.Observables;
@@ -60,7 +67,7 @@ public class StructuredWorker {
 
 	private DocServiceClient docClient;
 
-	private PreprocessSTIX preprocessSTIX; 
+	private PreprocessSTIX preprocessSTIX;
 	private GraphConstructor constructGraph;
 
 	private boolean persistent;
@@ -183,7 +190,7 @@ public class StructuredWorker {
 
 					//Get the document from the document server, if necessary
 					String content = messageBody;
-					if (!contentIncluded && !routingKey.contains(".sophos") && !routingKey.contains(".bugtraq")) {
+					if (!contentIncluded && !routingKey.endsWith(".sophos") && !routingKey.endsWith(".bugtraq")) {
 						String docId = content.trim();
 						logger.debug("Retrieving document content from Document-Service for id '" + docId + "'.");
 
@@ -191,7 +198,7 @@ public class StructuredWorker {
 							DocumentObject document = docClient.fetch(docId);
 							String rawContent = document.getDataAsString();
 							JSONObject jsonContent = new JSONObject(rawContent);
-							content = (String) jsonContent.get("document"); 
+							content = (String) jsonContent.get("document");
 						} catch (DocServiceException e) {
 							logger.error("Could not fetch document '" + docId + "' from Document-Service.", e);
 							logger.error("Message content was:\n"+messageBody);
@@ -205,7 +212,7 @@ public class StructuredWorker {
 					String docIDs = null;
 					if (!contentIncluded) docIDs = messageBody;
 					Map<String, String> metaDataMap = null;
-					if (routingKey.contains(".hone")) {
+					if (routingKey.endsWith(".hone")) {
 						if ((headerMap != null) && (headerMap.containsKey(HOSTNAME_KEY))) {
 							// The extractor needs Map<String,String>, and the headerMap is Map<String,Object>.
 							// Also, the original headerMap may contain things that extractors don't care about.
@@ -215,7 +222,7 @@ public class StructuredWorker {
 						}
 					}
 
-					//Construct the subgraph by parsing the structured data	
+					//Construct the subgraph by parsing the structured data
 					JSONObject graph = generateGraph(routingKey, content, metaDataMap, docIDs);
 
 					//TODO: Add timestamp into subgraph
@@ -297,68 +304,75 @@ public class StructuredWorker {
 		JSONObject graph = null;
 
 		try {
-			if (routingKey.contains(".cve")) {
+			if (routingKey.endsWith(".argus")) {
+				ArgusGraphExtractor extractor = new ArgusGraphExtractor(argusHeaders, content);
+				return extractor.getGraph();
+			} else if (routingKey.endsWith(".http")) {
+				//TODO: find name of http file ... for now (for testing) it just has .http extencion
+				HTTPDataGraphExtractor httpExtractor = new HTTPDataGraphExtractor(content);
+				return httpExtractor.getGraph();
+			} else if (routingKey.endsWith(".httpr")) {
+				//TODO: find name of http file ... for now (for testing) it just has .http extencion
+				HTTPRDataGraphExtractor httprExtractor = new HTTPRDataGraphExtractor(content);
+				return httprExtractor.getGraph();
+			} else if (routingKey.endsWith(".situ")) {
+				SituGraphExtractor situExtractor = new SituGraphExtractor(content);
+				return situExtractor.getGraph();
+			} else if (routingKey.endsWith(".sno")) {
+				SnoGraphExtractor snoExtractor = new SnoGraphExtractor(content);
+				return snoExtractor.getGraph();
+			} else if (routingKey.endsWith(".cve")) {
 				CveExtractor cveExtractor = new CveExtractor(content);
 				stixPackage = cveExtractor.getStixPackage();
-			} else if (routingKey.contains(".nvd")) {
+			} else if (routingKey.endsWith(".nvd")) {
 				NvdToStixExtractor nvdExt = new NvdToStixExtractor(content);
 				stixPackage = nvdExt.getStixPackage();
-			} else if (routingKey.contains(".cpe")) {
+			} else if (routingKey.endsWith(".cpe")) {
 				CpeExtractor cpeExtractor = new CpeExtractor(content);
-				stixPackage = cpeExtractor.getStixPackage(); 
-			} else if (routingKey.contains(".maxmind")) {
+				stixPackage = cpeExtractor.getStixPackage();
+			} else if (routingKey.endsWith(".maxmind")) {
 				GeoIPExtractor geoIPExtractor = new GeoIPExtractor(content);
 				stixPackage = geoIPExtractor.getStixPackage();
-			} else if (routingKey.contains(".argus")) {
-				ArgusExtractor extractor = new ArgusExtractor(argusHeaders, content);
-				stixPackage = extractor.getStixPackage();
-			} else if (routingKey.contains(".metasploit")) {
+			} else if (routingKey.endsWith(".metasploit")) {
 				MetasploitExtractor metasploitExtractor = new MetasploitExtractor(content);
 				stixPackage = metasploitExtractor.getStixPackage();
-			} else if (routingKey.replaceAll("\\-", "").contains(".cleanmx")) {
+			} else if (routingKey.replaceAll("\\-", "").endsWith(".cleanmx")) {
 				CleanMxVirusExtractor virusExtractor = new CleanMxVirusExtractor(content);
 				stixPackage = virusExtractor.getStixPackage();
-			} else if (routingKey.contains(".login_events")) {
+			} else if (routingKey.endsWith(".login_events")) {
 				LoginEventExtractor loginEventExtractor = new LoginEventExtractor(content);
 				stixPackage = loginEventExtractor.getStixPackage();
-			} else if (routingKey.contains(".installed_package")) {
+			} else if (routingKey.endsWith(".installed_package")) {
 				PackageListExtractor packageListExtractor = new PackageListExtractor(content);
 				stixPackage = packageListExtractor.getStixPackage();
-			} else if (routingKey.contains(".situ")) {
-				stixPackage = new STIXPackage()
-					.withObservables(Observables.fromXMLString(content));
-			} else if (routingKey.contains(".http")){
-				//TODO: find name of http file ... for now (for testing) it just has .http extencion
-				HTTPDataExtractor httpExtractor = new HTTPDataExtractor(content);
-				stixPackage = httpExtractor.getStixPackage();
-			} else if (routingKey.contains("1d4")){
+			} else if (routingKey.endsWith(".1d4")){
 				CIF1d4Extractor cifExtractor = new CIF1d4Extractor(content);
 				stixPackage = cifExtractor.getStixPackage();
-			} else if (routingKey.contains("zeustracker")) {
+			} else if (routingKey.endsWith(".zeustracker")) {
 				CIFZeusTrackerExtractor cifExtractor = new CIFZeusTrackerExtractor(content);
 				stixPackage = cifExtractor.getStixPackage();
-			} else if (routingKey.contains("emergingthreats")) {
+			} else if (routingKey.endsWith(".emergingthreats")) {
 				CIFEmergingThreatsExtractor cifExtractor = new CIFEmergingThreatsExtractor(content);
 				stixPackage = cifExtractor.getStixPackage();
-			} else if (routingKey.contains(".servicelist")) {
+			} else if (routingKey.endsWith(".servicelist")) {
 				ServiceListExtractor serviceListExtractor = new ServiceListExtractor(content);
 				stixPackage = serviceListExtractor.getStixPackage();
-			} else if (routingKey.contains(".serverbanner")) {
+			} else if (routingKey.endsWith(".serverbanner")) {
 				ServerBannerExtractor serverBannerExtractor = new ServerBannerExtractor(content);
 				stixPackage = serverBannerExtractor.getStixPackage();
-			} else if (routingKey.contains(".clientbanner")) {
+			} else if (routingKey.endsWith(".clientbanner")) {
 				ClientBannerExtractor clientBannerExtractor = new ClientBannerExtractor(content);
 				stixPackage = clientBannerExtractor.getStixPackage();
-			} else if (routingKey.replaceAll("\\-", "").contains(".fsecure")) {
+			} else if (routingKey.replaceAll("\\-", "").endsWith(".fsecure")) {
 				FSecureExtractor fSecureExt = new FSecureExtractor(content);
 				stixPackage = fSecureExt.getStixPackage();
-			} else if (routingKey.contains(".malwaredomainlist")) {
+			} else if (routingKey.endsWith(".malwaredomainlist")) {
 				MalwareDomainListExtractor mdlExt = new MalwareDomainListExtractor(content);
 				stixPackage = mdlExt.getStixPackage();
-			} else if (routingKey.contains(".dnsrecord")) {
+			} else if (routingKey.endsWith(".dnsrecord")) {
 				DNSRecordExtractor dnsExt = new DNSRecordExtractor(content);
 				stixPackage = dnsExt.getStixPackage();
-			} else if (routingKey.contains(".hone")) {
+			} else if (routingKey.endsWith(".hone")) {
 				HoneExtractor honeExtractor = null;
 				if ((metaDataMap != null) && (metaDataMap.containsKey(HOSTNAME_KEY))) {
 					honeExtractor = new HoneExtractor(content, metaDataMap.get(HOSTNAME_KEY));
@@ -366,8 +380,8 @@ public class StructuredWorker {
 					honeExtractor = new HoneExtractor(content);
 				}
 				stixPackage = honeExtractor.getStixPackage();
-			} else if (routingKey.contains("caida")) {
-				//TODO: ensure file names match 
+			} else if (routingKey.endsWith(".caida")) {
+				//TODO: ensure file names match
 				String as2org = null;
 				String pfx2as = null;
 				String[] items = content.split("\\r?\\n");
@@ -398,7 +412,7 @@ public class StructuredWorker {
 					CaidaExtractor caidaExtractor = new CaidaExtractor(as2org, pfx2as);
 					stixPackage = caidaExtractor.getStixPackage();
 				}
-			} else if (routingKey.contains(".sophos")) {
+			} else if (routingKey.endsWith(".sophos")) {
 				String summary = null;
 				String details = null;
 				String[] items = content.split("\\r?\\n");
@@ -411,7 +425,7 @@ public class StructuredWorker {
 						DocumentObject document = docClient.fetch(docId);
 						rawItemContent = document.getDataAsString();
 						JSONObject jsonContent = new JSONObject(rawItemContent);
-						itemContent = (String) jsonContent.get("document"); 
+						itemContent = (String) jsonContent.get("document");
 					} catch (DocServiceException e) {
 						logger.error("Could not fetch document '" + docId + "' from Document-Service. URL was: " + sourceURL, e);
 						logger.error("Complete message content was:\n" + content);
@@ -431,7 +445,7 @@ public class StructuredWorker {
 				} else {
 					logger.warn("Sophos: some required fields were null, skipping group.\nMessage was:" + content);
 				}
-			} else if (routingKey.contains(".bugtraq")) {
+			} else if (routingKey.endsWith(".bugtraq")) {
 				String info = null;
 				String discussion = null;
 				String exploit = null;
@@ -464,7 +478,7 @@ public class StructuredWorker {
 					} else if (sourceURL.contains("/references")) {
 						references = itemContent;
 					} else {
-						logger.warn("unexpected URL (bugtraq) " + sourceURL); 
+						logger.warn("unexpected URL (bugtraq) " + sourceURL);
 					}
 				}
 				if (info != null && discussion != null && exploit != null && solution != null && references != null) {
@@ -476,18 +490,20 @@ public class StructuredWorker {
 						logger.error("Problem docid(s):\n" + docIDs);
 					}
 				}
-			} else if (routingKey.contains(".stix")) {
+			} else if (routingKey.endsWith(".stix")) {
 				stixDocument = true;
+			} else {
+				logger.warn("Unexpected routing key encountered '" + routingKey + "'.");
 			}
 
 			if (stixPackage != null) {
-				Map<String, Element> stixElements = preprocessSTIX.normalizeSTIX(stixPackage.toXMLString());
+				Map<String, Vertex> stixElements = preprocessSTIX.normalizeSTIX(stixPackage.toXMLString());
 				graph = constructGraph.constructGraph(stixElements);
 			} else if (stixDocument) {
-				Map<String, Element> stixElements = preprocessSTIX.normalizeSTIX(content);
+				Map<String, Vertex> stixElements = preprocessSTIX.normalizeSTIX(content);
 				graph = constructGraph.constructGraph(stixElements);
 			} else {
-				logger.warn("Unexpected routing key encountered '" + routingKey + "'.");
+				logger.warn("Unexpected null stix package for routing key '" + routingKey + "'.");
 			}
 		} catch (RuntimeException e) {
 			logger.error("Error occurred with routingKey = " + routingKey);
@@ -499,7 +515,7 @@ public class StructuredWorker {
 
 		return graph;
 	}
- 
+
 	/**
 	 * @param args
 	 */

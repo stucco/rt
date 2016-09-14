@@ -16,9 +16,10 @@ import gov.ornl.stucco.Util;
 import gov.ornl.stucco.entity.EntityLabeler;
 import gov.pnnl.stucco.doc_service_client.DocServiceClient;
 import gov.pnnl.stucco.doc_service_client.DocServiceException;
-import gov.ornl.stucco.alignment.PreprocessSTIX;
-import gov.ornl.stucco.alignment.GraphConstructor;
-import STIXExtractor.StuccoExtractor;
+import gov.ornl.stucco.preprocessors.PreprocessSTIX;
+import gov.ornl.stucco.preprocessors.PreprocessSTIX.Vertex;
+import gov.ornl.stucco.stix_extractors.StuccoExtractor;
+import gov.ornl.stucco.GraphConstructor;
 
 import org.mitre.stix.stix_1.STIXPackage;
 import org.json.JSONArray;
@@ -203,7 +204,7 @@ public class UnstructuredWorker {
 									JSONObject graph = new JSONObject(graphString);
 									StuccoExtractor stuccoExt = new StuccoExtractor(graph);
 									STIXPackage stixPackage = stuccoExt.getStixPackage();
-									Map<String, Element> stixElements = preprocessSTIX.normalizeSTIX(stixPackage.toXMLString());
+									Map<String, Vertex> stixElements = preprocessSTIX.normalizeSTIX(stixPackage.toXMLString());
 									graph = constructGraph.constructGraph(stixElements);
 									sendToAlignment(graph);
 								} catch (RuntimeException e) {
