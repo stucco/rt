@@ -10,9 +10,8 @@ import gov.ornl.stucco.ConfigLoader;
 import gov.ornl.stucco.RabbitMQConsumer;
 import gov.ornl.stucco.GraphConstructor;
 import gov.ornl.stucco.Align;
-
 import gov.ornl.stucco.preprocessors.PreprocessSTIX;
-
+import gov.ornl.stucco.preprocessors.PreprocessSTIX.Vertex;
 import gov.ornl.stucco.stix_extractors.ArgusExtractor;
 import gov.ornl.stucco.stix_extractors.BugtraqExtractor;
 import gov.ornl.stucco.stix_extractors.CaidaExtractor;
@@ -36,24 +35,20 @@ import gov.ornl.stucco.stix_extractors.PackageListExtractor;
 import gov.ornl.stucco.stix_extractors.ServerBannerExtractor;
 import gov.ornl.stucco.stix_extractors.ServiceListExtractor;
 import gov.ornl.stucco.stix_extractors.SophosExtractor;
-
 import gov.ornl.stucco.graph_extractors.ArgusGraphExtractor;
 import gov.ornl.stucco.graph_extractors.HTTPDataGraphExtractor;
 import gov.ornl.stucco.graph_extractors.HTTPRDataGraphExtractor;
 import gov.ornl.stucco.graph_extractors.SituGraphExtractor;
 import gov.ornl.stucco.graph_extractors.SnoGraphExtractor;
-
 import gov.pnnl.stucco.doc_service_client.DocServiceClient;
 import gov.pnnl.stucco.doc_service_client.DocServiceException;
 import gov.pnnl.stucco.doc_service_client.DocumentObject;
 
 import org.mitre.stix.stix_1.STIXPackage;
 import org.mitre.cybox.cybox_2.Observables;
-
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import org.jdom2.Element;
 
 import com.rabbitmq.client.GetResponse;
@@ -482,10 +477,10 @@ public class StructuredTransformer {
 			}
 
 			if (stixPackage != null) {
-				Map<String, Element> stixElements = preprocessSTIX.normalizeSTIX(stixPackage.toXMLString());
+				Map<String, Vertex> stixElements = preprocessSTIX.normalizeSTIX(stixPackage.toXMLString());
 				graph = constructGraph.constructGraph(stixElements);
 			} else if (stixDocument) {
-				Map<String, Element> stixElements = preprocessSTIX.normalizeSTIX(content);
+				Map<String, Vertex> stixElements = preprocessSTIX.normalizeSTIX(content);
 				graph = constructGraph.constructGraph(stixElements);
 			} else {
 				logger.warn("Unexpected null stix package for routing key '" + routingKey + "'.");
