@@ -12,7 +12,6 @@ import gov.ornl.stucco.GraphConstructor;
 import gov.ornl.stucco.Align;
 import gov.ornl.stucco.preprocessors.PreprocessSTIX;
 import gov.ornl.stucco.preprocessors.PreprocessSTIX.Vertex;
-import gov.ornl.stucco.stix_extractors.ArgusExtractor;
 import gov.ornl.stucco.stix_extractors.BugtraqExtractor;
 import gov.ornl.stucco.stix_extractors.CaidaExtractor;
 import gov.ornl.stucco.stix_extractors.CIF1d4Extractor;
@@ -22,11 +21,9 @@ import gov.ornl.stucco.stix_extractors.CleanMxVirusExtractor;
 import gov.ornl.stucco.stix_extractors.ClientBannerExtractor;
 import gov.ornl.stucco.stix_extractors.CpeExtractor;
 import gov.ornl.stucco.stix_extractors.CveExtractor;
-import gov.ornl.stucco.stix_extractors.DNSRecordExtractor;
 import gov.ornl.stucco.stix_extractors.FSecureExtractor;
 import gov.ornl.stucco.stix_extractors.GeoIPExtractor;
 import gov.ornl.stucco.stix_extractors.HoneExtractor;
-import gov.ornl.stucco.stix_extractors.HTTPDataExtractor;
 import gov.ornl.stucco.stix_extractors.LoginEventExtractor;
 import gov.ornl.stucco.stix_extractors.MalwareDomainListExtractor;
 import gov.ornl.stucco.stix_extractors.MetasploitExtractor;
@@ -40,6 +37,7 @@ import gov.ornl.stucco.graph_extractors.HTTPDataGraphExtractor;
 import gov.ornl.stucco.graph_extractors.HTTPRDataGraphExtractor;
 import gov.ornl.stucco.graph_extractors.SituGraphExtractor;
 import gov.ornl.stucco.graph_extractors.SnoGraphExtractor;
+import gov.ornl.stucco.graph_extractors.DNSRecordGraphExtractor;
 import gov.pnnl.stucco.doc_service_client.DocServiceClient;
 import gov.pnnl.stucco.doc_service_client.DocServiceException;
 import gov.pnnl.stucco.doc_service_client.DocumentObject;
@@ -301,6 +299,9 @@ public class StructuredTransformer {
 			} else if (routingKey.endsWith(".sno")) {
 				SnoGraphExtractor snoExtractor = new SnoGraphExtractor(content);
 				return snoExtractor.getGraph();
+			} else if (routingKey.endsWith(".dnsrecord")) {
+				DNSRecordGraphExtractor dnsExt = new DNSRecordGraphExtractor(content);
+				return dnsExt.getGraph();
 			} else if (routingKey.endsWith(".cve")) {
 				CveExtractor cveExtractor = new CveExtractor(content);
 				stixPackage = cveExtractor.getStixPackage();
@@ -349,9 +350,6 @@ public class StructuredTransformer {
 			} else if (routingKey.endsWith(".malwaredomainlist")) {
 				MalwareDomainListExtractor mdlExt = new MalwareDomainListExtractor(content);
 				stixPackage = mdlExt.getStixPackage();
-			} else if (routingKey.endsWith(".dnsrecord")) {
-				DNSRecordExtractor dnsExt = new DNSRecordExtractor(content);
-				stixPackage = dnsExt.getStixPackage();
 			} else if (routingKey.endsWith(".hone")) {
 				HoneExtractor honeExtractor = null;
 				if ((metaDataMap != null) && (metaDataMap.containsKey(HOSTNAME_KEY))) {
