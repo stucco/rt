@@ -29,7 +29,6 @@ import gov.ornl.stucco.stix_extractors.MalwareDomainListExtractor;
 import gov.ornl.stucco.stix_extractors.MetasploitExtractor;
 import gov.ornl.stucco.stix_extractors.NvdToStixExtractor;
 import gov.ornl.stucco.stix_extractors.PackageListExtractor;
-import gov.ornl.stucco.stix_extractors.ServerBannerExtractor;
 import gov.ornl.stucco.stix_extractors.ServiceListExtractor;
 import gov.ornl.stucco.stix_extractors.SophosExtractor;
 import gov.ornl.stucco.graph_extractors.ArgusGraphExtractor;
@@ -38,6 +37,7 @@ import gov.ornl.stucco.graph_extractors.HTTPRDataGraphExtractor;
 import gov.ornl.stucco.graph_extractors.SituGraphExtractor;
 import gov.ornl.stucco.graph_extractors.SnoGraphExtractor;
 import gov.ornl.stucco.graph_extractors.DNSRecordGraphExtractor;
+import gov.ornl.stucco.graph_extractors.BannerGraphExtractor;
 import gov.pnnl.stucco.doc_service_client.DocServiceClient;
 import gov.pnnl.stucco.doc_service_client.DocServiceException;
 import gov.pnnl.stucco.doc_service_client.DocumentObject;
@@ -302,6 +302,9 @@ public class StructuredTransformer {
 			} else if (routingKey.endsWith(".dnsrecord")) {
 				DNSRecordGraphExtractor dnsExt = new DNSRecordGraphExtractor(content);
 				return dnsExt.getGraph();
+			} else if (routingKey.endsWith(".serverbanner")) {
+				BannerGraphExtractor bannerExt = new BannerGraphExtractor(content);
+				return bannerExt.getGraph();
 			} else if (routingKey.endsWith(".cve")) {
 				CveExtractor cveExtractor = new CveExtractor(content);
 				stixPackage = cveExtractor.getStixPackage();
@@ -338,9 +341,6 @@ public class StructuredTransformer {
 			} else if (routingKey.endsWith(".servicelist")) {
 				ServiceListExtractor serviceListExtractor = new ServiceListExtractor(content);
 				stixPackage = serviceListExtractor.getStixPackage();
-			} else if (routingKey.endsWith(".serverbanner")) {
-				ServerBannerExtractor serverBannerExtractor = new ServerBannerExtractor(content);
-				stixPackage = serverBannerExtractor.getStixPackage();
 			} else if (routingKey.endsWith(".clientbanner")) {
 				ClientBannerExtractor clientBannerExtractor = new ClientBannerExtractor(content);
 				stixPackage = clientBannerExtractor.getStixPackage();
