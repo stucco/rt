@@ -12,10 +12,11 @@ import gov.ornl.stucco.RelationExtractor;
 import gov.ornl.stucco.entity.EntityLabeler;
 import gov.ornl.stucco.structured.StructuredTransformer;
 import gov.pnnl.stucco.doc_service_client.DocServiceClient;
-import gov.pnnl.stucco.doc_service_client.DocServiceException;
+import gov.pnnl.stucco.doc_service_client.DocServiceException; 
 import gov.ornl.stucco.preprocessors.PreprocessSTIX;
 import gov.ornl.stucco.preprocessors.PreprocessSTIX.Vertex;
 import gov.ornl.stucco.GraphConstructor;
+import gov.ornl.stucco.AlignFactory;
 import gov.ornl.stucco.Align;
 import gov.ornl.stucco.stix_extractors.StuccoExtractor;
 
@@ -99,7 +100,7 @@ public class UnstructuredTransformer {
 			
 			preprocessSTIX = new PreprocessSTIX();
 			constructGraph = new GraphConstructor();
-			alignment = new Align();
+			alignment = AlignFactory.getAlign();
 			
 			configMap = configLoader.getConfig("document_service");
 			

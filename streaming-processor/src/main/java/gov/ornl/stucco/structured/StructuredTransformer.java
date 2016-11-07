@@ -9,6 +9,7 @@ import java.util.Map;
 import gov.ornl.stucco.ConfigLoader;
 import gov.ornl.stucco.RabbitMQConsumer;
 import gov.ornl.stucco.GraphConstructor;
+import gov.ornl.stucco.AlignFactory;
 import gov.ornl.stucco.Align;
 import gov.ornl.stucco.preprocessors.PreprocessSTIX;
 import gov.ornl.stucco.preprocessors.PreprocessSTIX.Vertex;
@@ -128,7 +129,7 @@ public class StructuredTransformer {
 		try {
 			preprocessSTIX = new PreprocessSTIX();
 			constructGraph = new GraphConstructor();
-			alignment = new Align();
+			alignment = AlignFactory.getAlign();
 			
 			logger.info("DB connection created.  Connecting to document service...");
 			configMap = configLoader.getConfig("document_service");
