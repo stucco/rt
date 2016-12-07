@@ -245,10 +245,10 @@ public class StructuredTransformer {
 						//Output STIX content to file.
 						String stixContent = stixPackage.toXMLString(true);
 						try {
-							FileOutputStream f = new FileOutputStream(new File(outputSTIXPath),true);
-							PrintWriter a = new PrintWriter(f);
-							a.println(stixContent);
-							a.close();
+							FileOutputStream fos = new FileOutputStream(new File(outputSTIXPath),true);
+							PrintWriter pw = new PrintWriter(fos);
+							pw.println(stixContent);
+							pw.close();
 						} catch (IOException e) {
 							logger.error("Could not write stix xml file: ", e);
 							fatalError = true;
