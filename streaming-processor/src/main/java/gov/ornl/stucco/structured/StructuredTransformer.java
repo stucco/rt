@@ -2,6 +2,7 @@ package gov.ornl.stucco.structured;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -69,6 +70,10 @@ public class StructuredTransformer {
 	private boolean persistent;
 	private int sleepTime;
 	
+	private boolean outputToDB;
+	private boolean outputToSTIXFile;
+	private String outputSTIXPath;
+	
 	private final String HOSTNAME_KEY = "hostName";
 	
 	public StructuredTransformer() {
@@ -92,8 +97,14 @@ public class StructuredTransformer {
 		String user = null;
 		String password = null;
 		String[] bindingKeys = null;
+		outputToDB = true;
+		outputToSTIXFile = false;
+		outputSTIXPath = "stixoutput.xml";
 		try {
 			configMap = configLoader.getConfig("structured_data");
+			outputToDB = Boolean.parseBoolean(String.valueOf(configMap.get("outputToDB")));
+			outputToSTIXFile = Boolean.parseBoolean(String.valueOf(configMap.get("outputToSTIXFile")));
+			outputSTIXPath = String.valueOf(configMap.get("outputSTIXPath"));
 			exchange = String.valueOf(configMap.get("exchange"));
 			queue = String.valueOf(configMap.get("queue"));
 			host = String.valueOf(configMap.get("host"));
@@ -212,13 +223,31 @@ public class StructuredTransformer {
 						}
 					}
 					
-					//Construct the subgraph by parsing the structured data	
-					JSONObject graph = generateGraph(routingKey, content, metaDataMap, docIDs);
+					if(outputToDB){
+						//Construct the subgraph by parsing the structured data	
+						JSONObject graph = generateGraph(routingKey, content, metaDataMap, docIDs);
+	
+						//TODO: Add timestamp into subgraph
+						//Merge subgraph into full knowledge graph
+						if (graph != null) {
+							alignment.load(graph);
+						}
+					}
 
-					//TODO: Add timestamp into subgraph
-					//Merge subgraph into full knowledge graph
-					if (graph != null) {
-						alignment.load(graph);
+					if(outputToSTIXFile){
+						//Construct the STIX content by parsing the structured data	
+						STIXPackage stixPackage = generateSTIX(routingKey, content, metaDataMap, docIDs);
+	
+						//Output STIX content to file.
+						String stixContent = stixPackage.toXMLString(true);
+						try {
+							PrintWriter a = new PrintWriter(outputSTIXPath);
+							a.println(stixContent);
+							a.close();
+						} catch (IOException e) {
+							logger.error("Could not write stix xml file: ", e);
+							fatalError = true;
+						}
 					}
 					
 					//Ack the message was processed and can be discarded from the queue
@@ -306,7 +335,48 @@ public class StructuredTransformer {
 			} else if (routingKey.endsWith(".serverbanner")) {
 				BannerGraphExtractor bannerExt = new BannerGraphExtractor(content);
 				return bannerExt.getGraph();
-			} else if (routingKey.endsWith(".cve")) {
+			} else if (routingKey.endsWith(".stix")) {
+				stixDocument = true;
+			} else {
+				//If not already stix, and not using a graph extractor, then generateSTIX will handle it (if a known msg type)
+				stixPackage = generateSTIX(routingKey, content, metaDataMap, docIDs);
+				//logger.warn("Unexpected routing key encountered '" + routingKey + "'.");
+			}
+
+			if (stixPackage != null) {
+				Map<String, Vertex> stixElements = preprocessSTIX.normalizeSTIX(stixPackage.toXMLString());
+				graph = constructGraph.constructGraph(stixElements);
+			} else if (stixDocument) {
+				Map<String, Vertex> stixElements = preprocessSTIX.normalizeSTIX(content);
+				graph = constructGraph.constructGraph(stixElements);
+			} else {
+				logger.warn("Unexpected null stix package for routing key '" + routingKey + "'.");
+			}
+		} catch (RuntimeException e) {
+			logger.error("Error occurred with routingKey = " + routingKey);
+			logger.error("										docIDs = " + docIDs);
+			logger.error("										content = " + content);
+			e.printStackTrace();
+			return null;
+		}
+
+		return graph;
+	}
+	
+	/**
+	 * @param routingKey determines which extractor to use
+	 * @param content the text to parse
+	 * @param metaDataMap any additional required info, which is not included in the content
+	 * @param docIDs if the content is from the document server, this is its id(s).  Only included for debugging output.
+	 * @return
+	 */
+	private STIXPackage generateSTIX(String routingKey, String content, Map<String, String> metaDataMap, String docIDs) {
+		boolean stixDocument = false;
+		STIXPackage stixPackage = null;
+		JSONObject graph = null;
+		
+		try {
+			if (routingKey.endsWith(".cve")) {
 				CveExtractor cveExtractor = new CveExtractor(content);
 				stixPackage = cveExtractor.getStixPackage();
 			} else if (routingKey.endsWith(".nvd")) {
@@ -469,20 +539,8 @@ public class StructuredTransformer {
 						logger.error("Problem docid(s):\n" + docIDs);
 					}
 				}
-			} else if (routingKey.endsWith(".stix")) {
-				stixDocument = true;
 			} else {
 				logger.warn("Unexpected routing key encountered '" + routingKey + "'.");
-			}
-
-			if (stixPackage != null) {
-				Map<String, Vertex> stixElements = preprocessSTIX.normalizeSTIX(stixPackage.toXMLString());
-				graph = constructGraph.constructGraph(stixElements);
-			} else if (stixDocument) {
-				Map<String, Vertex> stixElements = preprocessSTIX.normalizeSTIX(content);
-				graph = constructGraph.constructGraph(stixElements);
-			} else {
-				logger.warn("Unexpected null stix package for routing key '" + routingKey + "'.");
 			}
 		} catch (RuntimeException e) {
 			logger.error("Error occurred with routingKey = " + routingKey);
@@ -492,7 +550,7 @@ public class StructuredTransformer {
 			return null;
 		}
 
-		return graph;
+		return stixPackage;
 	}
  
 	/**
