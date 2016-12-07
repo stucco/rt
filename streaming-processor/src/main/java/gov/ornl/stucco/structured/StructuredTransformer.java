@@ -3,8 +3,9 @@ package gov.ornl.stucco.structured;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.PrintWriter;
-import java.io.BufferedWriter;
+import java.io.InterruptedIOException;
+import java.nio.channels.FileLock;
+import java.nio.channels.OverlappingFileLockException;
 import java.io.File;
 import java.io.FileWriter;
 import java.util.HashMap;
@@ -241,20 +242,45 @@ public class StructuredTransformer {
 					if(outputToSTIXFile){
 						//Construct the STIX content by parsing the structured data	
 						STIXPackage stixPackage = generateSTIX(routingKey, content, metaDataMap, docIDs);
-	
+
 						//Output STIX content to file.
 						String stixContent = stixPackage.toXMLString(true);
+
 						try {
 							FileOutputStream fos = new FileOutputStream(new File(outputSTIXPath),true);
-							PrintWriter pw = new PrintWriter(fos);
-							pw.println(stixContent);
-							pw.close();
+							try {
+								boolean written = false;
+								do {
+									try {
+										// Lock it!
+										FileLock lock = fos.getChannel().lock();
+										try {
+											// Write the bytes.
+											fos.write(stixContent.getBytes());
+											written = true;
+										} finally {
+											// Release the lock.
+											lock.release();
+										}
+									} catch ( OverlappingFileLockException ofle ) {
+										try {
+											// Wait a bit
+											Thread.sleep(0);
+										} catch (InterruptedException ex) {
+											throw new InterruptedIOException ("Interrupted waiting for a file lock.");
+										}
+									}
+								} while (!written);
+							} catch (IOException ex) {
+								logger.warn("Failed to lock " + outputSTIXPath, ex);
+							}
+							fos.close();
 						} catch (IOException e) {
 							logger.error("Could not write stix xml file: ", e);
 							fatalError = true;
 						}
 					}
-					
+
 					//Ack the message was processed and can be discarded from the queue
 					try {
 						logger.debug("Acking: " + routingKey + " deliveryTag=[" + deliveryTag + "]");
