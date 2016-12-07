@@ -1,8 +1,12 @@
 package gov.ornl.stucco.structured;
 
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -241,7 +245,8 @@ public class StructuredTransformer {
 						//Output STIX content to file.
 						String stixContent = stixPackage.toXMLString(true);
 						try {
-							PrintWriter a = new PrintWriter(outputSTIXPath);
+							FileOutputStream f = new FileOutputStream(new File(outputSTIXPath),true);
+							PrintWriter a = new PrintWriter(f);
 							a.println(stixContent);
 							a.close();
 						} catch (IOException e) {
@@ -540,7 +545,9 @@ public class StructuredTransformer {
 					}
 				}
 			} else {
-				logger.warn("Unexpected routing key encountered '" + routingKey + "'.");
+				logger.warn("Unexpected routing key encountered '" + routingKey + "'.\n"
+						+ "\t(If running with 'outputToSTIXFile: true', this source "
+						+ "may be using a 'graph extractor' instead of a 'stix extractor'/)");
 			}
 		} catch (RuntimeException e) {
 			logger.error("Error occurred with routingKey = " + routingKey);
