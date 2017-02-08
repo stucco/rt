@@ -11,6 +11,7 @@ import java.io.FileWriter;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import gov.ornl.stucco.ConfigLoader;
 import gov.ornl.stucco.RabbitMQConsumer;
@@ -244,7 +245,21 @@ public class StructuredTransformer {
 						STIXPackage stixPackage = generateSTIX(routingKey, content, metaDataMap, docIDs);
 
 						//Output STIX content to file.
-						String stixContent = stixPackage.toXMLString(true);
+						String stixContent = null;
+						if (stixPackage == null) {
+							JSONObject graph = generateGraph(routingKey, content, metaDataMap, docIDs); 
+							JSONObject vertices = graph.optJSONObject("vertices");
+							if (vertices != null) {
+								StringBuilder str = new StringBuilder();
+								for (String id : (Set<String>) vertices.keySet()) {
+									str.append(vertices.getJSONObject(id).getString("sourceDocument"));
+									str.append("\n");
+								}
+								stixContent = str.toString();
+							}
+						} else {
+							stixContent = stixPackage.toXMLString(true);
+						}
 
 						try {
 							FileOutputStream fos = new FileOutputStream(new File(outputSTIXPath),true);
