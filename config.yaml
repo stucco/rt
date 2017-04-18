@@ -9,6 +9,9 @@ structured_data:
   persistent: true
   bindings: 
       - stucco.in.structured.#
+  outputToDB: false
+  outputToSTIXFile: true
+  outputSTIXPath: stixOutput.xml
 
 unstructured_data:
   exchange: stucco
