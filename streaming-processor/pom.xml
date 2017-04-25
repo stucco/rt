@@ -57,26 +57,26 @@
     <dependency>
       <groupId>gov.ornl.stucco</groupId>
       <artifactId>entity-extractor</artifactId>
-      <version>1.0.0</version>
+      <version>1.5.0</version>
     </dependency>
     <dependency>
       <groupId>gov.ornl.stucco</groupId>
       <artifactId>relation-extractor</artifactId>
-      <version>1.0.0</version>
+      <version>1.5.0</version>
     </dependency>
     <dependency>
       <groupId>gov.ornl.stucco</groupId>
       <artifactId>alignment</artifactId>
-      <version>1.0.2</version>
+      <version>2.0.1</version>
     </dependency>
     <dependency>
       <groupId>gov.pnnl.stucco</groupId>
       <artifactId>doc-server-client-java</artifactId>
-      <version>1.0.1</version>
+      <version>1.5.0</version>
     </dependency>
     <dependency>
       <groupId>gov.ornl.stucco</groupId>
-      <artifactId>STIXExtractor</artifactId>
+      <artifactId>Extractors</artifactId>
       <version>1.0.0</version>
     </dependency>
   </dependencies>
@@ -105,8 +105,8 @@
         <artifactId>maven-compiler-plugin</artifactId>
         <version>3.1</version>
         <configuration>
-          <source>1.7</source>
-          <target>1.7</target>
+          <source>1.8</source>
+          <target>1.8</target>
           <showDeprecation>true</showDeprecation>
           <showWarnings>true</showWarnings>
           <fork>true</fork>

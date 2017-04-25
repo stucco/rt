@@ -5,30 +5,23 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
-import edu.stanford.nlp.pipeline.Annotation;
-import gov.ornl.stucco.ConfigLoader;
-import gov.ornl.stucco.RabbitMQConsumer; 
-import gov.ornl.stucco.RelationExtractor;
-import gov.ornl.stucco.entity.EntityLabeler;
-import gov.ornl.stucco.structured.StructuredTransformer;
-import gov.pnnl.stucco.doc_service_client.DocServiceClient;
-import gov.pnnl.stucco.doc_service_client.DocServiceException;
-
-import gov.ornl.stucco.alignment.PreprocessSTIX;
-import gov.ornl.stucco.alignment.GraphConstructor;
-import gov.ornl.stucco.alignment.Align;
-
-import STIXExtractor.StuccoExtractor;
-
-import org.mitre.stix.stix_1.STIXPackage;
-
-import org.json.JSONObject;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory; 
-
 import org.jdom2.Element;
+import org.json.JSONObject;
+import org.mitre.stix.stix_1.STIXPackage;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.rabbitmq.client.GetResponse;
+
+import edu.stanford.nlp.pipeline.Annotation;
+import gov.ornl.stucco.Align;
+import gov.ornl.stucco.ConfigLoader;
+import gov.ornl.stucco.GraphConstructor;
+import gov.ornl.stucco.RabbitMQConsumer;
+import gov.ornl.stucco.RelationExtractor;
+import gov.ornl.stucco.entity.EntityLabeler;
+import gov.ornl.stucco.preprocessors.PreprocessSTIX;
+import gov.ornl.stucco.stix_extractors.StuccoExtractor;
 
 public class UnstructuredTransformer {
 	private static final Logger logger = LoggerFactory.getLogger(UnstructuredTransformer.class);
@@ -186,7 +179,7 @@ public class UnstructuredTransformer {
 							}
 							
 							//Construct the subgraph from the concepts and relationships
-							String graphString = relationExtractor.createSubgraph(annotatedDoc, dataSource);
+							String graphString = relationExtractor.createSubgraph(annotatedDoc, dataSource, title);
 							if (graphString != null) {
 								try {
 									JSONObject graph = new JSONObject(graphString);
