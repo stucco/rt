@@ -1,7 +1,6 @@
 language: java
 jdk:
-  - oraclejdk7
-  - openjdk7
+  - oraclejdk8
 before_install:
   - mvn --non-recursive scm:checkout -Dmodule.name=document-service-client-java -DscmVersion=1.0.1 -DscmVersionType=tag
   - mvn --non-recursive scm:checkout -Dmodule.name=STIXExtractors -DscmVersion=1.0.0 -DscmVersionType=tag
